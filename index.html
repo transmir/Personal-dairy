@@ -63,8 +63,7 @@
         .video-container { background: black; border-radius: 10px; overflow: hidden; margin: 20px 0; max-width: 640px; }
         video { width: 100%; display: block; }
         .button-group { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .profile-section { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 600px; }
-        /* Habit settings */
+        .profile-section { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 600px; margin-bottom: 20px; }
         .habit-toggle-item { display: flex; align-items: center; gap: 15px; padding: 10px; border-bottom: 1px solid #eee; }
         .habit-toggle-icon { font-size: 1.5em; }
         .habit-toggle-name { flex: 1; }
@@ -76,6 +75,12 @@
         input:checked + .slider:before { transform: translateX(22px); }
         .sortable-list .habit-order-item { display: flex; align-items: center; gap: 10px; padding: 8px; background: #f8f8f8; margin-bottom: 5px; border-radius: 5px; cursor: move; }
         .drag-handle { cursor: grab; color: #999; margin-right: 10px; }
+        .todo-input-area { display: flex; gap: 10px; margin-bottom: 20px; }
+        .todo-list { list-style: none; }
+        .todo-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: #f8f8f8; margin-bottom: 8px; border-radius: 5px; }
+        .todo-item.completed { text-decoration: line-through; opacity: 0.7; }
+        .todo-item button { margin-left: auto; }
+        .delete-custom-btn { background: none; border: none; color: #e74c3c; cursor: pointer; }
         @media (max-width: 768px) {
             .dashboard { flex-direction: column; }
             .sidebar { width: 100%; }
@@ -125,6 +130,7 @@
                 <li class="nav-tab active" onclick="switchTab('daily')"><i class="fas fa-calendar-day"></i> Daily Habits</li>
                 <li class="nav-tab" onclick="switchTab('video')"><i class="fas fa-video"></i> Video Diary</li>
                 <li class="nav-tab" onclick="switchTab('notes')"><i class="fas fa-sticky-note"></i> Notes</li>
+                <li class="nav-tab" onclick="switchTab('todo')"><i class="fas fa-tasks"></i> To‑Do List</li>
                 <li class="nav-tab" onclick="switchTab('profile')"><i class="fas fa-user-cog"></i> Profile</li>
                 <li class="nav-tab" onclick="switchTab('settings')"><i class="fas fa-cogs"></i> Customize Habits</li>
             </ul>
@@ -165,6 +171,22 @@
                 </div>
             </div>
 
+            <!-- To‑Do List Tab -->
+            <div id="tab-todo" class="tab-content">
+                <div class="page-header"><h1>✅ To‑Do List</h1></div>
+                <div class="profile-section">
+                    <div class="input-row">
+                        <label>Date</label>
+                        <input type="date" id="todoDate">
+                    </div>
+                    <div class="todo-input-area">
+                        <input type="text" id="todoInput" placeholder="Enter a new task..." style="flex:1;">
+                        <button class="btn btn-primary btn-small" onclick="addTodo()"><i class="fas fa-plus"></i> Add</button>
+                    </div>
+                    <ul id="todoList" class="todo-list"></ul>
+                </div>
+            </div>
+
             <!-- Profile Tab -->
             <div id="tab-profile" class="tab-content">
                 <div class="page-header"><h1>👤 Profile Settings</h1></div>
@@ -184,6 +206,12 @@
                     <div class="profile-section">
                         <h3>Enable / Disable</h3>
                         <div id="habitToggleList"></div>
+                        <h3 style="margin-top: 20px;">Add Custom Habit</h3>
+                        <div class="input-row"><label>Habit Name</label><input type="text" id="customHabitName" placeholder="e.g., Guitar Practice"></div>
+                        <div class="input-row"><label>Icon (emoji)</label><input type="text" id="customHabitIcon" placeholder="🎸" maxlength="2"></div>
+                        <div class="input-row"><label>Unit</label><select id="customHabitUnit"><option value="minutes">Minutes</option><option value="hours">Hours</option><option value="count">Count</option><option value="yesno">Yes/No</option></select></div>
+                        <button class="btn btn-success btn-small" onclick="addCustomHabit()"><i class="fas fa-plus"></i> Add Habit</button>
+                        <div id="customHabitsList" style="margin-top: 15px;"></div>
                     </div>
                     <div class="profile-section">
                         <h3>Reorder Habits</h3>
@@ -202,7 +230,7 @@
         let mediaRecorder = null;
         let recordedChunks = [];
 
-        // Habit templates – now includes all PhD habits
+        // Built‑in habit templates (PhD edition)
         const habitTemplates = {
             sleep: { name: 'Sleep', icon: '😴', fields: [{ name: 'hours', label: 'Hours', type: 'number', min: 0, max: 24, step: 0.5 }, { name: 'quality', label: 'Quality (1-5)', type: 'number', min: 1, max: 5 }] },
             study: { name: 'Study', icon: '📚', fields: [{ name: 'hours', label: 'Hours', type: 'number', min: 0, max: 24, step: 0.5 }, { name: 'subject', label: 'Subject', type: 'text' }] },
@@ -232,9 +260,9 @@
             weeklyPlanning: { name: 'Weekly Planning', icon: '📅', fields: [{ name: 'done', label: 'Done?', type: 'yesno' }] }
         };
 
-        // Default enabled habits order for new users (all PhD ones + basics)
-        const defaultHabitOrder = ['sleep','study','exercise','water','meditation','reading','paperReading','paperNotes','coding','experiments','resultAnalysis','mathTheory','litWriting','ideas','thesisWriting','paperDrafting','figures','revision','outdoorWalk','eyeRest','posture','screenFree','gratitude','social','hobby','weeklyPlanning'];
-        const defaultEnabled = [...defaultHabitOrder]; // all enabled by default
+        // Default settings (all enabled)
+        const defaultHabitOrder = Object.keys(habitTemplates);
+        const defaultEnabled = [...defaultHabitOrder];
 
         // ========== AUTH ==========
         function checkAuth() {
@@ -284,10 +312,11 @@
             localStorage.setItem('diary_users', JSON.stringify(users));
             localStorage.setItem('currentUser', JSON.stringify(newUser));
             currentUser = newUser;
-            // Initialize habit settings for this user
+            // Initialize habit settings
             localStorage.setItem('habitsSettings_' + newUser.id, JSON.stringify({
                 enabledHabits: defaultEnabled,
-                habitOrder: defaultHabitOrder
+                habitOrder: defaultHabitOrder,
+                customHabits: []  // user custom habits
             }));
             showAuthMsg('registerMessage','Account created! Redirecting...','success');
             setTimeout(() => showDashboard(), 600);
@@ -308,16 +337,19 @@
             document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             document.getElementById('profileDisplayName').value = currentUser.displayName || '';
             document.getElementById('profileEmail').value = currentUser.email || '';
+            // Set todo date to today
+            document.getElementById('todoDate').value = new Date().toISOString().split('T')[0];
             loadHabitUI();
             loadTodayData();
+            loadTodoList();
         }
 
-        // Generate habit cards based on user settings
+        // ---------- HABIT SETTINGS ----------
         function getHabitSettings() {
             const key = 'habitsSettings_' + currentUser.id;
             let settings = JSON.parse(localStorage.getItem(key));
             if (!settings) {
-                settings = { enabledHabits: defaultEnabled, habitOrder: defaultHabitOrder };
+                settings = { enabledHabits: defaultEnabled, habitOrder: defaultHabitOrder, customHabits: [] };
                 localStorage.setItem(key, JSON.stringify(settings));
             }
             return settings;
@@ -326,24 +358,34 @@
             localStorage.setItem('habitsSettings_' + currentUser.id, JSON.stringify(settings));
         }
 
+        // Generate dynamic habit cards (including custom)
         function loadHabitUI() {
             const settings = getHabitSettings();
             const container = document.getElementById('habitsContainer');
             let html = '';
+            // Combine built-in and custom habits into a lookup
+            const allTemplates = { ...habitTemplates };
+            settings.customHabits.forEach(ch => {
+                allTemplates['custom_' + ch.name] = {
+                    name: ch.name,
+                    icon: ch.icon,
+                    fields: [{ name: 'value', label: ch.unit === 'yesno' ? 'Done?' : (ch.unit === 'hours' ? 'Hours' : ch.unit === 'count' ? 'Count' : 'Minutes'), type: ch.unit === 'yesno' ? 'yesno' : 'number', min: 0 }]
+                };
+            });
+
             settings.habitOrder.forEach(key => {
-                if (settings.enabledHabits.includes(key) && habitTemplates[key]) {
-                    html += generateCard(key, habitTemplates[key]);
+                if (settings.enabledHabits.includes(key) && allTemplates[key]) {
+                    html += generateCard(key, allTemplates[key]);
                 }
             });
             container.innerHTML = html;
-            // load toggles and order list in settings tab
             renderSettingsTab(settings);
         }
 
         function generateCard(key, template) {
             let fieldsHtml = template.fields.map(f => {
                 let input = '';
-                if (f.type === 'number') input = `<input type="number" id="${key}_${f.name}" min="${f.min || 0}" max="${f.max || ''}" step="${f.step || 1}" placeholder="0">`;
+                if (f.type === 'number') input = `<input type="number" id="${key}_${f.name}" min="${f.min || 0}" step="${f.step || 1}" placeholder="0">`;
                 else if (f.type === 'text') input = `<input type="text" id="${key}_${f.name}" placeholder="${f.label}">`;
                 else if (f.type === 'select') {
                     input = `<select id="${key}_${f.name}"><option value="">Select</option>${(f.options||[]).map(o => `<option value="${o}">${o}</option>`).join('')}</select>`;
@@ -362,9 +404,13 @@
         function renderSettingsTab(settings) {
             // Toggle list
             const toggleDiv = document.getElementById('habitToggleList');
+            const allTemplates = { ...habitTemplates };
+            settings.customHabits.forEach(ch => {
+                allTemplates['custom_' + ch.name] = { name: ch.name, icon: ch.icon };
+            });
             let toggleHtml = '';
-            for (let key in habitTemplates) {
-                const habit = habitTemplates[key];
+            for (let key in allTemplates) {
+                const habit = allTemplates[key];
                 const enabled = settings.enabledHabits.includes(key);
                 toggleHtml += `<div class="habit-toggle-item">
                     <span class="habit-toggle-icon">${habit.icon}</span>
@@ -372,24 +418,32 @@
                     <label class="switch">
                         <input type="checkbox" ${enabled ? 'checked' : ''} onchange="toggleHabit('${key}', this.checked)">
                         <span class="slider"></span>
-                    </label>
-                </div>`;
+                    </label>`;
+                if (key.startsWith('custom_')) {
+                    toggleHtml += `<button class="delete-custom-btn" onclick="deleteCustomHabit('${key}')"><i class="fas fa-trash"></i></button>`;
+                }
+                toggleHtml += `</div>`;
             }
             toggleDiv.innerHTML = toggleHtml;
+
+            // Custom habits list (for deletion)
+            const customListDiv = document.getElementById('customHabitsList');
+            customListDiv.innerHTML = settings.customHabits.map(ch =>
+                `<div class="habit-toggle-item"><span>${ch.icon} ${ch.name} (${ch.unit})</span></div>`
+            ).join('');
 
             // Order list
             const orderDiv = document.getElementById('habitOrderList');
             let orderHtml = '';
             settings.habitOrder.forEach(key => {
-                if (habitTemplates[key]) {
-                    const h = habitTemplates[key];
-                    orderHtml += `<div class="habit-order-item" data-habit="${key}">
+                if (allTemplates[key]) {
+                    const h = allTemplates[key];
+                    orderHtml += `<div class="habit-order-item" data-habit="${key}" draggable="true">
                         <span class="drag-handle">☰</span> ${h.icon} ${h.name}
                     </div>`;
                 }
             });
             orderDiv.innerHTML = orderHtml;
-            // Make sortable (simple drag)
             enableDragSort(orderDiv);
         }
 
@@ -399,17 +453,13 @@
                 draggedItem = e.target.closest('.habit-order-item');
                 if (draggedItem) { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', ''); }
             });
-            container.addEventListener('dragover', e => { e.preventDefault(); });
+            container.addEventListener('dragover', e => e.preventDefault());
             container.addEventListener('drop', e => {
                 e.preventDefault();
                 const after = e.target.closest('.habit-order-item');
                 if (draggedItem && after && draggedItem !== after) {
                     container.insertBefore(draggedItem, after.nextSibling || after);
                 }
-            });
-            // Make items draggable
-            container.querySelectorAll('.habit-order-item').forEach(item => {
-                item.setAttribute('draggable', true);
             });
         }
 
@@ -425,23 +475,63 @@
             renderSettingsTab(settings);
         }
 
+        function addCustomHabit() {
+            const name = document.getElementById('customHabitName').value.trim();
+            const icon = document.getElementById('customHabitIcon').value.trim() || '✨';
+            const unit = document.getElementById('customHabitUnit').value;
+            if (!name) { showMessage('settingsMessage','Enter habit name','error'); return; }
+            const settings = getHabitSettings();
+            // Check for duplicate
+            if (settings.customHabits.find(h => h.name === name) || habitTemplates['custom_' + name]) {
+                showMessage('settingsMessage','Habit already exists','error'); return;
+            }
+            const newKey = 'custom_' + name;
+            settings.customHabits.push({ name, icon, unit });
+            // Enable and add to order
+            if (!settings.enabledHabits.includes(newKey)) settings.enabledHabits.push(newKey);
+            if (!settings.habitOrder.includes(newKey)) settings.habitOrder.push(newKey);
+            saveHabitSettingsToStorage(settings);
+            document.getElementById('customHabitName').value = '';
+            document.getElementById('customHabitIcon').value = '';
+            loadHabitUI(); // refresh all
+            showMessage('settingsMessage','Custom habit added!','success');
+        }
+
+        function deleteCustomHabit(key) {
+            const settings = getHabitSettings();
+            const name = key.replace('custom_', '');
+            settings.customHabits = settings.customHabits.filter(h => h.name !== name);
+            settings.enabledHabits = settings.enabledHabits.filter(h => h !== key);
+            settings.habitOrder = settings.habitOrder.filter(h => h !== key);
+            saveHabitSettingsToStorage(settings);
+            loadHabitUI();
+        }
+
         function saveHabitSettings() {
             const settings = getHabitSettings();
             const orderItems = Array.from(document.querySelectorAll('#habitOrderList .habit-order-item'))
                 .map(item => item.dataset.habit);
             settings.habitOrder = orderItems;
             saveHabitSettingsToStorage(settings);
-            loadHabitUI(); // refresh main grid
-            showMessage('settingsMessage', '✅ Habit settings saved!', 'success');
+            loadHabitUI();
+            showMessage('settingsMessage','✅ Habit settings saved!','success');
         }
 
-        // Save habits
+        // ---------- SAVE / LOAD HABITS ----------
         function saveHabits() {
             const settings = getHabitSettings();
+            const allTemplates = { ...habitTemplates };
+            settings.customHabits.forEach(ch => {
+                allTemplates['custom_' + ch.name] = {
+                    name: ch.name, icon: ch.icon,
+                    fields: [{ name: 'value', label: ch.unit === 'yesno' ? 'Done?' : (ch.unit === 'hours' ? 'Hours' : ch.unit === 'count' ? 'Count' : 'Minutes'), type: ch.unit === 'yesno' ? 'yesno' : 'number' }]
+                };
+            });
+
             const data = {};
             settings.enabledHabits.forEach(key => {
-                if (!habitTemplates[key]) return;
-                const template = habitTemplates[key];
+                if (!allTemplates[key]) return;
+                const template = allTemplates[key];
                 const entry = {};
                 template.fields.forEach(f => {
                     const elId = `${key}_${f.name}`;
@@ -469,10 +559,17 @@
             const all = JSON.parse(localStorage.getItem(storageKey) || '{}');
             const today = all[date];
             if (!today) return;
-            // Fill fields
+            const settings = getHabitSettings();
+            const allTemplates = { ...habitTemplates };
+            settings.customHabits.forEach(ch => {
+                allTemplates['custom_' + ch.name] = {
+                    name: ch.name, icon: ch.icon,
+                    fields: [{ name: 'value', label: ch.unit === 'yesno' ? 'Done?' : (ch.unit === 'hours' ? 'Hours' : ch.unit === 'count' ? 'Count' : 'Minutes'), type: ch.unit === 'yesno' ? 'yesno' : 'number' }]
+                };
+            });
             for (let key in today) {
-                if (!habitTemplates[key]) continue;
-                const template = habitTemplates[key];
+                if (!allTemplates[key]) continue;
+                const template = allTemplates[key];
                 const values = today[key];
                 template.fields.forEach(f => {
                     const elId = `${key}_${f.name}`;
@@ -506,6 +603,56 @@
             showMessage('notesMessage', '✅ Notes saved!', 'success');
         }
 
+        // ---------- TO‑DO LIST ----------
+        function getTodosKey() { return 'todos_' + currentUser.id; }
+        function loadTodoList() {
+            const date = document.getElementById('todoDate').value;
+            const key = getTodosKey();
+            const all = JSON.parse(localStorage.getItem(key) || '{}');
+            const tasks = all[date] || [];
+            const ul = document.getElementById('todoList');
+            ul.innerHTML = tasks.map((task, i) => `
+                <li class="todo-item ${task.completed ? 'completed' : ''}">
+                    <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTodo('${date}', ${i})">
+                    <span>${task.text}</span>
+                    <button class="btn btn-danger btn-small" onclick="deleteTodo('${date}', ${i})"><i class="fas fa-trash"></i></button>
+                </li>
+            `).join('');
+        }
+        function addTodo() {
+            const date = document.getElementById('todoDate').value;
+            const text = document.getElementById('todoInput').value.trim();
+            if (!text) return;
+            const key = getTodosKey();
+            const all = JSON.parse(localStorage.getItem(key) || '{}');
+            if (!all[date]) all[date] = [];
+            all[date].push({ text, completed: false });
+            localStorage.setItem(key, JSON.stringify(all));
+            document.getElementById('todoInput').value = '';
+            loadTodoList();
+        }
+        function toggleTodo(date, index) {
+            const key = getTodosKey();
+            const all = JSON.parse(localStorage.getItem(key) || '{}');
+            if (all[date] && all[date][index]) {
+                all[date][index].completed = !all[date][index].completed;
+                localStorage.setItem(key, JSON.stringify(all));
+                loadTodoList();
+            }
+        }
+        function deleteTodo(date, index) {
+            const key = getTodosKey();
+            const all = JSON.parse(localStorage.getItem(key) || '{}');
+            if (all[date]) {
+                all[date].splice(index, 1);
+                localStorage.setItem(key, JSON.stringify(all));
+                loadTodoList();
+            }
+        }
+        // Listen for date change in todo tab
+        document.getElementById('todoDate').addEventListener('change', loadTodoList);
+
+        // ---------- PROFILE ----------
         function updateProfile() {
             const users = JSON.parse(localStorage.getItem('diary_users') || '{}');
             const user = users[currentUser.username];
@@ -531,7 +678,7 @@
             setTimeout(() => el.className = 'message', 3000);
         }
 
-        // Video
+        // ---------- VIDEO ----------
         async function setupCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -570,8 +717,13 @@
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
             event.target.closest('.nav-tab').classList.add('active');
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.getElementById('tab-' + tabName).classList.add('active');
+            const tabEl = document.getElementById('tab-' + tabName);
+            if (tabEl) tabEl.classList.add('active');
             if (tabName === 'video') setupCamera();
+            if (tabName === 'todo') {
+                document.getElementById('todoDate').value = new Date().toISOString().split('T')[0];
+                loadTodoList();
+            }
         }
 
         function logout() {
