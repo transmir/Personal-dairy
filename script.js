@@ -410,7 +410,7 @@ function saveHabits() {
     showSaveMessage('Habits saved successfully!', 'success');
     
     // Also save to Google Drive
-    if (GOOGLE_SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbyw4BaYNf5-rgGDaOtnsN3tinTGbVl6zpQwl7lQipzOw2Kjt8Gvr0xHmGogg1wuTMVK/exec') {
+    if (GOOGLE_SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbwIxLNnqQQMK-YY_DgQH_mMo-vOREnbraDJdZl99J5rNzqSRo8Y65bhN5zsWwllFDZK/exec') {
         saveToGoogleDrive(currentDate, habitData);
     }
 }
