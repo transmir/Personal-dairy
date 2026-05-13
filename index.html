@@ -3,42 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Diary & Habit Tracker – PhD Edition</title>
+    <title>Personal Diary & Habit Tracker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; }
 
-        /* Auth Pages */
-        .auth-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-        .auth-box { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 100%; max-width: 420px; }
-        .auth-header { text-align: center; margin-bottom: 30px; }
-        .auth-header i { font-size: 3em; color: #667eea; margin-bottom: 15px; }
-        .auth-header h1 { color: #333; margin-bottom: 10px; }
-        .auth-header p { color: #666; }
-        .auth-page { display: none; }
-        .auth-page.active { display: block; }
-        .form-group { margin-bottom: 20px; position: relative; }
+        /* Auth / Gate screens */
+        .gate-container { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 100%; max-width: 420px; text-align: center; }
+        .gate-container h1 { color: #333; margin-bottom: 10px; }
+        .gate-container i { font-size: 3em; color: #667eea; margin-bottom: 15px; }
+        .gate-screen { display: none; }
+        .gate-screen.active { display: block; }
+        .form-group { margin-bottom: 20px; text-align: left; }
         .form-group label { display: block; margin-bottom: 5px; color: #555; font-weight: 500; }
-        .form-group label i { width: 20px; color: #667eea; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em; transition: border-color 0.3s; }
-        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #667eea; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 1.1em; cursor: pointer; transition: all 0.3s; font-weight: 600; }
+        .form-group input { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 1.1em; cursor: pointer; font-weight: 600; transition: 0.3s; margin-top: 10px; }
         .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
-        .btn-small { width: auto; padding: 8px 16px; font-size: 0.9em; }
-        .btn-danger { background: #e74c3c; color: white; }
-        .btn-success { background: #27ae60; color: white; }
         .btn-secondary { background: #95a5a6; color: white; }
-        .auth-switch { text-align: center; margin-top: 20px; color: #666; }
-        .auth-switch a { color: #667eea; text-decoration: none; font-weight: 600; cursor: pointer; }
+        .user-select-buttons { display: flex; gap: 15px; justify-content: center; margin-top: 20px; }
+        .user-btn { flex: 1; padding: 20px; border: 2px solid #ddd; border-radius: 15px; background: white; cursor: pointer; transition: all 0.3s; font-size: 1.2em; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .user-btn:hover { border-color: #667eea; background: #f8f8ff; }
+        .user-btn i { font-size: 2em; color: #667eea; }
         .message { padding: 12px; border-radius: 8px; margin-top: 15px; display: none; text-align: center; }
         .message.error { display: block; background: #f8d7da; color: #721c24; }
         .message.success { display: block; background: #d4edda; color: #155724; }
 
-        /* Dashboard */
+        /* Dashboard (same as before) */
         .dashboard { display: none; }
-        .dashboard.active { display: flex; min-height: 100vh; }
+        .dashboard.active { display: flex; min-height: 100vh; width: 100%; }
         .sidebar { width: 260px; background: white; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); flex-shrink: 0; }
         .logo { font-size: 1.5em; font-weight: bold; color: #667eea; margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
         .user-info { display: flex; align-items: center; gap: 10px; padding: 15px; background: #f5f5f5; border-radius: 10px; margin-bottom: 20px; }
@@ -81,6 +75,7 @@
         .todo-item.completed { text-decoration: line-through; opacity: 0.7; }
         .todo-item button { margin-left: auto; }
         .delete-custom-btn { background: none; border: none; color: #e74c3c; cursor: pointer; }
+        .switch-user-btn { background: none; border: none; color: #667eea; cursor: pointer; font-size: 0.9em; margin-top: 5px; text-decoration: underline; }
         @media (max-width: 768px) {
             .dashboard { flex-direction: column; }
             .sidebar { width: 100%; }
@@ -89,42 +84,57 @@
     </style>
 </head>
 <body>
-    <!-- Login/Register Page -->
-    <div id="authPage" class="auth-container active">
-        <div class="auth-box">
-            <div class="auth-header">
-                <i class="fas fa-book"></i>
-                <h1>Personal Diary</h1>
-                <p>Your private space for memories and habits</p>
+    <!-- Password Gate & User Selection -->
+    <div id="gateContainer" class="gate-container">
+        <!-- Set Password Screen (first time) -->
+        <div id="setPasswordScreen" class="gate-screen">
+            <i class="fas fa-lock"></i>
+            <h1>Set Your Password</h1>
+            <p>Protect your diary with a password</p>
+            <div class="form-group">
+                <input type="password" id="newPassword" placeholder="Create password">
             </div>
-            <div id="loginForm" class="auth-page active">
-                <h2 style="text-align: center; margin-bottom: 20px;">Welcome Back</h2>
-                <div class="form-group"><label><i class="fas fa-user"></i> Username</label><input type="text" id="loginUsername" placeholder="Enter username"></div>
-                <div class="form-group"><label><i class="fas fa-lock"></i> Password</label><input type="password" id="loginPassword" placeholder="Enter password"></div>
-                <button class="btn btn-primary" onclick="login()"><i class="fas fa-sign-in-alt"></i> Login</button>
-                <p class="auth-switch">Don't have an account? <a onclick="showPage('registerForm')">Register here</a></p>
-                <div id="loginMessage" class="message"></div>
+            <button class="btn btn-primary" onclick="setPassword()">Set Password</button>
+        </div>
+
+        <!-- Enter Password Screen -->
+        <div id="enterPasswordScreen" class="gate-screen">
+            <i class="fas fa-lock"></i>
+            <h1>Enter Password</h1>
+            <div class="form-group">
+                <input type="password" id="enterPassword" placeholder="Password">
             </div>
-            <div id="registerForm" class="auth-page">
-                <h2 style="text-align: center; margin-bottom: 20px;">Create Account</h2>
-                <div class="form-group"><label><i class="fas fa-user"></i> Username</label><input type="text" id="regUsername" placeholder="Choose username"></div>
-                <div class="form-group"><label><i class="fas fa-envelope"></i> Email</label><input type="email" id="regEmail" placeholder="Enter email"></div>
-                <div class="form-group"><label><i class="fas fa-lock"></i> Password</label><input type="password" id="regPassword" placeholder="Create password"></div>
-                <div class="form-group"><label><i class="fas fa-lock"></i> Confirm Password</label><input type="password" id="regConfirmPassword" placeholder="Confirm password"></div>
-                <button class="btn btn-primary" onclick="register()"><i class="fas fa-user-plus"></i> Register</button>
-                <p class="auth-switch">Already have an account? <a onclick="showPage('loginForm')">Login here</a></p>
-                <div id="registerMessage" class="message"></div>
+            <button class="btn btn-primary" onclick="checkPassword()">Unlock</button>
+            <div id="pwMessage" class="message"></div>
+        </div>
+
+        <!-- Select User Screen -->
+        <div id="selectUserScreen" class="gate-screen">
+            <i class="fas fa-users"></i>
+            <h1>Who's Using the Diary?</h1>
+            <div class="user-select-buttons">
+                <div class="user-btn" onclick="selectUser('user1')">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="user1Name">Person 1</span>
+                </div>
+                <div class="user-btn" onclick="selectUser('user2')">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="user2Name">Person 2</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Dashboard -->
+    <!-- Dashboard (hidden until user selected) -->
     <div id="dashboard" class="dashboard">
         <nav class="sidebar">
             <div class="logo"><i class="fas fa-book"></i><span>My Diary</span></div>
             <div class="user-info">
                 <div class="avatar" id="sidebarAvatar">U</div>
-                <div><strong id="sidebarName">User</strong><br><small id="sidebarEmail">email</small></div>
+                <div>
+                    <strong id="sidebarName">User</strong>
+                    <button class="switch-user-btn" onclick="switchUser()">Switch user</button>
+                </div>
             </div>
             <ul class="nav-tabs">
                 <li class="nav-tab active" onclick="switchTab('daily')"><i class="fas fa-calendar-day"></i> Daily Habits</li>
@@ -134,7 +144,7 @@
                 <li class="nav-tab" onclick="switchTab('profile')"><i class="fas fa-user-cog"></i> Profile</li>
                 <li class="nav-tab" onclick="switchTab('settings')"><i class="fas fa-cogs"></i> Customize Habits</li>
             </ul>
-            <button class="btn btn-danger" onclick="logout()" style="margin-top: 20px;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            <button class="btn btn-danger" onclick="logout()" style="margin-top: 20px;"><i class="fas fa-sign-out-alt"></i> Lock Diary</button>
         </nav>
         <main class="main-content">
             <!-- Daily Habits Tab -->
@@ -189,13 +199,21 @@
 
             <!-- Profile Tab -->
             <div id="tab-profile" class="tab-content">
-                <div class="page-header"><h1>👤 Profile Settings</h1></div>
+                <div class="page-header"><h1>👤 Profile & Password</h1></div>
                 <div class="profile-section">
-                    <div class="input-row"><label>Display Name</label><input type="text" id="profileDisplayName"></div>
-                    <div class="input-row"><label>Email</label><input type="email" id="profileEmail"></div>
-                    <div class="input-row"><label>New Password (leave blank)</label><input type="password" id="profilePassword" placeholder="New password"></div>
-                    <button class="btn btn-primary" onclick="updateProfile()" style="width: auto;"><i class="fas fa-save"></i> Update Profile</button>
+                    <h3>Your Profile Name</h3>
+                    <div class="input-row">
+                        <label>Display Name</label>
+                        <input type="text" id="profileDisplayName">
+                    </div>
+                    <button class="btn btn-primary" onclick="updateProfile()" style="width: auto;"><i class="fas fa-save"></i> Update Name</button>
                     <div id="profileMessage" class="message"></div>
+                </div>
+                <div class="profile-section" style="margin-top: 20px;">
+                    <h3>Change Diary Password</h3>
+                    <div class="input-row"><label>New Password</label><input type="password" id="newAppPassword" placeholder="Leave blank to keep current"></div>
+                    <button class="btn btn-primary" onclick="changePassword()" style="width: auto;"><i class="fas fa-key"></i> Update Password</button>
+                    <div id="passwordMessage" class="message"></div>
                 </div>
             </div>
 
@@ -225,12 +243,108 @@
     </div>
 
     <script>
-        // ============ APP LOGIC ============
-        let currentUser = null;
-        let mediaRecorder = null;
-        let recordedChunks = [];
+        // ---------- APP CONFIG ----------
+        let currentUser = null; // { id: 'user1' or 'user2', displayName: ... }
+        let mediaRecorder = null, recordedChunks = [];
 
-        // Built‑in habit templates (PhD edition)
+        // ---------- USER DATA HELPERS ----------
+        function getUserData() {
+            const data = localStorage.getItem('user_data');
+            return data ? JSON.parse(data) : {
+                user1: { displayName: 'Person 1' },
+                user2: { displayName: 'Person 2' }
+            };
+        }
+        function saveUserData(data) { localStorage.setItem('user_data', JSON.stringify(data)); }
+        function getUserDisplayName(userId) { return getUserData()[userId].displayName; }
+
+        // ---------- PASSWORD MANAGEMENT ----------
+        function getStoredPassword() { return localStorage.getItem('app_password'); }
+        function setStoredPassword(pw) { localStorage.setItem('app_password', pw); }
+
+        // ---------- GATE SCREENS ----------
+        function showGateScreen(screenId) {
+            document.querySelectorAll('.gate-screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showDashboard() {
+            document.getElementById('gateContainer').style.display = 'none';
+            document.getElementById('dashboard').classList.add('active');
+            document.getElementById('sidebarName').textContent = currentUser.displayName;
+            document.getElementById('sidebarAvatar').textContent = currentUser.displayName.charAt(0).toUpperCase();
+            document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+            document.getElementById('profileDisplayName').value = currentUser.displayName;
+            document.getElementById('todoDate').value = new Date().toISOString().split('T')[0];
+            loadHabitUI();
+            loadTodayData();
+            loadTodoList();
+        }
+
+        function lockApp() {
+            document.getElementById('dashboard').classList.remove('active');
+            document.getElementById('gateContainer').style.display = 'block';
+            currentUser = null;
+            showGateScreen('enterPasswordScreen');
+        }
+
+        // Initialise gate
+        function initGate() {
+            const storedPw = getStoredPassword();
+            if (!storedPw) {
+                showGateScreen('setPasswordScreen');
+            } else {
+                showGateScreen('enterPasswordScreen');
+            }
+        }
+
+        window.setPassword = function() {
+            const pw = document.getElementById('newPassword').value.trim();
+            if (pw.length < 4) {
+                alert('Password must be at least 4 characters');
+                return;
+            }
+            setStoredPassword(pw);
+            // After setting password, go to user selection
+            updateUserSelectionNames();
+            showGateScreen('selectUserScreen');
+        };
+
+        window.checkPassword = function() {
+            const entered = document.getElementById('enterPassword').value.trim();
+            const stored = getStoredPassword();
+            if (entered === stored) {
+                updateUserSelectionNames();
+                showGateScreen('selectUserScreen');
+                document.getElementById('pwMessage').className = 'message'; // hide
+            } else {
+                const msg = document.getElementById('pwMessage');
+                msg.textContent = 'Incorrect password';
+                msg.className = 'message error';
+            }
+        };
+
+        function updateUserSelectionNames() {
+            const data = getUserData();
+            document.getElementById('user1Name').textContent = data.user1.displayName;
+            document.getElementById('user2Name').textContent = data.user2.displayName;
+        }
+
+        window.selectUser = function(userId) {
+            const data = getUserData();
+            currentUser = { id: userId, displayName: data[userId].displayName };
+            showDashboard();
+        };
+
+        window.switchUser = function() {
+            if (confirm('Switch to the other user?')) {
+                lockApp(); // go back to user selection
+            }
+        };
+
+        // ---------- HABIT TEMPLATES (same as before) ----------
         const habitTemplates = {
             sleep: { name: 'Sleep', icon: '😴', fields: [{ name: 'hours', label: 'Hours', type: 'number', min: 0, max: 24, step: 0.5 }, { name: 'quality', label: 'Quality (1-5)', type: 'number', min: 1, max: 5 }] },
             study: { name: 'Study', icon: '📚', fields: [{ name: 'hours', label: 'Hours', type: 'number', min: 0, max: 24, step: 0.5 }, { name: 'subject', label: 'Subject', type: 'text' }] },
@@ -259,92 +373,10 @@
             hobby: { name: 'Hobby / Fun', icon: '🎸', fields: [{ name: 'minutes', label: 'Minutes', type: 'number', min: 0 }] },
             weeklyPlanning: { name: 'Weekly Planning', icon: '📅', fields: [{ name: 'done', label: 'Done?', type: 'yesno' }] }
         };
-
-        // Default settings (all enabled)
         const defaultHabitOrder = Object.keys(habitTemplates);
         const defaultEnabled = [...defaultHabitOrder];
 
-        // ========== AUTH ==========
-        function checkAuth() {
-            const saved = localStorage.getItem('currentUser');
-            if (saved) { currentUser = JSON.parse(saved); showDashboard(); }
-        }
-        function showPage(id) {
-            document.querySelectorAll('.auth-page').forEach(p => p.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.getElementById('loginMessage').className = 'message';
-            document.getElementById('registerMessage').className = 'message';
-        }
-        function login() {
-            const username = document.getElementById('loginUsername').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            if (!username || !password) { showAuthMsg('loginMessage','Fill all fields','error'); return; }
-            const users = JSON.parse(localStorage.getItem('diary_users') || '{}');
-            if (users[username] && users[username].password === password) {
-                users[username].lastLogin = new Date().toISOString();
-                localStorage.setItem('diary_users', JSON.stringify(users));
-                localStorage.setItem('currentUser', JSON.stringify(users[username]));
-                currentUser = users[username];
-                showDashboard();
-            } else { showAuthMsg('loginMessage','Invalid credentials','error'); }
-        }
-        function register() {
-            const username = document.getElementById('regUsername').value.trim();
-            const email = document.getElementById('regEmail').value.trim();
-            const password = document.getElementById('regPassword').value;
-            const confirm = document.getElementById('regConfirmPassword').value;
-            if (!username || !email || !password) { showAuthMsg('registerMessage','Fill all fields','error'); return; }
-            if (username.length < 3) { showAuthMsg('registerMessage','Username too short','error'); return; }
-            if (password.length < 4) { showAuthMsg('registerMessage','Password too short','error'); return; }
-            if (password !== confirm) { showAuthMsg('registerMessage','Passwords mismatch','error'); return; }
-            if (!email.includes('@')) { showAuthMsg('registerMessage','Invalid email','error'); return; }
-            const users = JSON.parse(localStorage.getItem('diary_users') || '{}');
-            if (users[username]) { showAuthMsg('registerMessage','Username exists','error'); return; }
-            const newUser = {
-                id: 'user_' + Date.now(),
-                username, email, password,
-                displayName: username,
-                avatar: username.charAt(0).toUpperCase(),
-                createdAt: new Date().toISOString(),
-                lastLogin: new Date().toISOString()
-            };
-            users[username] = newUser;
-            localStorage.setItem('diary_users', JSON.stringify(users));
-            localStorage.setItem('currentUser', JSON.stringify(newUser));
-            currentUser = newUser;
-            // Initialize habit settings
-            localStorage.setItem('habitsSettings_' + newUser.id, JSON.stringify({
-                enabledHabits: defaultEnabled,
-                habitOrder: defaultHabitOrder,
-                customHabits: []  // user custom habits
-            }));
-            showAuthMsg('registerMessage','Account created! Redirecting...','success');
-            setTimeout(() => showDashboard(), 600);
-        }
-        function showAuthMsg(id, msg, type) {
-            const el = document.getElementById(id);
-            el.textContent = msg; el.className = 'message ' + type;
-            setTimeout(() => el.className = 'message', 3000);
-        }
-
-        // ========== DASHBOARD ==========
-        function showDashboard() {
-            document.getElementById('authPage').style.display = 'none';
-            document.getElementById('dashboard').classList.add('active');
-            document.getElementById('sidebarAvatar').textContent = currentUser.avatar;
-            document.getElementById('sidebarName').textContent = currentUser.displayName;
-            document.getElementById('sidebarEmail').textContent = currentUser.email;
-            document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            document.getElementById('profileDisplayName').value = currentUser.displayName || '';
-            document.getElementById('profileEmail').value = currentUser.email || '';
-            // Set todo date to today
-            document.getElementById('todoDate').value = new Date().toISOString().split('T')[0];
-            loadHabitUI();
-            loadTodayData();
-            loadTodoList();
-        }
-
-        // ---------- HABIT SETTINGS ----------
+        // ---------- HABIT SETTINGS (per user) ----------
         function getHabitSettings() {
             const key = 'habitsSettings_' + currentUser.id;
             let settings = JSON.parse(localStorage.getItem(key));
@@ -358,21 +390,18 @@
             localStorage.setItem('habitsSettings_' + currentUser.id, JSON.stringify(settings));
         }
 
-        // Generate dynamic habit cards (including custom)
         function loadHabitUI() {
             const settings = getHabitSettings();
             const container = document.getElementById('habitsContainer');
-            let html = '';
-            // Combine built-in and custom habits into a lookup
             const allTemplates = { ...habitTemplates };
             settings.customHabits.forEach(ch => {
                 allTemplates['custom_' + ch.name] = {
-                    name: ch.name,
-                    icon: ch.icon,
+                    name: ch.name, icon: ch.icon,
                     fields: [{ name: 'value', label: ch.unit === 'yesno' ? 'Done?' : (ch.unit === 'hours' ? 'Hours' : ch.unit === 'count' ? 'Count' : 'Minutes'), type: ch.unit === 'yesno' ? 'yesno' : 'number', min: 0 }]
                 };
             });
 
+            let html = '';
             settings.habitOrder.forEach(key => {
                 if (settings.enabledHabits.includes(key) && allTemplates[key]) {
                     html += generateCard(key, allTemplates[key]);
@@ -400,9 +429,7 @@
             return `<div class="habit-card" data-habit="${key}"><h3>${template.icon} ${template.name}</h3>${fieldsHtml}</div>`;
         }
 
-        // Settings tab rendering
         function renderSettingsTab(settings) {
-            // Toggle list
             const toggleDiv = document.getElementById('habitToggleList');
             const allTemplates = { ...habitTemplates };
             settings.customHabits.forEach(ch => {
@@ -426,13 +453,10 @@
             }
             toggleDiv.innerHTML = toggleHtml;
 
-            // Custom habits list (for deletion)
-            const customListDiv = document.getElementById('customHabitsList');
-            customListDiv.innerHTML = settings.customHabits.map(ch =>
+            document.getElementById('customHabitsList').innerHTML = settings.customHabits.map(ch =>
                 `<div class="habit-toggle-item"><span>${ch.icon} ${ch.name} (${ch.unit})</span></div>`
             ).join('');
 
-            // Order list
             const orderDiv = document.getElementById('habitOrderList');
             let orderHtml = '';
             settings.habitOrder.forEach(key => {
@@ -463,7 +487,7 @@
             });
         }
 
-        function toggleHabit(key, enabled) {
+        window.toggleHabit = function(key, enabled) {
             const settings = getHabitSettings();
             if (enabled && !settings.enabledHabits.includes(key)) {
                 settings.enabledHabits.push(key);
@@ -473,31 +497,29 @@
             }
             saveHabitSettingsToStorage(settings);
             renderSettingsTab(settings);
-        }
+        };
 
-        function addCustomHabit() {
+        window.addCustomHabit = function() {
             const name = document.getElementById('customHabitName').value.trim();
             const icon = document.getElementById('customHabitIcon').value.trim() || '✨';
             const unit = document.getElementById('customHabitUnit').value;
             if (!name) { showMessage('settingsMessage','Enter habit name','error'); return; }
             const settings = getHabitSettings();
-            // Check for duplicate
-            if (settings.customHabits.find(h => h.name === name) || habitTemplates['custom_' + name]) {
+            const newKey = 'custom_' + name;
+            if (settings.customHabits.find(h => h.name === name) || habitTemplates[newKey]) {
                 showMessage('settingsMessage','Habit already exists','error'); return;
             }
-            const newKey = 'custom_' + name;
             settings.customHabits.push({ name, icon, unit });
-            // Enable and add to order
             if (!settings.enabledHabits.includes(newKey)) settings.enabledHabits.push(newKey);
             if (!settings.habitOrder.includes(newKey)) settings.habitOrder.push(newKey);
             saveHabitSettingsToStorage(settings);
             document.getElementById('customHabitName').value = '';
             document.getElementById('customHabitIcon').value = '';
-            loadHabitUI(); // refresh all
+            loadHabitUI();
             showMessage('settingsMessage','Custom habit added!','success');
-        }
+        };
 
-        function deleteCustomHabit(key) {
+        window.deleteCustomHabit = function(key) {
             const settings = getHabitSettings();
             const name = key.replace('custom_', '');
             settings.customHabits = settings.customHabits.filter(h => h.name !== name);
@@ -505,19 +527,18 @@
             settings.habitOrder = settings.habitOrder.filter(h => h !== key);
             saveHabitSettingsToStorage(settings);
             loadHabitUI();
-        }
+        };
 
-        function saveHabitSettings() {
+        window.saveHabitSettings = function() {
             const settings = getHabitSettings();
-            const orderItems = Array.from(document.querySelectorAll('#habitOrderList .habit-order-item'))
-                .map(item => item.dataset.habit);
+            const orderItems = Array.from(document.querySelectorAll('#habitOrderList .habit-order-item')).map(i => i.dataset.habit);
             settings.habitOrder = orderItems;
             saveHabitSettingsToStorage(settings);
             loadHabitUI();
             showMessage('settingsMessage','✅ Habit settings saved!','success');
-        }
+        };
 
-        // ---------- SAVE / LOAD HABITS ----------
+        // ---------- SAVE / LOAD DATA (per user) ----------
         function saveHabits() {
             const settings = getHabitSettings();
             const allTemplates = { ...habitTemplates };
@@ -527,7 +548,6 @@
                     fields: [{ name: 'value', label: ch.unit === 'yesno' ? 'Done?' : (ch.unit === 'hours' ? 'Hours' : ch.unit === 'count' ? 'Count' : 'Minutes'), type: ch.unit === 'yesno' ? 'yesno' : 'number' }]
                 };
             });
-
             const data = {};
             settings.enabledHabits.forEach(key => {
                 if (!allTemplates[key]) return;
@@ -585,7 +605,6 @@
                     }
                 });
             }
-            // notes
             const notesKey = 'notes_' + currentUser.id;
             const notesAll = JSON.parse(localStorage.getItem(notesKey) || '{}');
             if (notesAll[date] && notesAll[date].journal) {
@@ -603,7 +622,7 @@
             showMessage('notesMessage', '✅ Notes saved!', 'success');
         }
 
-        // ---------- TO‑DO LIST ----------
+        // ---------- TO‑DO (per user) ----------
         function getTodosKey() { return 'todos_' + currentUser.id; }
         function loadTodoList() {
             const date = document.getElementById('todoDate').value;
@@ -619,7 +638,7 @@
                 </li>
             `).join('');
         }
-        function addTodo() {
+        window.addTodo = function() {
             const date = document.getElementById('todoDate').value;
             const text = document.getElementById('todoInput').value.trim();
             if (!text) return;
@@ -630,8 +649,8 @@
             localStorage.setItem(key, JSON.stringify(all));
             document.getElementById('todoInput').value = '';
             loadTodoList();
-        }
-        function toggleTodo(date, index) {
+        };
+        window.toggleTodo = function(date, index) {
             const key = getTodosKey();
             const all = JSON.parse(localStorage.getItem(key) || '{}');
             if (all[date] && all[date][index]) {
@@ -639,8 +658,8 @@
                 localStorage.setItem(key, JSON.stringify(all));
                 loadTodoList();
             }
-        }
-        function deleteTodo(date, index) {
+        };
+        window.deleteTodo = function(date, index) {
             const key = getTodosKey();
             const all = JSON.parse(localStorage.getItem(key) || '{}');
             if (all[date]) {
@@ -648,28 +667,34 @@
                 localStorage.setItem(key, JSON.stringify(all));
                 loadTodoList();
             }
-        }
-        // Listen for date change in todo tab
+        };
         document.getElementById('todoDate').addEventListener('change', loadTodoList);
 
-        // ---------- PROFILE ----------
-        function updateProfile() {
-            const users = JSON.parse(localStorage.getItem('diary_users') || '{}');
-            const user = users[currentUser.username];
-            if (!user) return;
-            user.displayName = document.getElementById('profileDisplayName').value || user.username;
-            user.email = document.getElementById('profileEmail').value || user.email;
-            const pass = document.getElementById('profilePassword').value;
-            if (pass && pass.length >= 4) user.password = pass;
-            users[currentUser.username] = user;
-            localStorage.setItem('diary_users', JSON.stringify(users));
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            currentUser = user;
-            document.getElementById('sidebarName').textContent = user.displayName;
-            document.getElementById('sidebarEmail').textContent = user.email;
-            document.getElementById('sidebarAvatar').textContent = user.displayName.charAt(0).toUpperCase();
-            showMessage('profileMessage', '✅ Profile updated!', 'success');
-        }
+        // ---------- PROFILE & PASSWORD ----------
+        window.updateProfile = function() {
+            const newName = document.getElementById('profileDisplayName').value.trim();
+            if (!newName) return;
+            const userData = getUserData();
+            userData[currentUser.id].displayName = newName;
+            saveUserData(userData);
+            currentUser.displayName = newName;
+            document.getElementById('sidebarName').textContent = newName;
+            document.getElementById('sidebarAvatar').textContent = newName.charAt(0).toUpperCase();
+            showMessage('profileMessage', '✅ Profile name updated!', 'success');
+            // Also update user selection screen if they go back
+            updateUserSelectionNames();
+        };
+
+        window.changePassword = function() {
+            const newPw = document.getElementById('newAppPassword').value.trim();
+            if (newPw.length < 4) {
+                showMessage('passwordMessage', 'Password must be at least 4 characters', 'error');
+                return;
+            }
+            setStoredPassword(newPw);
+            document.getElementById('newAppPassword').value = '';
+            showMessage('passwordMessage', '✅ Password changed!', 'success');
+        };
 
         function showMessage(id, msg, type) {
             const el = document.getElementById(id);
@@ -695,7 +720,7 @@
                 };
             } catch (e) { console.log('Camera not available'); }
         }
-        function startRecording() {
+        window.startRecording = function() {
             if (mediaRecorder) {
                 recordedChunks = [];
                 mediaRecorder.start();
@@ -703,17 +728,18 @@
                 document.getElementById('stopBtn').disabled = false;
                 document.getElementById('recordingStatus').style.display = 'block';
             }
-        }
-        function stopRecording() {
+        };
+        window.stopRecording = function() {
             if (mediaRecorder && mediaRecorder.state === 'recording') {
                 mediaRecorder.stop();
                 document.getElementById('startBtn').disabled = false;
                 document.getElementById('stopBtn').disabled = true;
                 document.getElementById('recordingStatus').style.display = 'none';
             }
-        }
+        };
 
-        function switchTab(tabName) {
+        // ---------- TAB NAVIGATION ----------
+        window.switchTab = function(tabName) {
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
             event.target.closest('.nav-tab').classList.add('active');
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -724,20 +750,16 @@
                 document.getElementById('todoDate').value = new Date().toISOString().split('T')[0];
                 loadTodoList();
             }
-        }
+        };
 
-        function logout() {
-            if (confirm('Logout?')) {
-                localStorage.removeItem('currentUser');
-                currentUser = null;
-                document.getElementById('dashboard').classList.remove('active');
-                document.getElementById('authPage').style.display = 'flex';
-                document.getElementById('authPage').classList.add('active');
-                showPage('loginForm');
+        // ---------- LOGOUT ----------
+        window.logout = function() {
+            if (confirm('Lock the diary?')) {
+                lockApp();
             }
-        }
+        };
 
-        // Yes/No button toggles
+        // Global yes/no toggles
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('yesno-btn')) {
                 const group = e.target.parentNode;
@@ -746,7 +768,8 @@
             }
         });
 
-        checkAuth();
+        // ---------- START ----------
+        initGate();
     </script>
 </body>
 </html>
