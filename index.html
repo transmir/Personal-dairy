@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Diary - Login</title>
+    <title>Personal Diary & Habit Tracker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -16,15 +16,15 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+        }
+
+        /* Auth Pages */
+        .auth-container {
             display: flex;
             justify-content: center;
             align-items: center;
+            min-height: 100vh;
             padding: 20px;
-        }
-
-        .auth-container {
-            width: 100%;
-            max-width: 420px;
         }
 
         .auth-box {
@@ -32,6 +32,8 @@
             border-radius: 20px;
             padding: 40px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
         }
 
         .auth-header {
@@ -48,32 +50,18 @@
         .auth-header h1 {
             color: #333;
             margin-bottom: 10px;
-            font-size: 1.8em;
         }
 
         .auth-header p {
             color: #666;
-            font-size: 0.9em;
         }
 
-        .auth-form {
+        .auth-page {
             display: none;
         }
 
-        .auth-form.active {
+        .auth-page.active {
             display: block;
-            animation: fadeIn 0.5s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .auth-form h2 {
-            color: #333;
-            margin-bottom: 20px;
-            text-align: center;
         }
 
         .form-group {
@@ -83,10 +71,9 @@
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             color: #555;
             font-weight: 500;
-            font-size: 0.9em;
         }
 
         .form-group label i {
@@ -94,36 +81,18 @@
             color: #667eea;
         }
 
-        .form-group input {
+        .form-group input, .form-group textarea, .form-group select {
             width: 100%;
-            padding: 12px 40px 12px 15px;
+            padding: 12px 15px;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             font-size: 1em;
             transition: border-color 0.3s;
         }
 
-        .form-group input:focus {
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
             outline: none;
             border-color: #667eea;
-        }
-
-        .toggle-password {
-            position: absolute;
-            right: 15px;
-            top: 38px;
-            cursor: pointer;
-            color: #999;
-        }
-
-        .remember-me {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .remember-me input[type="checkbox"] {
-            width: auto;
         }
 
         .btn {
@@ -147,6 +116,22 @@
             box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
         }
 
+        .btn-small {
+            width: auto;
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
         .auth-switch {
             text-align: center;
             margin-top: 20px;
@@ -160,35 +145,225 @@
             cursor: pointer;
         }
 
-        .auth-switch a:hover {
-            text-decoration: underline;
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            text-align: center;
         }
 
-        .error-message {
+        .message.error {
+            display: block;
             background: #f8d7da;
             color: #721c24;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 15px;
+        }
+
+        .message.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+        }
+
+        /* Dashboard */
+        .dashboard {
             display: none;
-            text-align: center;
+        }
+
+        .dashboard.active {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: white;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .nav-tabs {
+            list-style: none;
+        }
+
+        .nav-tab {
+            padding: 12px 15px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-tab:hover {
+            background: #f0f0f0;
+        }
+
+        .nav-tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .page-header {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .page-header h1 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .page-header .date {
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .habits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .habit-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .habit-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .habit-card h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .input-row {
+            margin-bottom: 12px;
+        }
+
+        .input-row label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
             font-size: 0.9em;
         }
 
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 12px;
+        .input-row input, .input-row select, .input-row textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
             border-radius: 8px;
-            margin-top: 15px;
-            display: none;
-            text-align: center;
-            font-size: 0.9em;
+            font-size: 0.95em;
+        }
+
+        .video-container {
+            background: black;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+            max-width: 640px;
+        }
+
+        video {
+            width: 100%;
+            display: block;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .profile-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 600px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .main-content {
+                padding: 15px;
+            }
+            
+            .habits-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="auth-container">
+    <!-- Login/Register Page -->
+    <div id="authPage" class="auth-container active">
         <div class="auth-box">
             <div class="auth-header">
                 <i class="fas fa-book"></i>
@@ -197,203 +372,333 @@
             </div>
             
             <!-- Login Form -->
-            <form id="loginForm" class="auth-form active">
-                <h2>Welcome Back</h2>
+            <div id="loginForm" class="auth-page active">
+                <h2 style="text-align: center; margin-bottom: 20px;">Welcome Back</h2>
                 <div class="form-group">
                     <label><i class="fas fa-user"></i> Username</label>
-                    <input type="text" id="loginUsername" required placeholder="Enter username" autocomplete="username">
+                    <input type="text" id="loginUsername" placeholder="Enter username">
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-lock"></i> Password</label>
-                    <input type="password" id="loginPassword" required placeholder="Enter password" autocomplete="current-password">
-                    <i class="fas fa-eye toggle-password" onclick="togglePassword('loginPassword', this)"></i>
+                    <input type="password" id="loginPassword" placeholder="Enter password">
                 </div>
-                <div class="form-group remember-me">
-                    <input type="checkbox" id="rememberMe">
-                    <label for="rememberMe">Remember me</label>
-                </div>
-                <button type="submit" class="btn btn-primary">
+                <button class="btn btn-primary" onclick="login()">
                     <i class="fas fa-sign-in-alt"></i> Login
                 </button>
                 <p class="auth-switch">
                     Don't have an account? 
-                    <a onclick="showRegister()">Register here</a>
+                    <a onclick="showPage('registerForm')">Register here</a>
                 </p>
-                <div id="loginError" class="error-message"></div>
-            </form>
+                <div id="loginMessage" class="message"></div>
+            </div>
 
             <!-- Register Form -->
-            <form id="registerForm" class="auth-form">
-                <h2>Create Account</h2>
+            <div id="registerForm" class="auth-page">
+                <h2 style="text-align: center; margin-bottom: 20px;">Create Account</h2>
                 <div class="form-group">
                     <label><i class="fas fa-user"></i> Username</label>
-                    <input type="text" id="regUsername" required placeholder="Choose username" minlength="3" autocomplete="username">
+                    <input type="text" id="regUsername" placeholder="Choose username">
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-envelope"></i> Email</label>
-                    <input type="email" id="regEmail" required placeholder="Enter email" autocomplete="email">
+                    <input type="email" id="regEmail" placeholder="Enter email">
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-lock"></i> Password</label>
-                    <input type="password" id="regPassword" required placeholder="Create password" minlength="4" autocomplete="new-password">
-                    <i class="fas fa-eye toggle-password" onclick="togglePassword('regPassword', this)"></i>
+                    <input type="password" id="regPassword" placeholder="Create password">
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-lock"></i> Confirm Password</label>
-                    <input type="password" id="regConfirmPassword" required placeholder="Confirm password" autocomplete="new-password">
+                    <input type="password" id="regConfirmPassword" placeholder="Confirm password">
                 </div>
-                <button type="submit" class="btn btn-primary">
+                <button class="btn btn-primary" onclick="register()">
                     <i class="fas fa-user-plus"></i> Register
                 </button>
                 <p class="auth-switch">
                     Already have an account? 
-                    <a onclick="showLogin()">Login here</a>
+                    <a onclick="showPage('loginForm')">Login here</a>
                 </p>
-                <div id="registerError" class="error-message"></div>
-                <div id="registerSuccess" class="success-message"></div>
-            </form>
+                <div id="registerMessage" class="message"></div>
+            </div>
         </div>
     </div>
 
+    <!-- Dashboard -->
+    <div id="dashboard" class="dashboard">
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fas fa-book"></i>
+                <span>My Diary</span>
+            </div>
+            
+            <div class="user-info">
+                <div class="avatar" id="sidebarAvatar">U</div>
+                <div>
+                    <strong id="sidebarName">User</strong>
+                    <br>
+                    <small id="sidebarEmail">email</small>
+                </div>
+            </div>
+
+            <ul class="nav-tabs">
+                <li class="nav-tab active" onclick="switchTab('daily')">
+                    <i class="fas fa-calendar-day"></i> Daily Habits
+                </li>
+                <li class="nav-tab" onclick="switchTab('video')">
+                    <i class="fas fa-video"></i> Video Diary
+                </li>
+                <li class="nav-tab" onclick="switchTab('notes')">
+                    <i class="fas fa-sticky-note"></i> Notes
+                </li>
+                <li class="nav-tab" onclick="switchTab('profile')">
+                    <i class="fas fa-user-cog"></i> Profile
+                </li>
+            </ul>
+            
+            <button class="btn btn-danger" onclick="logout()" style="margin-top: 20px;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </nav>
+
+        <main class="main-content">
+            <!-- Daily Habits -->
+            <div id="tab-daily" class="tab-content active">
+                <div class="page-header">
+                    <h1>📅 Daily Habit Tracker</h1>
+                    <div class="date" id="todayDate"></div>
+                </div>
+                
+                <div class="habits-grid">
+                    <div class="habit-card">
+                        <h3>😴 Sleep</h3>
+                        <div class="input-row">
+                            <label>Hours Slept</label>
+                            <input type="number" id="sleepHours" min="0" max="24" step="0.5" placeholder="0">
+                        </div>
+                        <div class="input-row">
+                            <label>Quality (1-5)</label>
+                            <input type="number" id="sleepQuality" min="1" max="5" placeholder="3">
+                        </div>
+                    </div>
+                    
+                    <div class="habit-card">
+                        <h3>📚 Study</h3>
+                        <div class="input-row">
+                            <label>Hours</label>
+                            <input type="number" id="studyHours" min="0" max="24" step="0.5" placeholder="0">
+                        </div>
+                        <div class="input-row">
+                            <label>Subject/Topic</label>
+                            <input type="text" id="studySubject" placeholder="What did you study?">
+                        </div>
+                    </div>
+                    
+                    <div class="habit-card">
+                        <h3>🏃 Exercise</h3>
+                        <div class="input-row">
+                            <label>Minutes</label>
+                            <input type="number" id="exerciseMinutes" min="0" placeholder="0">
+                        </div>
+                        <div class="input-row">
+                            <label>Type</label>
+                            <select id="exerciseType">
+                                <option value="">Select type</option>
+                                <option value="Running">Running</option>
+                                <option value="Walking">Walking</option>
+                                <option value="Gym">Gym</option>
+                                <option value="Yoga">Yoga</option>
+                                <option value="Swimming">Swimming</option>
+                                <option value="Cycling">Cycling</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="habit-card">
+                        <h3>💧 Water Intake</h3>
+                        <div class="input-row">
+                            <label>Glasses of Water</label>
+                            <input type="number" id="waterGlasses" min="0" placeholder="0">
+                        </div>
+                    </div>
+                    
+                    <div class="habit-card">
+                        <h3>🧘 Meditation</h3>
+                        <div class="input-row">
+                            <label>Minutes</label>
+                            <input type="number" id="meditationMinutes" min="0" placeholder="0">
+                        </div>
+                    </div>
+                    
+                    <div class="habit-card">
+                        <h3>📖 Reading</h3>
+                        <div class="input-row">
+                            <label>Minutes</label>
+                            <input type="number" id="readingMinutes" min="0" placeholder="0">
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center;">
+                    <button class="btn btn-primary" onclick="saveHabits()" style="width: auto; padding: 15px 40px;">
+                        <i class="fas fa-save"></i> Save Habits
+                    </button>
+                </div>
+                <div id="habitsMessage" class="message"></div>
+            </div>
+
+            <!-- Video Diary -->
+            <div id="tab-video" class="tab-content">
+                <div class="page-header">
+                    <h1>🎥 Video Diary</h1>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-danger btn-small" id="startBtn" onclick="startRecording()">
+                        <i class="fas fa-circle"></i> Start Recording
+                    </button>
+                    <button class="btn btn-primary btn-small" id="stopBtn" onclick="stopRecording()" disabled>
+                        <i class="fas fa-stop"></i> Stop
+                    </button>
+                </div>
+                <div class="video-container">
+                    <video id="preview" autoplay muted></video>
+                    <video id="recordedVideo" controls style="display:none;"></video>
+                </div>
+                <p id="recordingStatus" style="color: red; display: none; margin-top: 10px;">🔴 Recording in progress...</p>
+            </div>
+
+            <!-- Notes -->
+            <div id="tab-notes" class="tab-content">
+                <div class="page-header">
+                    <h1>📝 Daily Notes</h1>
+                </div>
+                <div class="profile-section">
+                    <div class="input-row">
+                        <label>Today's Journal Entry</label>
+                        <textarea id="journalEntry" rows="10" placeholder="Write about your day, thoughts, achievements, challenges..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveNotes()" style="width: auto;">
+                        <i class="fas fa-save"></i> Save Notes
+                    </button>
+                    <div id="notesMessage" class="message"></div>
+                </div>
+            </div>
+
+            <!-- Profile -->
+            <div id="tab-profile" class="tab-content">
+                <div class="page-header">
+                    <h1>👤 Profile Settings</h1>
+                </div>
+                <div class="profile-section">
+                    <div class="input-row">
+                        <label>Display Name</label>
+                        <input type="text" id="profileDisplayName">
+                    </div>
+                    <div class="input-row">
+                        <label>Email</label>
+                        <input type="email" id="profileEmail">
+                    </div>
+                    <div class="input-row">
+                        <label>New Password (leave blank to keep current)</label>
+                        <input type="password" id="profilePassword" placeholder="New password">
+                    </div>
+                    <button class="btn btn-primary" onclick="updateProfile()" style="width: auto;">
+                        <i class="fas fa-save"></i> Update Profile
+                    </button>
+                    <div id="profileMessage" class="message"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
     <script>
-        // ============ COMPLETE AUTHENTICATION SYSTEM ============
+        // ============ COMPLETE APP LOGIC ============
         
+        let currentUser = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+
         // Check if user is already logged in
         function checkAuth() {
-            const currentUser = localStorage.getItem('currentUser');
-            if (currentUser) {
-                window.location.href = 'dashboard.html';
-            }
-        }
-        
-        // Run on page load
-        checkAuth();
-
-        // Toggle between login and register forms
-        function showRegister() {
-            document.getElementById('loginForm').classList.remove('active');
-            document.getElementById('registerForm').classList.add('active');
-            document.getElementById('loginError').style.display = 'none';
-            document.getElementById('registerError').style.display = 'none';
-            document.getElementById('registerSuccess').style.display = 'none';
-            clearForms();
-        }
-
-        function showLogin() {
-            document.getElementById('registerForm').classList.remove('active');
-            document.getElementById('loginForm').classList.add('active');
-            document.getElementById('loginError').style.display = 'none';
-            document.getElementById('registerError').style.display = 'none';
-            clearForms();
-        }
-
-        function clearForms() {
-            document.getElementById('loginUsername').value = '';
-            document.getElementById('loginPassword').value = '';
-            document.getElementById('regUsername').value = '';
-            document.getElementById('regEmail').value = '';
-            document.getElementById('regPassword').value = '';
-            document.getElementById('regConfirmPassword').value = '';
-        }
-
-        // Toggle password visibility
-        function togglePassword(inputId, icon) {
-            const input = document.getElementById(inputId);
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showDashboard();
             }
         }
 
-        // Login form submission
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
+        // Show auth page
+        function showPage(pageId) {
+            document.querySelectorAll('.auth-page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            document.getElementById('loginMessage').className = 'message';
+            document.getElementById('registerMessage').className = 'message';
+        }
+
+        // Login function
+        function login() {
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
-            
+
             if (!username || !password) {
-                showError('loginError', 'Please fill in all fields');
+                showAuthMessage('loginMessage', 'Please fill in all fields', 'error');
                 return;
             }
-            
-            // Get users from localStorage
+
             const users = JSON.parse(localStorage.getItem('diary_users') || '{}');
-            
-            // Check if user exists and password matches
+
             if (users[username] && users[username].password === password) {
-                // Update last login
                 users[username].lastLogin = new Date().toISOString();
                 localStorage.setItem('diary_users', JSON.stringify(users));
-                
-                // Set current user
                 localStorage.setItem('currentUser', JSON.stringify(users[username]));
-                
-                // Handle remember me
-                if (rememberMe) {
-                    localStorage.setItem('rememberMe', 'true');
-                } else {
-                    localStorage.removeItem('rememberMe');
-                }
-                
-                // Redirect to dashboard
-                window.location.href = 'dashboard.html';
+                currentUser = users[username];
+                showDashboard();
             } else {
-                showError('loginError', 'Invalid username or password');
+                showAuthMessage('loginMessage', 'Invalid username or password', 'error');
             }
-        });
+        }
 
-        // Register form submission
-        document.getElementById('registerForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
+        // Register function
+        function register() {
             const username = document.getElementById('regUsername').value.trim();
             const email = document.getElementById('regEmail').value.trim();
             const password = document.getElementById('regPassword').value;
             const confirmPassword = document.getElementById('regConfirmPassword').value;
-            
-            // Validate
+
+            // Validation
             if (!username || !email || !password) {
-                showError('registerError', 'Please fill in all fields');
+                showAuthMessage('registerMessage', 'Please fill in all fields', 'error');
                 return;
             }
-            
+
             if (username.length < 3) {
-                showError('registerError', 'Username must be at least 3 characters');
+                showAuthMessage('registerMessage', 'Username must be at least 3 characters', 'error');
                 return;
             }
-            
+
             if (password.length < 4) {
-                showError('registerError', 'Password must be at least 4 characters');
+                showAuthMessage('registerMessage', 'Password must be at least 4 characters', 'error');
                 return;
             }
-            
+
             if (password !== confirmPassword) {
-                showError('registerError', 'Passwords do not match');
+                showAuthMessage('registerMessage', 'Passwords do not match', 'error');
                 return;
             }
-            
+
             if (!email.includes('@')) {
-                showError('registerError', 'Please enter a valid email');
+                showAuthMessage('registerMessage', 'Please enter a valid email', 'error');
                 return;
             }
-            
-            // Get existing users
+
             const users = JSON.parse(localStorage.getItem('diary_users') || '{}');
-            
-            // Check if username already exists
+
             if (users[username]) {
-                showError('registerError', 'Username already exists. Please choose another.');
+                showAuthMessage('registerMessage', 'Username already exists', 'error');
                 return;
             }
-            
-            // Create new user
+
+            // Create user
             const newUser = {
                 id: 'user_' + Date.now(),
                 username: username,
@@ -401,49 +706,253 @@
                 password: password,
                 displayName: username,
                 avatar: username.charAt(0).toUpperCase(),
-                dailyGoal: '',
                 createdAt: new Date().toISOString(),
                 lastLogin: new Date().toISOString()
             };
-            
-            // Save user
+
             users[username] = newUser;
             localStorage.setItem('diary_users', JSON.stringify(users));
-            
-            // Auto login
             localStorage.setItem('currentUser', JSON.stringify(newUser));
-            
-            // Show success and redirect
-            document.getElementById('registerSuccess').textContent = 'Account created successfully! Redirecting...';
-            document.getElementById('registerSuccess').style.display = 'block';
-            document.getElementById('registerError').style.display = 'none';
-            
-            setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 1000);
-        });
+            currentUser = newUser;
 
-        // Show error message
-        function showError(elementId, message) {
-            const errorDiv = document.getElementById(elementId);
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            
-            // Hide after 3 seconds
+            showAuthMessage('registerMessage', 'Account created! Logging in...', 'success');
             setTimeout(() => {
-                errorDiv.style.display = 'none';
+                showDashboard();
+            }, 500);
+        }
+
+        // Show auth message
+        function showAuthMessage(elementId, message, type) {
+            const msg = document.getElementById(elementId);
+            msg.textContent = message;
+            msg.className = 'message ' + type;
+            setTimeout(() => {
+                msg.className = 'message';
             }, 3000);
         }
 
-        // Also allow pressing Enter to submit
-        document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const activeForm = document.querySelector('.auth-form.active');
-                if (activeForm) {
-                    activeForm.dispatchEvent(new Event('submit'));
-                }
+        // Show dashboard
+        function showDashboard() {
+            document.getElementById('authPage').style.display = 'none';
+            document.getElementById('authPage').classList.remove('active');
+            document.getElementById('dashboard').classList.add('active');
+            
+            // Update UI
+            document.getElementById('sidebarAvatar').textContent = currentUser.avatar;
+            document.getElementById('sidebarName').textContent = currentUser.displayName;
+            document.getElementById('sidebarEmail').textContent = currentUser.email;
+            
+            // Set today's date
+            const today = new Date();
+            document.getElementById('todayDate').textContent = today.toLocaleDateString('en-US', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+            
+            // Load profile data
+            document.getElementById('profileDisplayName').value = currentUser.displayName || '';
+            document.getElementById('profileEmail').value = currentUser.email || '';
+            
+            // Load today's data
+            loadTodayData();
+        }
+
+        // Switch tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            event.target.closest('.nav-tab').classList.add('active');
+            
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+            
+            if (tabName === 'video') {
+                setupCamera();
             }
-        });
+        }
+
+        // Save habits
+        function saveHabits() {
+            const habits = {
+                sleep: {
+                    hours: document.getElementById('sleepHours').value || '0',
+                    quality: document.getElementById('sleepQuality').value || '0'
+                },
+                study: {
+                    hours: document.getElementById('studyHours').value || '0',
+                    subject: document.getElementById('studySubject').value || ''
+                },
+                exercise: {
+                    minutes: document.getElementById('exerciseMinutes').value || '0',
+                    type: document.getElementById('exerciseType').value || ''
+                },
+                water: document.getElementById('waterGlasses').value || '0',
+                meditation: document.getElementById('meditationMinutes').value || '0',
+                reading: document.getElementById('readingMinutes').value || '0'
+            };
+
+            const date = new Date().toISOString().split('T')[0];
+            const storageKey = 'habits_' + currentUser.id;
+            const allHabits = JSON.parse(localStorage.getItem(storageKey) || '{}');
+            allHabits[date] = habits;
+            localStorage.setItem(storageKey, JSON.stringify(allHabits));
+
+            showMessage('habitsMessage', '✅ Habits saved successfully!', 'success');
+        }
+
+        // Save notes
+        function saveNotes() {
+            const notes = {
+                journal: document.getElementById('journalEntry').value
+            };
+
+            const date = new Date().toISOString().split('T')[0];
+            const storageKey = 'notes_' + currentUser.id;
+            const allNotes = JSON.parse(localStorage.getItem(storageKey) || '{}');
+            allNotes[date] = notes;
+            localStorage.setItem(storageKey, JSON.stringify(allNotes));
+
+            showMessage('notesMessage', '✅ Notes saved successfully!', 'success');
+        }
+
+        // Update profile
+        function updateProfile() {
+            const users = JSON.parse(localStorage.getItem('diary_users') || '{}');
+            const user = users[currentUser.username];
+            
+            if (user) {
+                user.displayName = document.getElementById('profileDisplayName').value || user.username;
+                user.email = document.getElementById('profileEmail').value || user.email;
+                
+                const newPassword = document.getElementById('profilePassword').value;
+                if (newPassword && newPassword.length >= 4) {
+                    user.password = newPassword;
+                }
+                
+                users[currentUser.username] = user;
+                localStorage.setItem('diary_users', JSON.stringify(users));
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                currentUser = user;
+                
+                document.getElementById('sidebarName').textContent = user.displayName;
+                document.getElementById('sidebarEmail').textContent = user.email;
+                document.getElementById('sidebarAvatar').textContent = user.displayName.charAt(0).toUpperCase();
+                
+                showMessage('profileMessage', '✅ Profile updated!', 'success');
+            }
+        }
+
+        // Load today's data
+        function loadTodayData() {
+            const date = new Date().toISOString().split('T')[0];
+            
+            // Load habits
+            const habitsKey = 'habits_' + currentUser.id;
+            const allHabits = JSON.parse(localStorage.getItem(habitsKey) || '{}');
+            if (allHabits[date]) {
+                const h = allHabits[date];
+                if (h.sleep) {
+                    document.getElementById('sleepHours').value = h.sleep.hours || '';
+                    document.getElementById('sleepQuality').value = h.sleep.quality || '';
+                }
+                if (h.study) {
+                    document.getElementById('studyHours').value = h.study.hours || '';
+                    document.getElementById('studySubject').value = h.study.subject || '';
+                }
+                if (h.exercise) {
+                    document.getElementById('exerciseMinutes').value = h.exercise.minutes || '';
+                    document.getElementById('exerciseType').value = h.exercise.type || '';
+                }
+                document.getElementById('waterGlasses').value = h.water || '';
+                document.getElementById('meditationMinutes').value = h.meditation || '';
+                document.getElementById('readingMinutes').value = h.reading || '';
+            }
+            
+            // Load notes
+            const notesKey = 'notes_' + currentUser.id;
+            const allNotes = JSON.parse(localStorage.getItem(notesKey) || '{}');
+            if (allNotes[date] && allNotes[date].journal) {
+                document.getElementById('journalEntry').value = allNotes[date].journal;
+            }
+        }
+
+        // Show message
+        function showMessage(elementId, message, type) {
+            const msg = document.getElementById(elementId);
+            msg.textContent = message;
+            msg.className = 'message ' + type;
+            setTimeout(() => {
+                msg.className = 'message';
+            }, 3000);
+        }
+
+        // Camera functions
+        async function setupCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: true, 
+                    audio: true 
+                });
+                
+                const preview = document.getElementById('preview');
+                preview.srcObject = stream;
+                preview.style.display = 'block';
+                document.getElementById('recordedVideo').style.display = 'none';
+                
+                mediaRecorder = new MediaRecorder(stream);
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    const recordedVideo = document.getElementById('recordedVideo');
+                    recordedVideo.src = url;
+                    recordedVideo.style.display = 'block';
+                    preview.style.display = 'none';
+                };
+            } catch (error) {
+                console.log('Camera access denied or not available');
+            }
+        }
+
+        function startRecording() {
+            if (mediaRecorder) {
+                recordedChunks = [];
+                mediaRecorder.start();
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('recordingStatus').style.display = 'block';
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                document.getElementById('recordingStatus').style.display = 'none';
+            }
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('currentUser');
+                currentUser = null;
+                document.getElementById('dashboard').classList.remove('active');
+                document.getElementById('authPage').style.display = 'flex';
+                document.getElementById('authPage').classList.add('active');
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
+                showPage('loginForm');
+            }
+        }
+
+        // Initialize app
+        checkAuth();
     </script>
 </body>
 </html>
