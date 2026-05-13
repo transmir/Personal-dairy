@@ -4,301 +4,600 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personal Diary - Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: white;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .nav-item {
+            padding: 12px 15px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-item:hover {
+            background: #f0f0f0;
+        }
+
+        .nav-item.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .habits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .habit-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .habit-card h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .input-group input, .input-group select, .input-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd6;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-logout {
+            background: #e74c3c;
+            color: white;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .message.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .message.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .video-container {
+            background: black;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+            max-width: 600px;
+        }
+
+        video {
+            width: 100%;
+            display: block;
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
-        <!-- Sidebar Navigation -->
+        <!-- Sidebar -->
         <nav class="sidebar">
             <div class="logo">
                 <i class="fas fa-book"></i>
                 <span>My Diary</span>
             </div>
             
-            <!-- User Profile Mini -->
-            <div class="user-profile-mini">
-                <div class="avatar" id="userAvatar"></div>
-                <div class="user-details">
-                    <span id="displayUsername"></span>
-                    <small id="displayEmail"></small>
+            <div class="user-mini">
+                <div class="avatar" id="userAvatar">U</div>
+                <div>
+                    <strong id="displayUsername">User</strong>
+                    <br>
+                    <small id="displayEmail">user@email.com</small>
                 </div>
             </div>
 
-            <ul class="nav-tabs">
-                <li class="nav-item active" data-tab="daily">
-                    <i class="fas fa-calendar-day"></i>
-                    <span>Daily Entry</span>
-                </li>
-                <li class="nav-item" data-tab="video">
-                    <i class="fas fa-video"></i>
-                    <span>Video Diary</span>
-                </li>
-                <li class="nav-item" data-tab="history">
-                    <i class="fas fa-history"></i>
-                    <span>History</span>
-                </li>
-                <li class="nav-item" data-tab="statistics">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Statistics</span>
-                </li>
-                <li class="nav-item" data-tab="notes">
-                    <i class="fas fa-sticky-note"></i>
-                    <span>Daily Notes</span>
-                </li>
-                <li class="nav-item" data-tab="profile">
-                    <i class="fas fa-user-cog"></i>
-                    <span>Profile</span>
-                </li>
-                <li class="nav-item" data-tab="habits-settings">
-                    <i class="fas fa-cogs"></i>
-                    <span>Customize Habits</span>
-                </li>
-            </ul>
-            
-            <div class="sidebar-footer">
-                <button onclick="logout()" class="btn btn-logout">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
+            <div class="nav-item active" data-tab="daily">
+                <i class="fas fa-calendar-day"></i>
+                <span>Daily Entry</span>
             </div>
+            <div class="nav-item" data-tab="video">
+                <i class="fas fa-video"></i>
+                <span>Video Diary</span>
+            </div>
+            <div class="nav-item" data-tab="notes">
+                <i class="fas fa-sticky-note"></i>
+                <span>Notes</span>
+            </div>
+            <div class="nav-item" data-tab="profile">
+                <i class="fas fa-user-cog"></i>
+                <span>Profile</span>
+            </div>
+            
+            <button class="btn btn-logout" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
         </nav>
 
         <!-- Main Content -->
         <main class="main-content">
             <!-- Daily Entry Tab -->
             <div class="tab-content active" id="daily-tab">
-                <header class="page-header">
+                <div class="header">
                     <h1>📅 Daily Habit Tracker</h1>
-                    <div class="date-display" id="currentDate"></div>
-                    <div class="user-greeting">
-                        <p>Welcome back, <strong id="greetingName"></strong>! Let's track your day.</p>
-                    </div>
-                </header>
-
-                <div class="habits-container" id="habitsContainer">
-                    <!-- Habits will be dynamically generated based on user preferences -->
+                    <p id="currentDate"></p>
                 </div>
-
-                <div class="action-buttons">
-                    <button id="saveHabits" class="btn btn-primary btn-lg">
-                        <i class="fas fa-save"></i> Save Today's Habits
-                    </button>
-                    <button id="clearHabits" class="btn btn-secondary">
-                        <i class="fas fa-undo"></i> Clear
-                    </button>
-                </div>
-                <div id="saveMessage" class="save-message"></div>
-            </div>
-
-            <!-- Video Diary Tab -->
-            <div class="tab-content" id="video-tab">
-                <header class="page-header">
-                    <h1>🎥 Video Diary</h1>
-                </header>
-                <div class="video-section">
-                    <div class="video-controls">
-                        <button id="startRecording" class="btn btn-danger">
-                            <i class="fas fa-circle"></i> Start Recording
-                        </button>
-                        <button id="stopRecording" class="btn btn-secondary" disabled>
-                            <i class="fas fa-stop"></i> Stop
-                        </button>
-                        <button id="saveVideo" class="btn btn-success" disabled>
-                            <i class="fas fa-cloud-upload-alt"></i> Save to Drive
-                        </button>
-                    </div>
-                    <div class="video-container">
-                        <video id="preview" autoplay muted></video>
-                        <video id="recordedVideo" controls style="display:none;"></video>
-                    </div>
-                    <div id="recordingStatus" class="recording-status"></div>
-                    <div id="uploadProgress" class="progress-bar" style="display:none;">
-                        <div class="progress-fill"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- History Tab -->
-            <div class="tab-content" id="history-tab">
-                <header class="page-header">
-                    <h1>📅 History</h1>
-                </header>
-                <div class="history-controls">
-                    <div class="month-selector">
-                        <button id="prevMonth" class="btn btn-secondary">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <span id="currentMonthDisplay"></span>
-                        <button id="nextMonth" class="btn btn-secondary">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
-                    <button id="loadMonthHistory" class="btn btn-primary">
-                        <i class="fas fa-search"></i> Load Month
-                    </button>
-                </div>
-                <div class="calendar-view" id="calendarView"></div>
-                <div class="selected-day-details" id="selectedDayDetails"></div>
-            </div>
-
-            <!-- Statistics Tab -->
-            <div class="tab-content" id="statistics-tab">
-                <header class="page-header">
-                    <h1>📊 Statistics & Insights</h1>
-                </header>
-                <div class="stats-controls">
-                    <select id="statsPeriod">
-                        <option value="7">Last 7 days</option>
-                        <option value="30">Last 30 days</option>
-                        <option value="90">Last 3 months</option>
-                        <option value="365">Last year</option>
-                    </select>
-                    <button id="loadStatistics" class="btn btn-primary">
-                        <i class="fas fa-chart-line"></i> Generate Stats
-                    </button>
-                </div>
-                <div class="stats-grid" id="statsGrid"></div>
-                <div class="charts-container">
-                    <canvas id="habitsChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Daily Notes Tab -->
-            <div class="tab-content" id="notes-tab">
-                <header class="page-header">
-                    <h1>📝 Daily Notes & Journal</h1>
-                    <div class="date-display" id="notesDate"></div>
-                </header>
-                <div class="notes-container">
-                    <div class="mood-selector">
-                        <label>Today's Mood:</label>
-                        <div class="mood-emojis">
-                            <span class="mood" data-mood="great">😄</span>
-                            <span class="mood" data-mood="good">🙂</span>
-                            <span class="mood" data-mood="okay">😐</span>
-                            <span class="mood" data-mood="bad">😔</span>
-                            <span class="mood" data-mood="terrible">😢</span>
+                
+                <div class="habits-grid">
+                    <div class="habit-card">
+                        <h3>😴 Sleep</h3>
+                        <div class="input-group">
+                            <label>Hours</label>
+                            <input type="number" id="sleepHours" min="0" max="24" step="0.5" placeholder="0">
+                        </div>
+                        <div class="input-group">
+                            <label>Quality (1-5)</label>
+                            <input type="number" id="sleepQuality" min="1" max="5" placeholder="3">
                         </div>
                     </div>
-                    <div class="gratitude-section">
-                        <h3>3 Things I'm Grateful For:</h3>
-                        <textarea id="gratitude1" placeholder="1..."></textarea>
-                        <textarea id="gratitude2" placeholder="2..."></textarea>
-                        <textarea id="gratitude3" placeholder="3..."></textarea>
+                    
+                    <div class="habit-card">
+                        <h3>📚 Study</h3>
+                        <div class="input-group">
+                            <label>Hours</label>
+                            <input type="number" id="studyHours" min="0" max="24" step="0.5" placeholder="0">
+                        </div>
+                        <div class="input-group">
+                            <label>Subject</label>
+                            <input type="text" id="studySubject" placeholder="What did you study?">
+                        </div>
                     </div>
-                    <div class="journal-section">
-                        <h3>Daily Journal</h3>
-                        <textarea id="journalEntry" placeholder="Write your thoughts, achievements, challenges..."></textarea>
+                    
+                    <div class="habit-card">
+                        <h3>🏃 Exercise</h3>
+                        <div class="input-group">
+                            <label>Minutes</label>
+                            <input type="number" id="exerciseMinutes" min="0" placeholder="0">
+                        </div>
+                        <div class="input-group">
+                            <label>Type</label>
+                            <select id="exerciseType">
+                                <option value="">Select</option>
+                                <option value="running">Running</option>
+                                <option value="walking">Walking</option>
+                                <option value="gym">Gym</option>
+                                <option value="yoga">Yoga</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
                     </div>
-                    <button id="saveNotes" class="btn btn-primary btn-lg">
+                    
+                    <div class="habit-card">
+                        <h3>💧 Water</h3>
+                        <div class="input-group">
+                            <label>Glasses</label>
+                            <input type="number" id="waterGlasses" min="0" placeholder="0">
+                        </div>
+                    </div>
+                    
+                    <div class="habit-card">
+                        <h3>🧘 Meditation</h3>
+                        <div class="input-group">
+                            <label>Minutes</label>
+                            <input type="number" id="meditationMinutes" min="0" placeholder="0">
+                        </div>
+                    </div>
+                    
+                    <div class="habit-card">
+                        <h3>📖 Reading</h3>
+                        <div class="input-group">
+                            <label>Minutes</label>
+                            <input type="number" id="readingMinutes" min="0" placeholder="0">
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="btn btn-primary" onclick="saveHabits()" style="padding: 15px 40px; font-size: 1.1em;">
+                        <i class="fas fa-save"></i> Save Today's Habits
+                    </button>
+                </div>
+                <div id="saveMessage" class="message"></div>
+            </div>
+
+            <!-- Video Tab -->
+            <div class="tab-content" id="video-tab">
+                <div class="header">
+                    <h1>🎥 Video Diary</h1>
+                </div>
+                <div>
+                    <button class="btn btn-danger" id="startRec">Start Recording</button>
+                    <button class="btn btn-primary" id="stopRec" disabled>Stop</button>
+                </div>
+                <div class="video-container">
+                    <video id="preview" autoplay muted></video>
+                    <video id="recorded" controls style="display:none;"></video>
+                </div>
+                <div id="recStatus" style="color: red; display: none;">🔴 Recording...</div>
+            </div>
+
+            <!-- Notes Tab -->
+            <div class="tab-content" id="notes-tab">
+                <div class="header">
+                    <h1>📝 Daily Notes</h1>
+                </div>
+                <div style="background: white; padding: 20px; border-radius: 10px;">
+                    <div class="input-group">
+                        <label>Today's Journal</label>
+                        <textarea id="journalEntry" rows="8" placeholder="Write your thoughts..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveNotes()">
                         <i class="fas fa-save"></i> Save Notes
                     </button>
+                    <div id="notesMessage" class="message"></div>
                 </div>
             </div>
 
             <!-- Profile Tab -->
             <div class="tab-content" id="profile-tab">
-                <header class="page-header">
-                    <h1>👤 User Profile</h1>
-                </header>
-                <div class="profile-container">
-                    <div class="profile-card">
-                        <div class="profile-avatar">
-                            <div class="avatar-large" id="profileAvatar"></div>
-                            <button class="btn btn-secondary" onclick="changeAvatar()">
-                                <i class="fas fa-camera"></i> Change Avatar
-                            </button>
-                        </div>
-                        <div class="profile-info">
-                            <h2 id="profileUsername"></h2>
-                            <p id="profileEmail"></p>
-                            <p>Member since: <span id="profileMemberSince"></span></p>
-                        </div>
-                    </div>
-                    
-                    <div class="profile-form">
-                        <h3>Update Profile</h3>
-                        <div class="form-group">
-                            <label>Display Name</label>
-                            <input type="text" id="profileDisplayName" placeholder="Enter display name">
-                        </div>
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" id="profileNewEmail" placeholder="Enter new email">
-                        </div>
-                        <div class="form-group">
-                            <label>New Password (leave blank to keep current)</label>
-                            <input type="password" id="profileNewPassword" placeholder="Enter new password">
-                        </div>
-                        <div class="form-group">
-                            <label>Daily Goal</label>
-                            <textarea id="profileGoal" placeholder="What's your main goal?"></textarea>
-                        </div>
-                        <button onclick="updateProfile()" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Update Profile
-                        </button>
-                    </div>
+                <div class="header">
+                    <h1>👤 Profile Settings</h1>
                 </div>
-            </div>
-
-            <!-- Habits Settings Tab -->
-            <div class="tab-content" id="habits-settings-tab">
-                <header class="page-header">
-                    <h1>⚙️ Customize Your Habits</h1>
-                    <p>Enable, disable, or customize the habits you want to track</p>
-                </header>
-                
-                <div class="habits-settings-container">
-                    <div class="available-habits">
-                        <h3>Available Habits</h3>
-                        <div class="habit-toggle-list" id="habitToggleList">
-                            <!-- Dynamically generated -->
-                        </div>
+                <div style="background: white; padding: 20px; border-radius: 10px;">
+                    <div class="input-group">
+                        <label>Display Name</label>
+                        <input type="text" id="profileName">
                     </div>
-                    
-                    <div class="custom-habit-creator">
-                        <h3>Add Custom Habit</h3>
-                        <div class="form-group">
-                            <label>Habit Name</label>
-                            <input type="text" id="customHabitName" placeholder="e.g., Guitar Practice">
-                        </div>
-                        <div class="form-group">
-                            <label>Icon (emoji)</label>
-                            <input type="text" id="customHabitIcon" placeholder="🎸" maxlength="2">
-                        </div>
-                        <div class="form-group">
-                            <label>Unit</label>
-                            <select id="customHabitUnit">
-                                <option value="minutes">Minutes</option>
-                                <option value="hours">Hours</option>
-                                <option value="count">Count</option>
-                                <option value="yesno">Yes/No</option>
-                            </select>
-                        </div>
-                        <button onclick="addCustomHabit()" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> Add Habit
-                        </button>
+                    <div class="input-group">
+                        <label>Email</label>
+                        <input type="email" id="profileEmail">
                     </div>
-                    
-                    <div class="habit-order-section">
-                        <h3>Reorder Habits</h3>
-                        <p>Drag and drop to reorder your habits</p>
-                        <div class="habit-order-list" id="habitOrderList">
-                            <!-- Dynamically generated -->
-                        </div>
+                    <div class="input-group">
+                        <label>New Password (leave blank to keep current)</label>
+                        <input type="password" id="profilePassword" placeholder="New password">
                     </div>
-                    
-                    <button onclick="saveHabitSettings()" class="btn btn-success btn-lg">
-                        <i class="fas fa-save"></i> Save Settings
+                    <button class="btn btn-primary" onclick="updateProfile()">
+                        <i class="fas fa-save"></i> Update Profile
                     </button>
+                    <div id="profileMessage" class="message"></div>
                 </div>
             </div>
         </main>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    <script src="auth.js"></script>
-    <script src="script.js"></script>
+    <script>
+        // ============ DASHBOARD SCRIPT ============
+        
+        // Check authentication
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser) {
+            window.location.href = 'index.html';
+        }
+
+        // Display user info
+        document.getElementById('userAvatar').textContent = currentUser.avatar || currentUser.username.charAt(0).toUpperCase();
+        document.getElementById('displayUsername').textContent = currentUser.displayName || currentUser.username;
+        document.getElementById('displayEmail').textContent = currentUser.email;
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+
+        // Load profile data
+        document.getElementById('profileName').value = currentUser.displayName || '';
+        document.getElementById('profileEmail').value = currentUser.email || '';
+
+        // Load today's data
+        loadTodayData();
+
+        // Navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                this.classList.add('active');
+                
+                const tabName = this.dataset.tab;
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                document.getElementById(tabName + '-tab').classList.add('active');
+                
+                if (tabName === 'video') {
+                    setupCamera();
+                }
+            });
+        });
+
+        // Save habits
+        function saveHabits() {
+            const habits = {
+                sleep: {
+                    hours: document.getElementById('sleepHours').value || '0',
+                    quality: document.getElementById('sleepQuality').value || '0'
+                },
+                study: {
+                    hours: document.getElementById('studyHours').value || '0',
+                    subject: document.getElementById('studySubject').value || ''
+                },
+                exercise: {
+                    minutes: document.getElementById('exerciseMinutes').value || '0',
+                    type: document.getElementById('exerciseType').value || ''
+                },
+                water: {
+                    glasses: document.getElementById('waterGlasses').value || '0'
+                },
+                meditation: {
+                    minutes: document.getElementById('meditationMinutes').value || '0'
+                },
+                reading: {
+                    minutes: document.getElementById('readingMinutes').value || '0'
+                }
+            };
+
+            const date = new Date().toISOString().split('T')[0];
+            const key = `habits_${currentUser.id}`;
+            const allHabits = JSON.parse(localStorage.getItem(key) || '{}');
+            allHabits[date] = habits;
+            localStorage.setItem(key, JSON.stringify(allHabits));
+
+            showMessage('saveMessage', 'Habits saved successfully!', 'success');
+        }
+
+        // Save notes
+        function saveNotes() {
+            const notes = {
+                journal: document.getElementById('journalEntry').value
+            };
+
+            const date = new Date().toISOString().split('T')[0];
+            const key = `notes_${currentUser.id}`;
+            const allNotes = JSON.parse(localStorage.getItem(key) || '{}');
+            allNotes[date] = notes;
+            localStorage.setItem(key, JSON.stringify(allNotes));
+
+            showMessage('notesMessage', 'Notes saved successfully!', 'success');
+        }
+
+        // Update profile
+        function updateProfile() {
+            const users = JSON.parse(localStorage.getItem('diary_users') || '{}');
+            const user = users[currentUser.username];
+            
+            if (user) {
+                user.displayName = document.getElementById('profileName').value || user.username;
+                user.email = document.getElementById('profileEmail').value || user.email;
+                
+                const newPassword = document.getElementById('profilePassword').value;
+                if (newPassword) {
+                    user.password = newPassword;
+                }
+                
+                users[currentUser.username] = user;
+                localStorage.setItem('diary_users', JSON.stringify(users));
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                
+                // Update display
+                document.getElementById('displayUsername').textContent = user.displayName;
+                document.getElementById('displayEmail').textContent = user.email;
+                document.getElementById('userAvatar').textContent = user.displayName.charAt(0).toUpperCase();
+                
+                showMessage('profileMessage', 'Profile updated!', 'success');
+            }
+        }
+
+        // Load today's data
+        function loadTodayData() {
+            const date = new Date().toISOString().split('T')[0];
+            
+            // Load habits
+            const habitsKey = `habits_${currentUser.id}`;
+            const allHabits = JSON.parse(localStorage.getItem(habitsKey) || '{}');
+            if (allHabits[date]) {
+                const h = allHabits[date];
+                if (h.sleep) {
+                    document.getElementById('sleepHours').value = h.sleep.hours || '';
+                    document.getElementById('sleepQuality').value = h.sleep.quality || '';
+                }
+                if (h.study) {
+                    document.getElementById('studyHours').value = h.study.hours || '';
+                    document.getElementById('studySubject').value = h.study.subject || '';
+                }
+                if (h.exercise) {
+                    document.getElementById('exerciseMinutes').value = h.exercise.minutes || '';
+                    document.getElementById('exerciseType').value = h.exercise.type || '';
+                }
+                if (h.water) {
+                    document.getElementById('waterGlasses').value = h.water.glasses || '';
+                }
+                if (h.meditation) {
+                    document.getElementById('meditationMinutes').value = h.meditation.minutes || '';
+                }
+                if (h.reading) {
+                    document.getElementById('readingMinutes').value = h.reading.minutes || '';
+                }
+            }
+            
+            // Load notes
+            const notesKey = `notes_${currentUser.id}`;
+            const allNotes = JSON.parse(localStorage.getItem(notesKey) || '{}');
+            if (allNotes[date] && allNotes[date].journal) {
+                document.getElementById('journalEntry').value = allNotes[date].journal;
+            }
+        }
+
+        // Show message
+        function showMessage(elementId, message, type) {
+            const msg = document.getElementById(elementId);
+            msg.textContent = message;
+            msg.className = 'message ' + type;
+            setTimeout(() => {
+                msg.className = 'message';
+            }, 3000);
+        }
+
+        // Camera setup
+        let mediaRecorder;
+        async function setupCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('preview').srcObject = stream;
+                mediaRecorder = new MediaRecorder(stream);
+                
+                let chunks = [];
+                mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'video/webm' });
+                    document.getElementById('recorded').src = URL.createObjectURL(blob);
+                    document.getElementById('recorded').style.display = 'block';
+                    document.getElementById('preview').style.display = 'none';
+                };
+                
+                document.getElementById('startRec').onclick = () => {
+                    chunks = [];
+                    mediaRecorder.start();
+                    document.getElementById('startRec').disabled = true;
+                    document.getElementById('stopRec').disabled = false;
+                    document.getElementById('recStatus').style.display = 'block';
+                };
+                
+                document.getElementById('stopRec').onclick = () => {
+                    mediaRecorder.stop();
+                    document.getElementById('startRec').disabled = false;
+                    document.getElementById('stopRec').disabled = true;
+                    document.getElementById('recStatus').style.display = 'none';
+                };
+            } catch (err) {
+                console.log('Camera error:', err);
+            }
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
 </body>
 </html>

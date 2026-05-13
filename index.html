@@ -4,10 +4,190 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personal Diary - Login</title>
-    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .auth-box {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-header i {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .auth-header h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.8em;
+        }
+
+        .auth-header p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .auth-form h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+
+        .form-group label i {
+            width: 20px;
+            color: #667eea;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 40px 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 38px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: auto;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+
+        .auth-switch a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .auth-switch a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            text-align: center;
+            font-size: 0.9em;
+        }
+    </style>
 </head>
-<body class="auth-body">
+<body>
     <div class="auth-container">
         <div class="auth-box">
             <div class="auth-header">
@@ -21,23 +201,23 @@
                 <h2>Welcome Back</h2>
                 <div class="form-group">
                     <label><i class="fas fa-user"></i> Username</label>
-                    <input type="text" id="loginUsername" required placeholder="Enter username">
+                    <input type="text" id="loginUsername" required placeholder="Enter username" autocomplete="username">
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-lock"></i> Password</label>
-                    <input type="password" id="loginPassword" required placeholder="Enter password">
-                    <i class="fas fa-eye toggle-password" onclick="togglePassword('loginPassword')"></i>
+                    <input type="password" id="loginPassword" required placeholder="Enter password" autocomplete="current-password">
+                    <i class="fas fa-eye toggle-password" onclick="togglePassword('loginPassword', this)"></i>
                 </div>
                 <div class="form-group remember-me">
                     <input type="checkbox" id="rememberMe">
                     <label for="rememberMe">Remember me</label>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">
+                <button type="submit" class="btn btn-primary">
                     <i class="fas fa-sign-in-alt"></i> Login
                 </button>
                 <p class="auth-switch">
                     Don't have an account? 
-                    <a href="#" onclick="showRegister()">Register here</a>
+                    <a onclick="showRegister()">Register here</a>
                 </p>
                 <div id="loginError" class="error-message"></div>
             </form>
@@ -47,33 +227,223 @@
                 <h2>Create Account</h2>
                 <div class="form-group">
                     <label><i class="fas fa-user"></i> Username</label>
-                    <input type="text" id="regUsername" required placeholder="Choose username" minlength="3">
+                    <input type="text" id="regUsername" required placeholder="Choose username" minlength="3" autocomplete="username">
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-envelope"></i> Email</label>
-                    <input type="email" id="regEmail" required placeholder="Enter email">
+                    <input type="email" id="regEmail" required placeholder="Enter email" autocomplete="email">
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-lock"></i> Password</label>
-                    <input type="password" id="regPassword" required placeholder="Create password" minlength="6">
-                    <i class="fas fa-eye toggle-password" onclick="togglePassword('regPassword')"></i>
+                    <input type="password" id="regPassword" required placeholder="Create password" minlength="4" autocomplete="new-password">
+                    <i class="fas fa-eye toggle-password" onclick="togglePassword('regPassword', this)"></i>
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-lock"></i> Confirm Password</label>
-                    <input type="password" id="regConfirmPassword" required placeholder="Confirm password">
+                    <input type="password" id="regConfirmPassword" required placeholder="Confirm password" autocomplete="new-password">
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">
+                <button type="submit" class="btn btn-primary">
                     <i class="fas fa-user-plus"></i> Register
                 </button>
                 <p class="auth-switch">
                     Already have an account? 
-                    <a href="#" onclick="showLogin()">Login here</a>
+                    <a onclick="showLogin()">Login here</a>
                 </p>
                 <div id="registerError" class="error-message"></div>
+                <div id="registerSuccess" class="success-message"></div>
             </form>
         </div>
     </div>
 
-    <script src="auth.js"></script>
+    <script>
+        // ============ COMPLETE AUTHENTICATION SYSTEM ============
+        
+        // Check if user is already logged in
+        function checkAuth() {
+            const currentUser = localStorage.getItem('currentUser');
+            if (currentUser) {
+                window.location.href = 'dashboard.html';
+            }
+        }
+        
+        // Run on page load
+        checkAuth();
+
+        // Toggle between login and register forms
+        function showRegister() {
+            document.getElementById('loginForm').classList.remove('active');
+            document.getElementById('registerForm').classList.add('active');
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('registerError').style.display = 'none';
+            document.getElementById('registerSuccess').style.display = 'none';
+            clearForms();
+        }
+
+        function showLogin() {
+            document.getElementById('registerForm').classList.remove('active');
+            document.getElementById('loginForm').classList.add('active');
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('registerError').style.display = 'none';
+            clearForms();
+        }
+
+        function clearForms() {
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('regUsername').value = '';
+            document.getElementById('regEmail').value = '';
+            document.getElementById('regPassword').value = '';
+            document.getElementById('regConfirmPassword').value = '';
+        }
+
+        // Toggle password visibility
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // Login form submission
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            
+            if (!username || !password) {
+                showError('loginError', 'Please fill in all fields');
+                return;
+            }
+            
+            // Get users from localStorage
+            const users = JSON.parse(localStorage.getItem('diary_users') || '{}');
+            
+            // Check if user exists and password matches
+            if (users[username] && users[username].password === password) {
+                // Update last login
+                users[username].lastLogin = new Date().toISOString();
+                localStorage.setItem('diary_users', JSON.stringify(users));
+                
+                // Set current user
+                localStorage.setItem('currentUser', JSON.stringify(users[username]));
+                
+                // Handle remember me
+                if (rememberMe) {
+                    localStorage.setItem('rememberMe', 'true');
+                } else {
+                    localStorage.removeItem('rememberMe');
+                }
+                
+                // Redirect to dashboard
+                window.location.href = 'dashboard.html';
+            } else {
+                showError('loginError', 'Invalid username or password');
+            }
+        });
+
+        // Register form submission
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('regUsername').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            
+            // Validate
+            if (!username || !email || !password) {
+                showError('registerError', 'Please fill in all fields');
+                return;
+            }
+            
+            if (username.length < 3) {
+                showError('registerError', 'Username must be at least 3 characters');
+                return;
+            }
+            
+            if (password.length < 4) {
+                showError('registerError', 'Password must be at least 4 characters');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showError('registerError', 'Passwords do not match');
+                return;
+            }
+            
+            if (!email.includes('@')) {
+                showError('registerError', 'Please enter a valid email');
+                return;
+            }
+            
+            // Get existing users
+            const users = JSON.parse(localStorage.getItem('diary_users') || '{}');
+            
+            // Check if username already exists
+            if (users[username]) {
+                showError('registerError', 'Username already exists. Please choose another.');
+                return;
+            }
+            
+            // Create new user
+            const newUser = {
+                id: 'user_' + Date.now(),
+                username: username,
+                email: email,
+                password: password,
+                displayName: username,
+                avatar: username.charAt(0).toUpperCase(),
+                dailyGoal: '',
+                createdAt: new Date().toISOString(),
+                lastLogin: new Date().toISOString()
+            };
+            
+            // Save user
+            users[username] = newUser;
+            localStorage.setItem('diary_users', JSON.stringify(users));
+            
+            // Auto login
+            localStorage.setItem('currentUser', JSON.stringify(newUser));
+            
+            // Show success and redirect
+            document.getElementById('registerSuccess').textContent = 'Account created successfully! Redirecting...';
+            document.getElementById('registerSuccess').style.display = 'block';
+            document.getElementById('registerError').style.display = 'none';
+            
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1000);
+        });
+
+        // Show error message
+        function showError(elementId, message) {
+            const errorDiv = document.getElementById(elementId);
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Also allow pressing Enter to submit
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const activeForm = document.querySelector('.auth-form.active');
+                if (activeForm) {
+                    activeForm.dispatchEvent(new Event('submit'));
+                }
+            }
+        });
+    </script>
 </body>
 </html>
