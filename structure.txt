@@ -1,0 +1,7 @@
+personal-diary/
+├── index.html
+├── styles.css
+├── script.js
+├── backend/
+│   └── Code.gs (Google Apps Script)
+└── README.md

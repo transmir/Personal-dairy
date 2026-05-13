@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Personal Diary & Habit Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📔 My Personal Diary & Habit Tracker</h1>
+            <div class="date-display" id="currentDate"></div>
+        </header>
+
+        <div class="main-content">
+            <!-- Video Diary Section -->
+            <section class="video-diary">
+                <h2>🎥 Video Diary</h2>
+                <div class="video-controls">
+                    <button id="startRecording" class="btn btn-primary">Start Recording</button>
+                    <button id="stopRecording" class="btn btn-danger" disabled>Stop Recording</button>
+                </div>
+                <div class="video-container">
+                    <video id="preview" autoplay muted></video>
+                    <video id="recordedVideo" controls style="display:none;"></video>
+                </div>
+                <div class="recording-status" id="recordingStatus"></div>
+                <button id="saveVideo" class="btn btn-success" disabled>Save to Google Drive</button>
+                <div id="uploadProgress" class="progress-bar" style="display:none;">
+                    <div class="progress"></div>
+                </div>
+            </section>
+
+            <!-- Habit Tracker Section -->
+            <section class="habit-tracker">
+                <h2>✅ Daily Habit Tracker</h2>
+                <div class="habits-grid" id="habitsGrid">
+                    <div class="habit-card">
+                        <h3>😴 Sleep</h3>
+                        <input type="number" id="sleepHours" placeholder="Hours slept" min="0" max="24">
+                        <select id="sleepQuality">
+                            <option value="">Sleep Quality</option>
+                            <option value="poor">Poor</option>
+                            <option value="fair">Fair</option>
+                            <option value="good">Good</option>
+                            <option value="excellent">Excellent</option>
+                        </select>
+                    </div>
+                    
+                    <div class="habit-card">
+                        <h3>📚 Study</h3>
+                        <input type="number" id="studyHours" placeholder="Hours studied" min="0" max="24">
+                        <input type="text" id="studySubject" placeholder="Subject/Topic">
+                    </div>
+                    
+                    <div class="habit-card">
+                        <h3>🏃 Exercise</h3>
+                        <input type="number" id="exerciseMinutes" placeholder="Minutes" min="0">
+                        <select id="exerciseType">
+                            <option value="">Type of Exercise</option>
+                            <option value="running">Running</option>
+                            <option value="walking">Walking</option>
+                            <option value="gym">Gym</option>
+                            <option value="yoga">Yoga</option>
+                            <option value="swimming">Swimming</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="habit-card">
+                        <h3>💧 Water</h3>
+                        <input type="number" id="waterGlasses" placeholder="Glasses of water" min="0">
+                    </div>
+                    
+                    <div class="habit-card">
+                        <h3>🧘 Meditation</h3>
+                        <input type="number" id="meditationMinutes" placeholder="Minutes" min="0">
+                    </div>
+                    
+                    <div class="habit-card">
+                        <h3>📝 Journal</h3>
+                        <textarea id="journalEntry" placeholder="Write your thoughts for today..."></textarea>
+                    </div>
+                </div>
+                <button id="saveHabits" class="btn btn-primary">Save Habits</button>
+            </section>
+
+            <!-- History Section -->
+            <section class="history">
+                <h2>📅 History & Past Videos</h2>
+                <div class="date-selector">
+                    <label for="historyDate">Select Date:</label>
+                    <input type="date" id="historyDate">
+                    <button id="loadHistory" class="btn btn-secondary">Load</button>
+                </div>
+                <div id="historyContent">
+                    <h3>Past Videos</h3>
+                    <div id="videoHistory"></div>
+                    <h3>Past Habits</h3>
+                    <div id="habitHistory"></div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
