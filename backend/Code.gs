@@ -1,6 +1,8 @@
 // ============================================================
 // Personal Diary – Google Apps Script Backend
-// Single shared password + 2 fixed users, all data in Sheets
+// ⚠️  This script MUST be opened via:
+//     Google Sheets → Extensions → Apps Script
+// It will NOT work as a standalone script.
 // ============================================================
 
 function doPost(e) {
@@ -22,24 +24,32 @@ function doPost(e) {
 }
 
 function doGet(e) {
-  // Allow GET requests to test the endpoint and handle preflight
   return response(true, 'Diary backend running');
 }
 
-// Handle CORS preflight
-function doOptions(e) {
-  return ContentService.createTextOutput('')
-    .setMimeType(ContentService.MimeType.TEXT);
+// ── Spreadsheet helper (with clear error if not bound) ──────
+
+function getSpreadsheet() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (!ss) throw new Error('No spreadsheet found');
+    return ss;
+  } catch (e) {
+    throw new Error(
+      'Script is not linked to a Google Sheet. ' +
+      'Open your Google Sheet → Extensions → Apps Script, ' +
+      'paste this code there, and redeploy.'
+    );
+  }
 }
 
 // ── Config Sheet (password + user names) ────────────────────
 
 function getConfigSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet();
   let sheet = ss.getSheetByName('Config');
   if (!sheet) {
     sheet = ss.insertSheet('Config');
-    // Row 1: headers, Row 2: values
     sheet.getRange(1,1,1,4).setValues([['password','user1Name','user2Name','version']]);
     sheet.getRange(2,1,1,4).setValues([['','Person 1','Person 2','1']]);
   }
@@ -47,12 +57,12 @@ function getConfigSheet() {
 }
 
 function getConfig() {
-  const sheet = getConfigSheet();
+  const sheet  = getConfigSheet();
   const values = sheet.getRange(2,1,1,4).getValues()[0];
   return response(true, 'ok', {
     hasPassword: values[0] !== '',
-    user1Name: values[1] || 'Person 1',
-    user2Name: values[2] || 'Person 2'
+    user1Name:   values[1] || 'Person 1',
+    user2Name:   values[2] || 'Person 2'
   });
 }
 
@@ -65,18 +75,16 @@ function setPassword(data) {
 }
 
 function verifyPassword(data) {
-  const sheet = getConfigSheet();
+  const sheet  = getConfigSheet();
   const stored = sheet.getRange(2,1).getValue();
   if (!stored) return response(false, 'No password set');
-  if (String(stored) === String(data.password))
-    return response(true, 'ok');
+  if (String(stored) === String(data.password)) return response(true, 'ok');
   return response(false, 'Incorrect password');
 }
 
 function updateUserName(data) {
-  // data.userId = 'user1' or 'user2', data.name = new display name
   const sheet = getConfigSheet();
-  const col = data.userId === 'user1' ? 2 : 3;
+  const col   = data.userId === 'user1' ? 2 : 3;
   if (!data.name || !data.name.trim()) return response(false, 'Name required');
   sheet.getRange(2, col).setValue(data.name.trim());
   return response(true, 'Name updated');
@@ -87,13 +95,9 @@ function updateUserName(data) {
 function saveData(payload) {
   const { userId, type, data } = payload;
   if (!userId || !type) return response(false, 'userId and type required');
-
-  const sheetName = userId + '_' + type;
-  const sheet = getOrCreateSheet(sheetName);
+  const sheet = getOrCreateSheet(userId + '_' + type);
   sheet.clear();
-  if (data !== undefined) {
-    sheet.getRange(1,1).setValue(JSON.stringify(data));
-  }
+  if (data !== undefined) sheet.getRange(1,1).setValue(JSON.stringify(data));
   return response(true, 'Saved');
 }
 
@@ -101,28 +105,26 @@ function loadData(payload) {
   const { userId } = payload;
   if (!userId) return response(false, 'userId required');
 
-  const types = ['habits', 'notes', 'todos', 'settings'];
+  const types  = ['habits', 'notes', 'todos', 'settings'];
   const result = {};
-
   types.forEach(type => {
     const sheet = getOrCreateSheet(userId + '_' + type);
-    const val = sheet.getRange(1,1).getValue();
+    const val   = sheet.getRange(1,1).getValue();
     if (val) {
       try   { result[type] = JSON.parse(val); }
-      catch { result[type] = {}; }
+      catch { result[type] = {};              }
     } else {
       result[type] = (type === 'settings') ? null : {};
     }
   });
-
   return response(true, 'Loaded', { data: result });
 }
 
 // ── Helpers ─────────────────────────────────────────────────
 
 function getOrCreateSheet(name) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName(name);
+  const ss    = getSpreadsheet();
+  let   sheet = ss.getSheetByName(name);
   if (!sheet) sheet = ss.insertSheet(name);
   return sheet;
 }
