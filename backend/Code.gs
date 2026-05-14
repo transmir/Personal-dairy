@@ -1,173 +1,117 @@
 // ============================================================
-// Personal Diary – Google Apps Script Backend
-// Stores users in a "Users" sheet; data in per-user sheets.
+//  Personal Diary – Google Apps Script Backend
+//  Sheets created automatically on first run:
+//    "Config"          → password | user1Name | user2Name
+//    "user1_habits"    → JSON blob
+//    "user1_notes"     → JSON blob
+//    "user1_todos"     → JSON blob
+//    "user1_settings"  → JSON blob
+//    "user2_*"         → same pattern
 // ============================================================
 
 function doPost(e) {
   try {
-    const data = JSON.parse(e.postData.contents);
+    const data   = JSON.parse(e.postData.contents);
     const action = data.action;
 
-    if (action === 'login')         return loginUser(data);
-    if (action === 'register')      return registerUser(data);
-    if (action === 'updateProfile') return updateProfile(data);
-    if (action === 'save')          return saveData(data);
-    if (action === 'load')          return loadData(data);
+    if (action === 'getConfig') return getConfig();
+    if (action === 'setConfig') return setConfig(data);
+    if (action === 'save')      return saveData(data);
+    if (action === 'load')      return loadData(data);
 
-    return response(false, 'Invalid action');
-  } catch (error) {
-    return response(false, error.toString());
+    return resp(false, 'Unknown action: ' + action);
+  } catch (err) {
+    return resp(false, 'Server error: ' + err.toString());
   }
 }
 
 function doGet() {
-  return response(true, 'Diary backend is running');
+  return resp(true, 'Diary backend is running');
 }
 
-// ── Auth ────────────────────────────────────────────────────
+// ── Config sheet ─────────────────────────────────────────────
+// Row 1: [ password, user1DisplayName, user2DisplayName ]
 
-function getUsersSheet() {
+function getConfigSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName('Users');
+  let sheet = ss.getSheetByName('Config');
   if (!sheet) {
-    sheet = ss.insertSheet('Users');
-    sheet.getRange(1, 1, 1, 8).setValues([[
-      'id', 'username', 'password', 'email',
-      'displayName', 'avatar', 'dailyGoal', 'createdAt'
-    ]]);
+    sheet = ss.insertSheet('Config');
+    sheet.getRange(1, 1, 1, 3).setValues([['', 'Person 1', 'Person 2']]);
   }
   return sheet;
 }
 
-function loginUser(data) {
-  const { username, password } = data;
-  if (!username || !password) return response(false, 'Username and password required');
-
-  const sheet = getUsersSheet();
-  const rows  = sheet.getDataRange().getValues();
-
-  for (let i = 1; i < rows.length; i++) {
-    const row = rows[i];
-    if (String(row[1]).toLowerCase() === String(username).toLowerCase()) {
-      if (String(row[2]) !== String(password)) {
-        return response(false, 'Incorrect password');
-      }
-      const user = buildUserObj(row);
-      return response(true, 'Login successful', { user });
+function getConfig() {
+  const sheet  = getConfigSheet();
+  const row    = sheet.getRange(1, 1, 1, 3).getValues()[0];
+  const config = {
+    password: (row[0] === '' || row[0] === null) ? null : String(row[0]),
+    users: {
+      user1: { displayName: String(row[1] || 'Person 1') },
+      user2: { displayName: String(row[2] || 'Person 2') }
     }
-  }
-  return response(false, 'User not found. Please register first.');
-}
-
-function registerUser(data) {
-  const { username, email, password } = data;
-  if (!username || !email || !password) return response(false, 'All fields required');
-
-  const sheet = getUsersSheet();
-  const rows  = sheet.getDataRange().getValues();
-
-  for (let i = 1; i < rows.length; i++) {
-    if (String(rows[i][1]).toLowerCase() === String(username).toLowerCase()) {
-      return response(false, 'Username already taken');
-    }
-    if (String(rows[i][3]).toLowerCase() === String(email).toLowerCase()) {
-      return response(false, 'Email already registered');
-    }
-  }
-
-  const id        = 'user_' + Date.now();
-  const createdAt = new Date().toISOString();
-  sheet.appendRow([id, username, password, email, username, '', '', createdAt]);
-
-  const user = { id, username, email, displayName: username, avatar: '', dailyGoal: '', createdAt };
-  return response(true, 'Registration successful', { user });
-}
-
-function updateProfile(data) {
-  const { userId, displayName, email, password, avatar, dailyGoal } = data;
-  if (!userId) return response(false, 'User ID required');
-
-  const sheet = getUsersSheet();
-  const rows  = sheet.getDataRange().getValues();
-
-  for (let i = 1; i < rows.length; i++) {
-    if (String(rows[i][0]) === String(userId)) {
-      const rowNum = i + 1; // 1-based, skip header
-      if (displayName !== undefined) sheet.getRange(rowNum, 5).setValue(displayName);
-      if (email       !== undefined) sheet.getRange(rowNum, 4).setValue(email);
-      if (password    && password.trim()) sheet.getRange(rowNum, 3).setValue(password);
-      if (avatar      !== undefined) sheet.getRange(rowNum, 6).setValue(avatar);
-      if (dailyGoal   !== undefined) sheet.getRange(rowNum, 7).setValue(dailyGoal);
-      return response(true, 'Profile updated');
-    }
-  }
-  return response(false, 'User not found');
-}
-
-function buildUserObj(row) {
-  return {
-    id:          row[0],
-    username:    row[1],
-    // password intentionally omitted
-    email:       row[3],
-    displayName: row[4] || row[1],
-    avatar:      row[5] || '',
-    dailyGoal:   row[6] || '',
-    createdAt:   row[7] || ''
   };
+  return resp(true, 'OK', { config: config });
 }
 
-// ── Data (habits / notes / todos / settings) ────────────────
+function setConfig(data) {
+  const sheet = getConfigSheet();
+  if (data.password  !== undefined) sheet.getRange(1, 1).setValue(String(data.password));
+  if (data.user1Name !== undefined) sheet.getRange(1, 2).setValue(data.user1Name);
+  if (data.user2Name !== undefined) sheet.getRange(1, 3).setValue(data.user2Name);
+  return resp(true, 'Config saved');
+}
+
+// ── User data ─────────────────────────────────────────────────
 
 function saveData(payload) {
-  const { userId, type, data } = payload;
-  if (!userId || !type) return response(false, 'userId and type required');
+  const userId = payload.userId;
+  const type   = payload.type;
+  const data   = payload.data;
 
-  const sheetName = userId + '_' + type;
-  const sheet     = getOrCreateSheet(sheetName);
+  if (!userId || !type) return resp(false, 'userId and type are required');
 
+  const sheet = getOrCreateSheet(userId + '_' + type);
   sheet.clear();
-  if (data !== undefined) {
-    sheet.getRange(1, 1).setValue(JSON.stringify(data));
-  }
-  return response(true, 'Saved');
+  sheet.getRange(1, 1).setValue(JSON.stringify(data));
+  return resp(true, 'Saved');
 }
 
 function loadData(payload) {
-  const { userId } = payload;
-  if (!userId) return response(false, 'userId required');
+  const userId = payload.userId;
+  if (!userId) return resp(false, 'userId is required');
 
   const types  = ['habits', 'notes', 'todos', 'settings'];
   const result = {};
 
-  types.forEach(type => {
-    const sheetName = userId + '_' + type;
-    const sheet     = getOrCreateSheet(sheetName);
-    const val       = sheet.getRange(1, 1).getValue();
+  types.forEach(function(type) {
+    const sheet = getOrCreateSheet(userId + '_' + type);
+    const val   = sheet.getRange(1, 1).getValue();
     if (val) {
       try   { result[type] = JSON.parse(val); }
-      catch { result[type] = {}; }
+      catch (err) { result[type] = type === 'settings' ? null : {}; }
     } else {
-      result[type] = (type === 'settings') ? null : {};
+      result[type] = type === 'settings' ? null : {};
     }
   });
 
-  return response(true, 'Loaded', { data: result });
+  return resp(true, 'Loaded', { data: result });
 }
 
-// ── Helpers ─────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────
 
 function getOrCreateSheet(name) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName(name);
-  if (!sheet) sheet = ss.insertSheet(name);
-  return sheet;
+  return ss.getSheetByName(name) || ss.insertSheet(name);
 }
 
-function response(success, message, extra = {}) {
-  const output = ContentService.createTextOutput(
-    JSON.stringify({ success, message, ...extra })
-  );
-  output.setMimeType(ContentService.MimeType.JSON);
-  return output;
+function resp(success, message, extra) {
+  var payload = { success: success, message: message };
+  if (extra) {
+    Object.keys(extra).forEach(function(k) { payload[k] = extra[k]; });
+  }
+  return ContentService
+    .createTextOutput(JSON.stringify(payload))
+    .setMimeType(ContentService.MimeType.JSON);
 }
