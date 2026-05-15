@@ -509,7 +509,7 @@ input:checked+.slider:before{transform:translateX(22px);}
 // ════════════════════════════════════════════════
 //  CONFIG
 // ════════════════════════════════════════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIxLNnqQQMK-YY_DgQH_mMo-vOREnbraDJdZl99J5rNzqSRo8Y65bhN5zsWwllFDZK/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_vYwTxspKnmQYkt9wy7fvIoWDMVbQiR_0CHzxtaT-pQuZS8lW8Tx-z1g4MsAr8XFOOg/exec';
 
 // ════════════════════════════════════════════════
 //  STATE
@@ -593,7 +593,13 @@ function showLoading(on){ document.getElementById('loadingOverlay').classList.to
 function setSyncStatus(s,m){ const el=document.getElementById('syncStatus'); el.className='sync-status '+s; el.textContent=m; }
 function showMessage(id,text,type){ const el=document.getElementById(id); if(!el)return; el.textContent=text; el.className='message '+type; if(type!=='info')setTimeout(()=>{el.className='message';},4500); }
 function showGate(id){ document.querySelectorAll('.gate-screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-async function api(payload){ const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)}); return r.json(); }
+async function api(payload){
+  // Apps Script reliably reads GET query params via e.parameter
+  // Sending raw JSON POST without Content-Type often fails silently
+  const url = SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(payload));
+  const r = await fetch(url);
+  return r.json();
+}
 
 // ════════════════════════════════════════════════
 //  BOOT

@@ -1,21 +1,27 @@
 // ============================================================
 // Personal Diary – Google Apps Script Backend
 // Open via: Google Sheet → Extensions → Apps Script
+// Requests come in as GET with ?data=<JSON> parameter
 // ============================================================
 
-function doPost(e) {
+function doGet(e) {
   try {
-    const raw    = e.postData ? e.postData.contents : '{}';
-    const data   = JSON.parse(raw);
-    const action = data.action;
+    // All requests come as GET with a 'data' query parameter
+    if (!e || !e.parameter || !e.parameter.data) {
+      // Direct browser visit — just confirm it's running
+      return respond(true, 'Diary backend is running ✅ — ' + new Date().toISOString());
+    }
 
-    if (action === 'getConfig')      return getConfig();
-    if (action === 'setPassword')    return setPassword(data);
-    if (action === 'verifyPassword') return verifyPassword(data);
-    if (action === 'updateUserName') return updateUserName(data);
-    if (action === 'save')           return saveData(data);
-    if (action === 'load')           return loadData(data);
-    if (action === 'saveVideoToDrive') return saveVideoToDrive(data);
+    const payload = JSON.parse(e.parameter.data);
+    const action  = payload.action;
+
+    if (action === 'getConfig')        return getConfig();
+    if (action === 'setPassword')      return setPassword(payload);
+    if (action === 'verifyPassword')   return verifyPassword(payload);
+    if (action === 'updateUserName')   return updateUserName(payload);
+    if (action === 'save')             return saveData(payload);
+    if (action === 'load')             return loadData(payload);
+    if (action === 'saveVideoToDrive') return saveVideoToDrive(payload);
 
     return respond(false, 'Unknown action: ' + action);
   } catch (err) {
@@ -23,8 +29,9 @@ function doPost(e) {
   }
 }
 
-function doGet(e) {
-  return respond(true, 'Diary backend is running ✅');
+// Keep doPost as a fallback (not needed but harmless)
+function doPost(e) {
+  return doGet(e);
 }
 
 // ── Spreadsheet helper ───────────────────────────────────────
@@ -82,7 +89,6 @@ function updateUserName(data) {
 }
 
 // ── Per-user data ─────────────────────────────────────────────
-// All data types stored: habits, notes, todos, settings, papers, notesfiles
 function saveData(payload) {
   const { userId, type, data } = payload;
   if (!userId || !type) return respond(false, 'Missing userId or type');
@@ -109,8 +115,8 @@ function loadData(payload) {
 }
 
 function defaultFor(type) {
-  if (type === 'settings') return null;
-  if (type === 'papers')   return [];
+  if (type === 'settings')   return null;
+  if (type === 'papers')     return [];
   if (type === 'notesfiles') return {};
   return {};
 }
@@ -119,44 +125,29 @@ function defaultFor(type) {
 function saveVideoToDrive(data) {
   try {
     const { userId, title, note, date, base64, mimeType } = data;
-
-    // Decode base64 video
     const decoded = Utilities.base64Decode(base64);
     const blob    = Utilities.newBlob(decoded, mimeType || 'video/webm', title + '.webm');
 
-    // Find or create "My Diary Videos" folder in Drive
     let folder;
     const folders = DriveApp.getFoldersByName('My Diary Videos');
-    if (folders.hasNext()) {
-      folder = folders.next();
-    } else {
-      folder = DriveApp.createFolder('My Diary Videos');
-    }
+    folder = folders.hasNext() ? folders.next() : DriveApp.createFolder('My Diary Videos');
 
-    // Save sub-folder per user
     let userFolder;
-    const userFolders = folder.getFoldersByName(userId);
-    if (userFolders.hasNext()) {
-      userFolder = userFolders.next();
-    } else {
-      userFolder = folder.createFolder(userId);
-    }
+    const uf = folder.getFoldersByName(userId);
+    userFolder = uf.hasNext() ? uf.next() : folder.createFolder(userId);
 
     const file    = userFolder.createFile(blob);
     const fileUrl = file.getUrl();
 
-    // Also log entry to notes sheet
+    // Log entry in notes sheet
     const notesSheet = getOrCreateSheet(userId + '_notes');
     const raw        = notesSheet.getRange(1, 1).getValue();
     let   notesData  = {};
     try { notesData = raw ? JSON.parse(raw) : {}; } catch(e) {}
     if (!notesData._videoEntries) notesData._videoEntries = [];
     notesData._videoEntries.unshift({
-      title:    title,
-      note:     note || '',
-      date:     date,
-      driveUrl: fileUrl,
-      savedAt:  new Date().toISOString()
+      title: title, note: note || '', date: date,
+      driveUrl: fileUrl, savedAt: new Date().toISOString()
     });
     notesSheet.clearContents();
     notesSheet.getRange(1, 1).setValue(JSON.stringify(notesData));
