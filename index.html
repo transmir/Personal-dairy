@@ -1,1536 +1,955 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Diary & Habit Tracker</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* ── GATE ── */
-        .gate-container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 420px;
-            text-align: center;
-        }
-
-        .gate-container i.big {
-            font-size: 3em;
-            color: #667eea;
-            margin-bottom: 15px;
-            display: block;
-        }
-
-        .gate-container h1 {
-            color: #333;
-            margin-bottom: 8px;
-        }
-
-        .gate-container p {
-            color: #777;
-            margin-bottom: 20px;
-            font-size: 0.95em;
-        }
-
-        .gate-screen {
-            display: none;
-        }
-
-        .gate-screen.active {
-            display: block;
-            animation: fadeIn 0.4s;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .form-group {
-            margin-bottom: 18px;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: 500;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 13px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1em;
-            transition: border-color 0.3s;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.05em;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            margin-top: 8px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-secondary {
-            background: #95a5a6;
-            color: white;
-        }
-
-        .btn-danger {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .btn-sm {
-            padding: 9px 18px;
-            font-size: 0.9em;
-            width: auto;
-        }
-
-        .message {
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 14px;
-            display: none;
-            text-align: center;
-            font-size: 0.95em;
-        }
-
-        .message.error {
-            display: block;
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .message.success {
-            display: block;
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .message.info {
-            display: block;
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-
-        .user-select-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .user-btn {
-            flex: 1;
-            padding: 22px 15px;
-            border: 2px solid #ddd;
-            border-radius: 15px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 1.1em;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-btn:hover {
-            border-color: #667eea;
-            background: #f8f8ff;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
-        }
-
-        .user-btn i {
-            font-size: 2.2em;
-            color: #667eea;
-        }
-
-        .user-btn span {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(102, 126, 234, 0.15);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            display: none;
-        }
-
-        .loading-overlay.active {
-            display: flex;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #fff;
-            border-top-color: #667eea;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* ── DASHBOARD ── */
-        .dashboard {
-            display: none;
-        }
-
-        .dashboard.active {
-            display: flex;
-            min-height: 100vh;
-            width: 100%;
-        }
-
-        .sidebar {
-            width: 260px;
-            background: white;
-            padding: 20px;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .logo {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px;
-            background: #f5f5f5;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            background: #667eea;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2em;
-            flex-shrink: 0;
-        }
-
-        .nav-tabs {
-            list-style: none;
-            flex: 1;
-        }
-
-        .nav-tab {
-            padding: 12px 15px;
-            margin-bottom: 5px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .nav-tab:hover {
-            background: #f0f0f0;
-        }
-
-        .nav-tab.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .main-content {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-            background: #f5f5f5;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.3s;
-        }
-
-        .page-header {
-            background: white;
-            padding: 22px 25px;
-            border-radius: 15px;
-            margin-bottom: 22px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-        }
-
-        .page-header h1 {
-            color: #333;
-            margin-bottom: 4px;
-        }
-
-        .page-header .date {
-            color: #667eea;
-            font-size: 1.05em;
-        }
-
-        .habits-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 18px;
-            margin-bottom: 22px;
-        }
-
-        .habit-card {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s;
-        }
-
-        .habit-card:hover {
-            transform: translateY(-3px);
-        }
-
-        .habit-card h3 {
-            margin-bottom: 14px;
-            color: #333;
-        }
-
-        .input-row {
-            margin-bottom: 12px;
-        }
-
-        .input-row label {
-            display: block;
-            margin-bottom: 5px;
-            color: #666;
-            font-size: 0.9em;
-        }
-
-        .input-row input,
-        .input-row select,
-        .input-row textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 0.95em;
-        }
-
-        .video-container {
-            background: black;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 18px 0;
-            max-width: 640px;
-        }
-
-        video {
-            width: 100%;
-            display: block;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .profile-section {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-            max-width: 600px;
-            margin-bottom: 20px;
-        }
-
-        .profile-section h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        .habit-toggle-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .habit-toggle-icon {
-            font-size: 1.4em;
-        }
-
-        .habit-toggle-name {
-            flex: 1;
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 46px;
-            height: 24px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #ccc;
-            transition: .4s;
-            border-radius: 24px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked+.slider {
-            background: #667eea;
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(22px);
-        }
-
-        .sortable-list .habit-order-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px;
-            background: #f8f8f8;
-            margin-bottom: 5px;
-            border-radius: 5px;
-            cursor: move;
-        }
-
-        .drag-handle {
-            cursor: grab;
-            color: #999;
-        }
-
-        .todo-input-area {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 18px;
-        }
-
-        .todo-list {
-            list-style: none;
-        }
-
-        .todo-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px;
-            background: #f8f8f8;
-            margin-bottom: 8px;
-            border-radius: 5px;
-        }
-
-        .todo-item.completed span {
-            text-decoration: line-through;
-            opacity: 0.6;
-        }
-
-        .todo-item button {
-            margin-left: auto;
-        }
-
-        .delete-custom-btn {
-            background: none;
-            border: none;
-            color: #e74c3c;
-            cursor: pointer;
-        }
-
-        .switch-user-btn {
-            background: none;
-            border: none;
-            color: #667eea;
-            cursor: pointer;
-            font-size: 0.85em;
-            text-decoration: underline;
-            display: block;
-            margin-top: 3px;
-        }
-
-        .sync-status {
-            font-size: 0.75em;
-            color: #999;
-            text-align: center;
-            padding: 5px 0;
-        }
-
-        .sync-status.syncing {
-            color: #f39c12;
-        }
-
-        .sync-status.synced {
-            color: #27ae60;
-        }
-
-        .sync-status.error {
-            color: #e74c3c;
-        }
-
-        .yesno-toggle {
-            display: flex;
-            gap: 8px;
-        }
-
-        .yesno-btn {
-            padding: 8px 16px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            background: white;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .yesno-btn.active[data-value="yes"] {
-            background: #27ae60;
-            border-color: #27ae60;
-            color: white;
-        }
-
-        .yesno-btn.active[data-value="no"] {
-            background: #e74c3c;
-            border-color: #e74c3c;
-            color: white;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                align-items: flex-start;
-            }
-
-            .gate-container {
-                border-radius: 0;
-                min-height: 100vh;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-            }
-
-            .dashboard {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-            }
-
-            .main-content {
-                padding: 15px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personal Diary & Habit Tracker</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;display:flex;justify-content:center;align-items:center;}
+
+/* GATE */
+.gate-container{background:white;border-radius:20px;padding:40px;box-shadow:0 20px 60px rgba(0,0,0,.3);width:100%;max-width:420px;text-align:center;}
+.gate-container i.big{font-size:3em;color:#667eea;margin-bottom:15px;display:block;}
+.gate-container h1{color:#333;margin-bottom:8px;}
+.gate-container p{color:#777;margin-bottom:20px;font-size:.95em;}
+.gate-screen{display:none;}.gate-screen.active{display:block;animation:fadeIn .4s;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.form-group{margin-bottom:18px;text-align:left;}
+.form-group label{display:block;margin-bottom:5px;color:#555;font-weight:500;}
+.form-group input{width:100%;padding:13px 15px;border:2px solid #e0e0e0;border-radius:10px;font-size:1em;transition:border-color .3s;}
+.form-group input:focus{outline:none;border-color:#667eea;}
+.btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:1.05em;cursor:pointer;font-weight:600;transition:all .3s;margin-top:8px;}
+.btn-primary{background:linear-gradient(135deg,#667eea,#764ba2);color:white;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 5px 20px rgba(102,126,234,.4);}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.btn-secondary{background:#95a5a6;color:white;}
+.btn-danger{background:#e74c3c;color:white;}
+.btn-success{background:#27ae60;color:white;}
+.btn-sm{padding:9px 18px;font-size:.9em;width:auto;}
+.message{padding:12px;border-radius:8px;margin-top:14px;display:none;text-align:center;font-size:.95em;}
+.message.error{display:block;background:#f8d7da;color:#721c24;}
+.message.success{display:block;background:#d4edda;color:#155724;}
+.message.info{display:block;background:#d1ecf1;color:#0c5460;}
+.user-select-buttons{display:flex;gap:15px;justify-content:center;margin-top:20px;}
+.user-btn{flex:1;padding:22px 15px;border:2px solid #ddd;border-radius:15px;background:white;cursor:pointer;transition:all .3s;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.user-btn:hover{border-color:#667eea;background:#f8f8ff;transform:translateY(-3px);box-shadow:0 5px 20px rgba(102,126,234,.2);}
+.user-btn i{font-size:2.2em;color:#667eea;}
+.user-btn span{font-weight:600;color:#333;}
+.loading-overlay{position:fixed;inset:0;background:rgba(102,126,234,.15);display:none;align-items:center;justify-content:center;z-index:9999;}
+.loading-overlay.active{display:flex;}
+.spinner{width:50px;height:50px;border:4px solid #fff;border-top-color:#667eea;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* DASHBOARD */
+.dashboard{display:none;}
+.dashboard.active{display:flex;min-height:100vh;width:100%;}
+.sidebar{width:260px;background:white;padding:20px;box-shadow:2px 0 10px rgba(0,0,0,.1);flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto;}
+.logo{font-size:1.5em;font-weight:bold;color:#667eea;margin-bottom:25px;display:flex;align-items:center;gap:10px;}
+.user-info{display:flex;align-items:center;gap:10px;padding:14px;background:#f5f5f5;border-radius:10px;margin-bottom:20px;}
+.avatar{width:40px;height:40px;background:#667eea;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1.2em;flex-shrink:0;}
+.nav-tabs{list-style:none;flex:1;}
+.nav-tab{padding:12px 15px;margin-bottom:5px;border-radius:8px;cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:10px;font-size:.95em;}
+.nav-tab:hover{background:#f0f0f0;}
+.nav-tab.active{background:#667eea;color:white;}
+.main-content{flex:1;padding:30px;overflow-y:auto;background:#f5f5f5;}
+.tab-content{display:none;}
+.tab-content.active{display:block;animation:fadeIn .3s;}
+.page-header{background:white;padding:22px 25px;border-radius:15px;margin-bottom:22px;box-shadow:0 2px 10px rgba(0,0,0,.08);}
+.page-header h1{color:#333;margin-bottom:4px;}
+.page-header p{color:#777;font-size:.9em;margin-top:4px;}
+.habits-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-bottom:22px;}
+.habit-card{background:white;padding:20px;border-radius:15px;box-shadow:0 2px 10px rgba(0,0,0,.08);transition:transform .3s;}
+.habit-card:hover{transform:translateY(-3px);}
+.habit-card h3{margin-bottom:14px;color:#333;}
+.input-row{margin-bottom:12px;}
+.input-row label{display:block;margin-bottom:5px;color:#666;font-size:.9em;}
+.input-row input,.input-row select,.input-row textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:.95em;}
+.profile-section{background:white;padding:25px;border-radius:15px;box-shadow:0 2px 10px rgba(0,0,0,.08);margin-bottom:20px;}
+.profile-section h3{margin-bottom:15px;color:#333;}
+.switch-user-btn{background:none;border:none;color:#667eea;cursor:pointer;font-size:.85em;text-decoration:underline;display:block;margin-top:3px;}
+.sync-status{font-size:.75em;color:#999;text-align:center;padding:5px 0;}
+.sync-status.syncing{color:#f39c12;}.sync-status.synced{color:#27ae60;}.sync-status.error{color:#e74c3c;}
+
+/* HABITS settings */
+.habit-toggle-item{display:flex;align-items:center;gap:15px;padding:10px;border-bottom:1px solid #eee;}
+.habit-toggle-icon{font-size:1.4em;}.habit-toggle-name{flex:1;}
+.switch{position:relative;display:inline-block;width:46px;height:24px;}
+.switch input{opacity:0;width:0;height:0;}
+.slider{position:absolute;cursor:pointer;inset:0;background:#ccc;transition:.4s;border-radius:24px;}
+.slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:white;transition:.4s;border-radius:50%;}
+input:checked+.slider{background:#667eea;}
+input:checked+.slider:before{transform:translateX(22px);}
+.sortable-list .habit-order-item{display:flex;align-items:center;gap:10px;padding:8px;background:#f8f8f8;margin-bottom:5px;border-radius:5px;cursor:move;}
+.drag-handle{cursor:grab;color:#999;}
+.delete-custom-btn{background:none;border:none;color:#e74c3c;cursor:pointer;}
+.yesno-toggle{display:flex;gap:8px;}
+.yesno-btn{padding:8px 16px;border:2px solid #ddd;border-radius:6px;background:white;cursor:pointer;font-weight:600;transition:all .2s;}
+.yesno-btn.active[data-value="yes"]{background:#27ae60;border-color:#27ae60;color:white;}
+.yesno-btn.active[data-value="no"]{background:#e74c3c;border-color:#e74c3c;color:white;}
+
+/* TODO */
+.todo-input-area{display:flex;gap:10px;margin-bottom:18px;}
+.todo-list{list-style:none;}
+.todo-item{display:flex;align-items:center;gap:10px;padding:10px;background:#f8f8f8;margin-bottom:8px;border-radius:5px;}
+.todo-item.completed span{text-decoration:line-through;opacity:.6;}
+.todo-item button{margin-left:auto;}
+
+/* VIDEO */
+.video-wrap{background:#111;border-radius:12px;overflow:hidden;margin:18px 0;max-width:640px;position:relative;}
+.video-wrap video{width:100%;display:block;}
+.cam-dot{position:absolute;top:12px;right:12px;background:#e74c3c;color:white;border-radius:20px;padding:4px 12px;font-size:.8em;font-weight:700;display:none;}
+.cam-dot.on{display:block;animation:blink 1s infinite;}
+@keyframes blink{50%{opacity:.4}}
+.button-group{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;}
+.video-save-box{background:white;padding:20px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.08);max-width:640px;margin-top:15px;}
+.video-save-box h3{margin-bottom:12px;color:#333;}
+.drive-link-box{background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:12px 15px;margin-top:10px;font-size:.9em;color:#2e7d32;display:none;}
+.drive-link-box a{color:#1565c0;font-weight:600;}
+.video-entries-list{margin-top:20px;}
+.video-entry-card{background:white;border-radius:10px;padding:16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;align-items:flex-start;gap:12px;}
+.video-entry-card i{color:#667eea;font-size:1.4em;margin-top:2px;flex-shrink:0;}
+.video-entry-info{flex:1;}
+.video-entry-title{font-weight:600;color:#333;}
+.video-entry-meta{font-size:.82em;color:#999;margin-top:3px;}
+.video-entry-note{font-size:.88em;color:#555;margin-top:6px;}
+.video-entry-drive{font-size:.83em;margin-top:6px;}
+.video-entry-drive a{color:#1565c0;font-weight:600;}
+
+/* FILE UPLOAD */
+.upload-zone{border:2px dashed #667eea;border-radius:12px;padding:28px;text-align:center;cursor:pointer;transition:all .3s;background:#f8f8ff;margin-bottom:15px;}
+.upload-zone:hover,.upload-zone.dragover{background:#eef0ff;border-color:#4a5fe8;}
+.upload-zone i{font-size:2.4em;color:#667eea;margin-bottom:10px;display:block;}
+.upload-zone p{color:#777;font-size:.9em;margin:0;}
+.upload-zone strong{color:#667eea;}
+.file-list{list-style:none;margin-top:8px;}
+.file-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f8f8f8;border-radius:8px;margin-bottom:8px;border:1px solid #eee;}
+.file-icon{font-size:1.4em;flex-shrink:0;}
+.file-name{flex:1;font-size:.9em;color:#333;word-break:break-all;}
+.file-size{font-size:.78em;color:#999;flex-shrink:0;}
+.file-del{background:none;border:none;color:#e74c3c;cursor:pointer;font-size:1em;flex-shrink:0;}
+.file-view{background:none;border:none;color:#667eea;cursor:pointer;font-size:.85em;text-decoration:underline;flex-shrink:0;}
+.upload-note{font-size:.82em;color:#aaa;margin-top:6px;}
+
+/* PAPERS */
+.papers-grid{display:grid;gap:18px;}
+.paper-card{background:white;border-radius:15px;box-shadow:0 2px 10px rgba(0,0,0,.08);overflow:hidden;}
+.paper-header{padding:18px 20px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;display:flex;align-items:flex-start;gap:12px;}
+.paper-header i{font-size:1.5em;margin-top:2px;flex-shrink:0;}
+.paper-title{font-weight:700;font-size:1.05em;flex:1;}
+.paper-sub{font-size:.8em;opacity:.85;margin-top:3px;}
+.paper-body{padding:18px 20px;}
+.paper-summary{color:#555;font-size:.95em;line-height:1.6;white-space:pre-wrap;margin-bottom:14px;}
+.paper-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.paper-tag{background:#f0f0ff;border:1px solid #d0d0ff;border-radius:20px;padding:3px 10px;font-size:.78em;color:#667eea;}
+.paper-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.paper-chip{display:flex;align-items:center;gap:6px;background:#f0f0ff;border:1px solid #d0d0ff;border-radius:20px;padding:5px 12px;font-size:.82em;color:#555;cursor:pointer;transition:all .2s;}
+.paper-chip:hover{background:#e0e0ff;}
+.paper-chip i{color:#667eea;}
+.paper-actions{display:flex;gap:8px;margin-top:14px;justify-content:flex-end;}
+.add-paper-form{background:white;border-radius:15px;box-shadow:0 2px 10px rgba(0,0,0,.08);padding:25px;margin-bottom:22px;}
+.add-paper-form h3{margin-bottom:18px;color:#333;display:flex;align-items:center;gap:8px;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.active{display:flex;}
+.modal-box{background:white;border-radius:15px;padding:30px;max-width:720px;width:100%;max-height:90vh;overflow-y:auto;}
+.modal-box h3{margin-bottom:18px;color:#333;}
+.modal-close{float:right;background:none;border:none;font-size:1.4em;cursor:pointer;color:#999;}
+
+@media(max-width:768px){
+  body{align-items:flex-start;}
+  .gate-container{border-radius:0;min-height:100vh;display:flex;flex-direction:column;justify-content:center;}
+  .dashboard{flex-direction:column;}
+  .sidebar{width:100%;}
+  .main-content{padding:15px;}
+}
+</style>
 </head>
-
 <body>
 
-    <!-- Loading overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
+<div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
+
+<!-- FILE PREVIEW MODAL -->
+<div class="modal-overlay" id="previewModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closePreview()">✕</button>
+    <h3 id="previewTitle">Preview</h3>
+    <div id="previewContent" style="margin-top:15px;"></div>
+  </div>
+</div>
+
+<!-- GATE -->
+<div id="gateContainer" class="gate-container" style="display:none;">
+
+  <div id="setPasswordScreen" class="gate-screen">
+    <i class="fas fa-lock big"></i>
+    <h1>Set Your Password</h1>
+    <p>Set once — works on every device automatically</p>
+    <div class="form-group">
+      <label>Create Password</label>
+      <input type="password" id="newPassword" placeholder="At least 4 characters" onkeydown="if(event.key==='Enter')setPasswordAction()">
+    </div>
+    <div class="form-group">
+      <label>Confirm Password</label>
+      <input type="password" id="confirmPassword" placeholder="Re-enter password" onkeydown="if(event.key==='Enter')setPasswordAction()">
+    </div>
+    <button class="btn btn-primary" onclick="setPasswordAction()"><i class="fas fa-lock"></i> Set Password & Continue</button>
+    <div id="setPwMessage" class="message"></div>
+  </div>
+
+  <div id="enterPasswordScreen" class="gate-screen">
+    <i class="fas fa-book big"></i>
+    <h1>My Diary</h1>
+    <p>Enter your password to unlock</p>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="enterPassword" placeholder="Your password" onkeydown="if(event.key==='Enter')checkPasswordAction()">
+    </div>
+    <button class="btn btn-primary" id="unlockBtn" onclick="checkPasswordAction()"><i class="fas fa-unlock"></i> Unlock</button>
+    <div id="pwMessage" class="message"></div>
+  </div>
+
+  <div id="selectUserScreen" class="gate-screen">
+    <i class="fas fa-users big"></i>
+    <h1>Who's Using the Diary?</h1>
+    <p>Select your profile to continue</p>
+    <div class="user-select-buttons">
+      <div class="user-btn" onclick="selectUser('user1')"><i class="fas fa-user-circle"></i><span id="user1Name">Person 1</span></div>
+      <div class="user-btn" onclick="selectUser('user2')"><i class="fas fa-user-circle"></i><span id="user2Name">Person 2</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="dashboard">
+  <nav class="sidebar">
+    <div class="logo"><i class="fas fa-book"></i><span>My Diary</span></div>
+    <div class="user-info">
+      <div class="avatar" id="sidebarAvatar">U</div>
+      <div>
+        <strong id="sidebarName">User</strong>
+        <button class="switch-user-btn" onclick="switchUser()">↩ Switch user</button>
+      </div>
+    </div>
+    <ul class="nav-tabs">
+      <li class="nav-tab active"  onclick="switchTab('daily',this)">  <i class="fas fa-calendar-day"></i> Daily Habits</li>
+      <li class="nav-tab"        onclick="switchTab('video',this)">   <i class="fas fa-video"></i> Video Diary</li>
+      <li class="nav-tab"        onclick="switchTab('notes',this)">   <i class="fas fa-sticky-note"></i> Notes</li>
+      <li class="nav-tab"        onclick="switchTab('papers',this)">  <i class="fas fa-scroll"></i> Paper Summaries</li>
+      <li class="nav-tab"        onclick="switchTab('todo',this)">    <i class="fas fa-tasks"></i> To-Do List</li>
+      <li class="nav-tab"        onclick="switchTab('profile',this)"> <i class="fas fa-user-cog"></i> Profile</li>
+      <li class="nav-tab"        onclick="switchTab('settings',this)"><i class="fas fa-cogs"></i> Customize Habits</li>
+    </ul>
+    <div id="syncStatus" class="sync-status">● Ready</div>
+    <button class="btn btn-danger" onclick="lockDiary()" style="margin-top:10px;"><i class="fas fa-sign-out-alt"></i> Lock Diary</button>
+  </nav>
+
+  <main class="main-content">
+
+    <!-- DAILY HABITS -->
+    <div id="tab-daily" class="tab-content active">
+      <div class="page-header"><h1>📅 Daily Habit Tracker</h1><div class="date" id="todayDate"></div></div>
+      <div class="habits-grid" id="habitsContainer"></div>
+      <div style="text-align:center;margin-top:20px;">
+        <button class="btn btn-primary" onclick="saveHabits()" style="width:auto;padding:14px 40px;"><i class="fas fa-save"></i> Save Habits</button>
+      </div>
+      <div id="habitsMessage" class="message"></div>
     </div>
 
-    <!-- ── GATE ── -->
-    <div id="gateContainer" class="gate-container">
-
-        <!-- Set Password (first ever open) -->
-        <div id="setPasswordScreen" class="gate-screen">
-            <i class="fas fa-lock big"></i>
-            <h1>Set Your Password</h1>
-            <p>This password will be shared across all devices.<br>You only need to set it once.</p>
-            <div class="form-group">
-                <label>Create Password</label>
-                <input type="password" id="newPassword" placeholder="At least 4 characters"
-                    onkeydown="if(event.key==='Enter') setPasswordAction()">
-            </div>
-            <div class="form-group">
-                <label>Confirm Password</label>
-                <input type="password" id="confirmPassword" placeholder="Re-enter password"
-                    onkeydown="if(event.key==='Enter') setPasswordAction()">
-            </div>
-            <button class="btn btn-primary" onclick="setPasswordAction()">
-                <i class="fas fa-lock"></i> Set Password & Continue
-            </button>
-            <div id="setPwMessage" class="message"></div>
+    <!-- VIDEO DIARY -->
+    <div id="tab-video" class="tab-content">
+      <div class="page-header">
+        <h1>🎥 Video Diary</h1>
+        <p>Camera turns off automatically when you leave this tab. Videos are saved directly to your Google Drive.</p>
+      </div>
+      <div class="button-group">
+        <button class="btn btn-danger btn-sm" id="startBtn" onclick="startRecording()"><i class="fas fa-circle"></i> Start Recording</button>
+        <button class="btn btn-secondary btn-sm" id="stopBtn" onclick="stopRecording()" disabled><i class="fas fa-stop"></i> Stop</button>
+      </div>
+      <div class="video-wrap">
+        <div class="cam-dot" id="camDot">● REC</div>
+        <video id="preview" autoplay muted></video>
+        <video id="recordedVideo" controls style="display:none;"></video>
+      </div>
+      <div class="video-save-box" id="videoSaveBox" style="display:none;">
+        <h3>💾 Save to Google Drive</h3>
+        <div class="input-row" style="margin-bottom:10px;">
+          <input type="text" id="videoTitle" placeholder="Title (e.g. Day reflection — June 5)" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
         </div>
-
-        <!-- Enter Password -->
-        <div id="enterPasswordScreen" class="gate-screen">
-            <i class="fas fa-book big"></i>
-            <h1>My Diary</h1>
-            <p>Enter your password to unlock</p>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="enterPassword" placeholder="Your password"
-                    onkeydown="if(event.key==='Enter') checkPasswordAction()">
-            </div>
-            <button class="btn btn-primary" id="unlockBtn" onclick="checkPasswordAction()">
-                <i class="fas fa-unlock"></i> Unlock
-            </button>
-            <div id="pwMessage" class="message"></div>
+        <textarea id="videoNote" placeholder="Notes about this recording..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;resize:vertical;min-height:80px;margin-bottom:12px;font-family:inherit;"></textarea>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" onclick="uploadVideoToDrive()"><i class="fas fa-cloud-upload-alt"></i> Save to Google Drive</button>
+          <button class="btn btn-secondary btn-sm" onclick="downloadVideoLocally()"><i class="fas fa-download"></i> Download locally</button>
         </div>
-
-        <!-- Select User -->
-        <div id="selectUserScreen" class="gate-screen">
-            <i class="fas fa-users big"></i>
-            <h1>Who's Using the Diary?</h1>
-            <p>Select your profile to continue</p>
-            <div class="user-select-buttons">
-                <div class="user-btn" onclick="selectUser('user1')">
-                    <i class="fas fa-user-circle"></i>
-                    <span id="user1Name">Person 1</span>
-                </div>
-                <div class="user-btn" onclick="selectUser('user2')">
-                    <i class="fas fa-user-circle"></i>
-                    <span id="user2Name">Person 2</span>
-                </div>
-            </div>
+        <div id="videoMessage" class="message"></div>
+        <div class="drive-link-box" id="driveLinkBox">
+          ✅ Saved! <a id="driveLinkAnchor" href="#" target="_blank">Open in Google Drive</a>
         </div>
+        <p style="color:#aaa;font-size:.8em;margin-top:10px;"><i class="fas fa-info-circle"></i> Large videos may take a moment to upload. Keep this tab open until done.</p>
+      </div>
+      <div class="video-entries-list" id="videoEntriesList"></div>
     </div>
 
-    <!-- ── DASHBOARD ── -->
-    <div id="dashboard" class="dashboard">
-        <nav class="sidebar">
-            <div class="logo"><i class="fas fa-book"></i><span>My Diary</span></div>
-            <div class="user-info">
-                <div class="avatar" id="sidebarAvatar">U</div>
-                <div>
-                    <strong id="sidebarName">User</strong>
-                    <button class="switch-user-btn" onclick="switchUser()">↩ Switch user</button>
-                </div>
-            </div>
-            <ul class="nav-tabs">
-                <li class="nav-tab active" onclick="switchTab('daily', this)"><i class="fas fa-calendar-day"></i> Daily
-                    Habits</li>
-                <li class="nav-tab" onclick="switchTab('video', this)"><i class="fas fa-video"></i> Video Diary</li>
-                <li class="nav-tab" onclick="switchTab('notes', this)"><i class="fas fa-sticky-note"></i> Notes</li>
-                <li class="nav-tab" onclick="switchTab('todo', this)"><i class="fas fa-tasks"></i> To-Do List</li>
-                <li class="nav-tab" onclick="switchTab('profile', this)"><i class="fas fa-user-cog"></i> Profile</li>
-                <li class="nav-tab" onclick="switchTab('settings', this)"><i class="fas fa-cogs"></i> Customize Habits
-                </li>
-            </ul>
-            <div id="syncStatus" class="sync-status">● Connected</div>
-            <button class="btn btn-danger" onclick="lockDiary()" style="margin-top: 10px;">
-                <i class="fas fa-sign-out-alt"></i> Lock Diary
-            </button>
-        </nav>
-
-        <main class="main-content">
-            <!-- Daily Habits -->
-            <div id="tab-daily" class="tab-content active">
-                <div class="page-header">
-                    <h1>📅 Daily Habit Tracker</h1>
-                    <div class="date" id="todayDate"></div>
-                </div>
-                <div class="habits-grid" id="habitsContainer"></div>
-                <div style="text-align:center; margin-top:20px;">
-                    <button class="btn btn-primary" onclick="saveHabits()" style="width:auto; padding:14px 40px;">
-                        <i class="fas fa-save"></i> Save Habits
-                    </button>
-                </div>
-                <div id="habitsMessage" class="message"></div>
-            </div>
-
-            <!-- Video Diary -->
-            <div id="tab-video" class="tab-content">
-                <div class="page-header">
-                    <h1>🎥 Video Diary</h1>
-                </div>
-                <div class="button-group">
-                    <button class="btn btn-danger btn-sm" id="startBtn" onclick="startRecording()"><i
-                            class="fas fa-circle"></i> Start Recording</button>
-                    <button class="btn btn-primary btn-sm" id="stopBtn" onclick="stopRecording()" disabled><i
-                            class="fas fa-stop"></i> Stop</button>
-                </div>
-                <div class="video-container">
-                    <video id="preview" autoplay muted></video>
-                    <video id="recordedVideo" controls style="display:none;"></video>
-                </div>
-                <p id="recordingStatus" style="color:red; display:none; margin-top:10px;">🔴 Recording in progress...
-                </p>
-            </div>
-
-            <!-- Notes -->
-            <div id="tab-notes" class="tab-content">
-                <div class="page-header">
-                    <h1>📝 Daily Notes</h1>
-                </div>
-                <div class="profile-section">
-                    <div class="input-row">
-                        <label>Today's Journal Entry</label>
-                        <textarea id="journalEntry" rows="10" placeholder="Write about your day..."></textarea>
-                    </div>
-                    <button class="btn btn-primary btn-sm" onclick="saveNotes()">
-                        <i class="fas fa-save"></i> Save Notes
-                    </button>
-                    <div id="notesMessage" class="message"></div>
-                </div>
-            </div>
-
-            <!-- To-Do List -->
-            <div id="tab-todo" class="tab-content">
-                <div class="page-header">
-                    <h1>✅ To-Do List</h1>
-                </div>
-                <div class="profile-section">
-                    <div class="input-row">
-                        <label>Date</label>
-                        <input type="date" id="todoDate">
-                    </div>
-                    <div class="todo-input-area">
-                        <input type="text" id="todoInput" placeholder="Enter a new task..." style="flex:1;"
-                            onkeydown="if(event.key==='Enter') addTodo()">
-                        <button class="btn btn-primary btn-sm" onclick="addTodo()"><i class="fas fa-plus"></i>
-                            Add</button>
-                    </div>
-                    <ul id="todoList" class="todo-list"></ul>
-                </div>
-            </div>
-
-            <!-- Profile -->
-            <div id="tab-profile" class="tab-content">
-                <div class="page-header">
-                    <h1>👤 Profile & Settings</h1>
-                </div>
-
-                <div class="profile-section">
-                    <h3>Your Display Name</h3>
-                    <div class="input-row">
-                        <label>Name (shown on user selection screen)</label>
-                        <input type="text" id="profileDisplayName">
-                    </div>
-                    <button class="btn btn-primary btn-sm" onclick="updateProfileName()">
-                        <i class="fas fa-save"></i> Update Name
-                    </button>
-                    <div id="profileMessage" class="message"></div>
-                </div>
-
-                <div class="profile-section">
-                    <h3>Change Diary Password</h3>
-                    <p style="color:#777; font-size:0.9em; margin-bottom:15px;">This changes the password for everyone
-                        on all devices.</p>
-                    <div class="input-row">
-                        <label>New Password</label>
-                        <input type="password" id="newAppPassword" placeholder="At least 4 characters">
-                    </div>
-                    <div class="input-row">
-                        <label>Confirm New Password</label>
-                        <input type="password" id="confirmAppPassword" placeholder="Re-enter new password">
-                    </div>
-                    <button class="btn btn-primary btn-sm" onclick="changePassword()">
-                        <i class="fas fa-key"></i> Update Password
-                    </button>
-                    <div id="passwordMessage" class="message"></div>
-                </div>
-            </div>
-
-            <!-- Customize Habits -->
-            <div id="tab-settings" class="tab-content">
-                <div class="page-header">
-                    <h1>⚙️ Customize Your Habits</h1>
-                </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-                    <div class="profile-section">
-                        <h3>Enable / Disable Habits</h3>
-                        <div id="habitToggleList"></div>
-                        <h3 style="margin-top:20px;">Add Custom Habit</h3>
-                        <div class="input-row"><label>Habit Name</label><input type="text" id="customHabitName"
-                                placeholder="e.g., Guitar Practice"></div>
-                        <div class="input-row"><label>Icon (emoji)</label><input type="text" id="customHabitIcon"
-                                placeholder="🎸" maxlength="2"></div>
-                        <div class="input-row">
-                            <label>Unit</label>
-                            <select id="customHabitUnit">
-                                <option value="minutes">Minutes</option>
-                                <option value="hours">Hours</option>
-                                <option value="count">Count</option>
-                                <option value="yesno">Yes/No</option>
-                            </select>
-                        </div>
-                        <button class="btn btn-primary btn-sm" onclick="addCustomHabit()"><i class="fas fa-plus"></i>
-                            Add Habit</button>
-                        <div id="customHabitsList" style="margin-top:15px;"></div>
-                    </div>
-                    <div class="profile-section">
-                        <h3>Reorder Habits</h3>
-                        <div id="habitOrderList" class="sortable-list"></div>
-                        <button class="btn btn-primary btn-sm" onclick="saveHabitSettings()" style="margin-top:10px;">
-                            <i class="fas fa-save"></i> Save Order
-                        </button>
-                    </div>
-                </div>
-                <div id="settingsMessage" class="message"></div>
-            </div>
-        </main>
+    <!-- NOTES -->
+    <div id="tab-notes" class="tab-content">
+      <div class="page-header"><h1>📝 Daily Notes</h1></div>
+      <div class="profile-section">
+        <h3>Today's Journal Entry</h3>
+        <div class="input-row">
+          <textarea id="journalEntry" rows="9" placeholder="Write about your day..." style="resize:vertical;"></textarea>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveNotes()"><i class="fas fa-save"></i> Save Notes</button>
+        <div id="notesMessage" class="message"></div>
+      </div>
+      <div class="profile-section">
+        <h3>📎 Attachments for Today</h3>
+        <div class="upload-zone" id="notesUploadZone"
+             onclick="document.getElementById('notesFileInput').click()"
+             ondragover="handleDragOver(event,'notesUploadZone')"
+             ondragleave="handleDragLeave('notesUploadZone')"
+             ondrop="handleDrop(event,'notes')">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p><strong>Click or drag & drop</strong> files here</p>
+          <p>Images (JPG, PNG, GIF) or PDFs — stored in Google Sheets</p>
+        </div>
+        <input type="file" id="notesFileInput" accept="image/*,.pdf" multiple style="display:none;" onchange="handleFileSelect(event,'notes')">
+        <ul class="file-list" id="notesFileList"></ul>
+      </div>
     </div>
 
-    <script>
-        // ═══════════════════════════════════════════════════════
-        //  CONFIGURATION — paste your Apps Script URL here
-        // ═══════════════════════════════════════════════════════
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyFGA-5GEsYVZ23XpzqqPwuXnb54PMHUv9oR6Oo8tSby5OCaaGK23UaMHY5nh37u3c/exec';
+    <!-- PAPER SUMMARIES -->
+    <div id="tab-papers" class="tab-content">
+      <div class="page-header">
+        <h1>📄 Paper Summaries</h1>
+        <p>Track papers you've read — add summaries, tags, and attach PDFs or screenshots</p>
+      </div>
 
-        // ═══════════════════════════════════════════════════════
-        //  STATE
-        // ═══════════════════════════════════════════════════════
-        let currentUser = null;          // { id: 'user1'|'user2', displayName: '...' }
-        let appConfig = null;          // { hasPassword, user1Name, user2Name }
-        let mediaRecorder = null, recordedChunks = [];
+      <!-- Add form -->
+      <div class="add-paper-form">
+        <h3><i class="fas fa-plus-circle" style="color:#667eea;"></i> Add New Paper</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+          <div class="input-row">
+            <label>Paper Title / Name <span style="color:#e74c3c;">*</span></label>
+            <input type="text" id="paperTitle" placeholder="e.g. Attention Is All You Need">
+          </div>
+          <div class="input-row">
+            <label>Authors</label>
+            <input type="text" id="paperAuthors" placeholder="e.g. Vaswani et al., 2017">
+          </div>
+        </div>
+        <div class="input-row">
+          <label>Your Summary / Key Findings</label>
+          <textarea id="paperSummary" rows="5" placeholder="Main contributions, methodology, your thoughts, open questions..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;resize:vertical;font-family:inherit;"></textarea>
+        </div>
+        <div class="input-row">
+          <label>Tags <span style="color:#aaa;font-size:.85em;">(comma-separated)</span></label>
+          <input type="text" id="paperTags" placeholder="e.g. NLP, Transformer, Deep Learning, CV">
+        </div>
+        <div style="margin-bottom:15px;">
+          <label style="display:block;margin-bottom:8px;color:#666;font-size:.9em;">📎 Attach PDF or Images</label>
+          <div class="upload-zone" id="paperUploadZone"
+               onclick="document.getElementById('paperFileInput').click()"
+               ondragover="handleDragOver(event,'paperUploadZone')"
+               ondragleave="handleDragLeave('paperUploadZone')"
+               ondrop="handleDrop(event,'paper')">
+            <i class="fas fa-file-upload"></i>
+            <p><strong>Click or drag & drop</strong> the paper PDF or screenshots</p>
+          </div>
+          <input type="file" id="paperFileInput" accept="image/*,.pdf" multiple style="display:none;" onchange="handleFileSelect(event,'paper')">
+          <ul class="file-list" id="paperFileList"></ul>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="addPaper()"><i class="fas fa-plus"></i> Add Paper</button>
+        <div id="papersMessage" class="message"></div>
+      </div>
 
-        // ═══════════════════════════════════════════════════════
-        //  HELPERS
-        // ═══════════════════════════════════════════════════════
-        function showLoading(on) {
-            document.getElementById('loadingOverlay').classList.toggle('active', on);
-        }
+      <!-- Search -->
+      <div style="margin-bottom:18px;">
+        <input type="text" id="paperSearch" placeholder="🔍 Search by title, authors, tags..." style="width:100%;padding:11px 15px;border:1px solid #ddd;border-radius:10px;font-size:.95em;" oninput="renderPapers()">
+      </div>
 
-        function setSyncStatus(state, msg) {
-            const el = document.getElementById('syncStatus');
-            el.className = 'sync-status ' + state;
-            el.textContent = msg;
-        }
+      <div class="papers-grid" id="papersList"></div>
+    </div>
 
-        async function api(payload) {
-            const res = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            });
-            return res.json();
-        }
+    <!-- TO-DO -->
+    <div id="tab-todo" class="tab-content">
+      <div class="page-header"><h1>✅ To-Do List</h1></div>
+      <div class="profile-section">
+        <div class="input-row"><label>Date</label><input type="date" id="todoDate"></div>
+        <div class="todo-input-area">
+          <input type="text" id="todoInput" placeholder="Enter a new task..." style="flex:1;" onkeydown="if(event.key==='Enter')addTodo()">
+          <button class="btn btn-primary btn-sm" onclick="addTodo()"><i class="fas fa-plus"></i> Add</button>
+        </div>
+        <ul id="todoList" class="todo-list"></ul>
+      </div>
+    </div>
 
-        function showGate(screenId) {
-            document.querySelectorAll('.gate-screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
-        }
+    <!-- PROFILE -->
+    <div id="tab-profile" class="tab-content">
+      <div class="page-header"><h1>👤 Profile & Settings</h1></div>
+      <div class="profile-section">
+        <h3>Your Display Name</h3>
+        <div class="input-row"><label>Name</label><input type="text" id="profileDisplayName"></div>
+        <button class="btn btn-primary btn-sm" onclick="updateProfileName()"><i class="fas fa-save"></i> Update Name</button>
+        <div id="profileMessage" class="message"></div>
+      </div>
+      <div class="profile-section">
+        <h3>Change Diary Password</h3>
+        <p style="color:#777;font-size:.9em;margin-bottom:15px;">Changes the password for all devices simultaneously.</p>
+        <div class="input-row"><label>New Password</label><input type="password" id="newAppPassword" placeholder="At least 4 characters"></div>
+        <div class="input-row"><label>Confirm New Password</label><input type="password" id="confirmAppPassword" placeholder="Re-enter"></div>
+        <button class="btn btn-primary btn-sm" onclick="changePassword()"><i class="fas fa-key"></i> Update Password</button>
+        <div id="passwordMessage" class="message"></div>
+      </div>
+    </div>
 
-        function showMessage(id, text, type) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.textContent = text;
-            el.className = 'message ' + type;
-            if (type !== 'info') setTimeout(() => { el.className = 'message'; }, 4000);
-        }
+    <!-- CUSTOMIZE HABITS -->
+    <div id="tab-settings" class="tab-content">
+      <div class="page-header"><h1>⚙️ Customize Your Habits</h1></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="profile-section">
+          <h3>Enable / Disable</h3>
+          <div id="habitToggleList"></div>
+          <h3 style="margin-top:20px;">Add Custom Habit</h3>
+          <div class="input-row"><label>Name</label><input type="text" id="customHabitName" placeholder="e.g. Guitar Practice"></div>
+          <div class="input-row"><label>Icon (emoji)</label><input type="text" id="customHabitIcon" placeholder="🎸" maxlength="2"></div>
+          <div class="input-row"><label>Unit</label>
+            <select id="customHabitUnit">
+              <option value="minutes">Minutes</option><option value="hours">Hours</option>
+              <option value="count">Count</option><option value="yesno">Yes/No</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="addCustomHabit()"><i class="fas fa-plus"></i> Add Habit</button>
+          <div id="customHabitsList" style="margin-top:15px;"></div>
+        </div>
+        <div class="profile-section">
+          <h3>Reorder Habits</h3>
+          <div id="habitOrderList" class="sortable-list"></div>
+          <button class="btn btn-primary btn-sm" onclick="saveHabitSettings()" style="margin-top:10px;"><i class="fas fa-save"></i> Save Order</button>
+        </div>
+      </div>
+      <div id="settingsMessage" class="message"></div>
+    </div>
 
-        // ═══════════════════════════════════════════════════════
-        //  BOOT — load config from Google Sheets
-        // ═══════════════════════════════════════════════════════
-        async function boot() {
-            showLoading(true);
-            try {
-                const result = await api({ action: 'getConfig' });
-                if (result.success) {
-                    appConfig = result;
-                    // Prefill user names on select screen
-                    document.getElementById('user1Name').textContent = appConfig.user1Name || 'Person 1';
-                    document.getElementById('user2Name').textContent = appConfig.user2Name || 'Person 2';
+  </main>
+</div>
 
-                    if (!appConfig.hasPassword) {
-                        showGate('setPasswordScreen');
-                    } else {
-                        // Check if session is still alive (tab reload, same session)
-                        const session = sessionStorage.getItem('unlocked');
-                        if (session === 'true') {
-                            showGate('selectUserScreen');
-                        } else {
-                            showGate('enterPasswordScreen');
-                        }
-                    }
-                } else {
-                    showGate('enterPasswordScreen');
-                }
-            } catch (e) {
-                // Offline fallback — still show enter password
-                showGate('enterPasswordScreen');
-                document.getElementById('pwMessage').textContent = '⚠️ Could not reach server. Check connection.';
-                document.getElementById('pwMessage').className = 'message error';
-            }
-            showLoading(false);
-            document.getElementById('gateContainer').style.display = 'block';
-        }
+<script>
+// ═══════════════════════════════════════════════════
+//  CONFIG — replace with YOUR deployed Apps Script URL
+// ═══════════════════════════════════════════════════
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzkmP4Ojn4r4RTzRqPpbaeWANi239SKMoU9_Ihuh9CCVr0l2hvZupzJ7sJHCC7DtfVX/exec';
 
-        // ═══════════════════════════════════════════════════════
-        //  PASSWORD ACTIONS
-        // ═══════════════════════════════════════════════════════
-        async function setPasswordAction() {
-            const pw = document.getElementById('newPassword').value.trim();
-            const pw2 = document.getElementById('confirmPassword').value.trim();
+// ═══════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════
+let currentUser   = null;
+let appConfig     = null;
+let cameraStream  = null;
+let mediaRecorder = null;
+let recordedChunks= [];
+let _videoBlob    = null;
 
-            if (pw.length < 4) { showMessage('setPwMessage', 'Password must be at least 4 characters', 'error'); return; }
-            if (pw !== pw2) { showMessage('setPwMessage', 'Passwords do not match', 'error'); return; }
+window._habitsCache = {};
+window._notesCache  = {};
+window._todos       = {};
+window._papers      = [];
+window._notesFiles  = {};   // { date: [{name,size,type,dataUrl}] }
+window._paperFiles  = [];   // pending files for new paper
 
-            showLoading(true);
-            try {
-                const result = await api({ action: 'setPassword', password: pw });
-                if (result.success) {
-                    appConfig = appConfig || {};
-                    appConfig.hasPassword = true;
-                    sessionStorage.setItem('unlocked', 'true');
-                    // Reload config for user names
-                    const cfg = await api({ action: 'getConfig' });
-                    if (cfg.success) {
-                        appConfig = cfg;
-                        document.getElementById('user1Name').textContent = cfg.user1Name;
-                        document.getElementById('user2Name').textContent = cfg.user2Name;
-                    }
-                    showGate('selectUserScreen');
-                } else {
-                    showMessage('setPwMessage', result.message, 'error');
-                }
-            } catch (e) {
-                showMessage('setPwMessage', 'Connection error. Try again.', 'error');
-            }
-            showLoading(false);
-        }
+// ═══════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════
+function showLoading(on){ document.getElementById('loadingOverlay').classList.toggle('active',on); }
+function setSyncStatus(s,m){ const el=document.getElementById('syncStatus'); el.className='sync-status '+s; el.textContent=m; }
+function showMessage(id,text,type){ const el=document.getElementById(id); if(!el)return; el.textContent=text; el.className='message '+type; if(type!=='info')setTimeout(()=>{el.className='message';},4500); }
+function showGate(id){ document.querySelectorAll('.gate-screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 
-        async function checkPasswordAction() {
-            const entered = document.getElementById('enterPassword').value.trim();
-            if (!entered) { showMessage('pwMessage', 'Please enter your password', 'error'); return; }
+async function api(payload){
+  const res = await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});
+  return res.json();
+}
 
-            const btn = document.getElementById('unlockBtn');
-            btn.disabled = true;
-            showLoading(true);
+// ═══════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════
+async function boot(){
+  showLoading(true);
+  try {
+    const r = await api({action:'getConfig'});
+    if(r.success){
+      appConfig = r;
+      document.getElementById('user1Name').textContent = r.user1Name||'Person 1';
+      document.getElementById('user2Name').textContent = r.user2Name||'Person 2';
+      if(!r.hasPassword)                              showGate('setPasswordScreen');
+      else if(sessionStorage.getItem('unlocked')==='true') showGate('selectUserScreen');
+      else                                            showGate('enterPasswordScreen');
+    } else { showGate('enterPasswordScreen'); }
+  } catch(e) {
+    showGate('enterPasswordScreen');
+    showMessage('pwMessage','⚠️ Cannot reach server. Check your internet and that SCRIPT_URL is correct.','error');
+  }
+  showLoading(false);
+  document.getElementById('gateContainer').style.display='block';
+}
 
-            try {
-                const result = await api({ action: 'verifyPassword', password: entered });
-                if (result.success) {
-                    sessionStorage.setItem('unlocked', 'true');
-                    // Refresh names
-                    const cfg = await api({ action: 'getConfig' });
-                    if (cfg.success) {
-                        appConfig = cfg;
-                        document.getElementById('user1Name').textContent = cfg.user1Name;
-                        document.getElementById('user2Name').textContent = cfg.user2Name;
-                    }
-                    document.getElementById('enterPassword').value = '';
-                    showGate('selectUserScreen');
-                } else {
-                    showMessage('pwMessage', '❌ ' + result.message, 'error');
-                    document.getElementById('enterPassword').value = '';
-                    document.getElementById('enterPassword').focus();
-                }
-            } catch (e) {
-                showMessage('pwMessage', 'Connection error. Check your internet.', 'error');
-            }
-            showLoading(false);
-            btn.disabled = false;
-        }
+// ═══════════════════════════════════════════════════
+//  PASSWORD
+// ═══════════════════════════════════════════════════
+async function setPasswordAction(){
+  const pw=document.getElementById('newPassword').value.trim();
+  const pw2=document.getElementById('confirmPassword').value.trim();
+  if(pw.length<4){ showMessage('setPwMessage','Password must be at least 4 characters','error'); return; }
+  if(pw!==pw2){    showMessage('setPwMessage','Passwords do not match','error'); return; }
+  showLoading(true);
+  try {
+    const r = await api({action:'setPassword',password:pw});
+    if(r.success){
+      sessionStorage.setItem('unlocked','true');
+      const cfg=await api({action:'getConfig'});
+      if(cfg.success){ appConfig=cfg; document.getElementById('user1Name').textContent=cfg.user1Name; document.getElementById('user2Name').textContent=cfg.user2Name; }
+      showGate('selectUserScreen');
+    } else { showMessage('setPwMessage',r.message,'error'); }
+  } catch(e){ showMessage('setPwMessage','Connection error — try again','error'); }
+  showLoading(false);
+}
 
-        // ═══════════════════════════════════════════════════════
-        //  USER SELECTION & DASHBOARD
-        // ═══════════════════════════════════════════════════════
-        async function selectUser(userId) {
-            const name = appConfig ? appConfig[userId + 'Name'] : (userId === 'user1' ? 'Person 1' : 'Person 2');
-            currentUser = { id: userId, displayName: name };
+async function checkPasswordAction(){
+  const entered=document.getElementById('enterPassword').value.trim();
+  if(!entered){ showMessage('pwMessage','Enter your password','error'); return; }
+  const btn=document.getElementById('unlockBtn'); btn.disabled=true; showLoading(true);
+  try {
+    const r=await api({action:'verifyPassword',password:entered});
+    if(r.success){
+      sessionStorage.setItem('unlocked','true');
+      const cfg=await api({action:'getConfig'});
+      if(cfg.success){ appConfig=cfg; document.getElementById('user1Name').textContent=cfg.user1Name; document.getElementById('user2Name').textContent=cfg.user2Name; }
+      document.getElementById('enterPassword').value='';
+      showGate('selectUserScreen');
+    } else {
+      showMessage('pwMessage','❌ '+r.message,'error');
+      document.getElementById('enterPassword').value='';
+      document.getElementById('enterPassword').focus();
+    }
+  } catch(e){ showMessage('pwMessage','Connection error','error'); }
+  showLoading(false); btn.disabled=false;
+}
 
-            // Hide gate, show dashboard
-            document.getElementById('gateContainer').style.display = 'none';
-            document.getElementById('dashboard').classList.add('active');
+// ═══════════════════════════════════════════════════
+//  USER SELECTION
+// ═══════════════════════════════════════════════════
+async function selectUser(userId){
+  const name=appConfig?(appConfig[userId+'Name']||userId):userId;
+  currentUser={id:userId,displayName:name};
+  document.getElementById('gateContainer').style.display='none';
+  document.getElementById('dashboard').classList.add('active');
+  document.getElementById('sidebarName').textContent=name;
+  document.getElementById('sidebarAvatar').textContent=name.charAt(0).toUpperCase();
+  document.getElementById('todayDate').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('profileDisplayName').value=name;
+  document.getElementById('todoDate').value=new Date().toISOString().split('T')[0];
 
-            document.getElementById('sidebarName').textContent = currentUser.displayName;
-            document.getElementById('sidebarAvatar').textContent = currentUser.displayName.charAt(0).toUpperCase();
-            document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', {
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-            });
-            document.getElementById('profileDisplayName').value = currentUser.displayName;
-            document.getElementById('todoDate').value = new Date().toISOString().split('T')[0];
+  setSyncStatus('syncing','⏳ Loading your data...');
+  showLoading(true);
+  try {
+    const r=await api({action:'load',userId});
+    if(r.success){
+      const d=r.data;
+      if(d.settings)    applyHabitSettings(d.settings);
+      loadHabitUI();
+      if(d.habits)      { window._habitsCache=d.habits;  applyTodayHabits(d.habits); }
+      if(d.notes)       { window._notesCache=d.notes;    applyTodayNotes(d.notes); }
+      if(d.todos)       window._todos=d.todos||{};
+      if(d.papers)      window._papers=d.papers||[];
+      if(d.notesfiles)  window._notesFiles=d.notesfiles||{};
+      renderNotesFiles();
+      renderPapers();
+      renderVideoEntries();
+      setSyncStatus('synced','✅ Synced');
+    } else { loadHabitUI(); setSyncStatus('error','⚠️ Load failed'); }
+  } catch(e){ loadHabitUI(); setSyncStatus('error','⚠️ Offline'); }
+  showLoading(false);
+}
 
-            // Load data from Sheets
-            setSyncStatus('syncing', '⏳ Loading...');
-            showLoading(true);
-            try {
-                const result = await api({ action: 'load', userId: currentUser.id });
-                if (result.success) {
-                    const d = result.data;
-                    // Apply settings first
-                    if (d.settings) applyHabitSettings(d.settings);
-                    loadHabitUI();
-                    // Apply habits for today
-                    if (d.habits) applyTodayHabits(d.habits);
-                    // Apply notes for today
-                    if (d.notes) applyTodayNotes(d.notes);
-                    // Store todos in memory
-                    window._todos = d.todos || {};
-                    setSyncStatus('synced', '✅ Synced');
-                } else {
-                    loadHabitUI();
-                    setSyncStatus('error', '⚠️ Load failed');
-                }
-            } catch (e) {
-                loadHabitUI();
-                setSyncStatus('error', '⚠️ Offline');
-            }
-            showLoading(false);
-        }
+function switchUser(){
+  if(confirm('Switch user?')){ stopCamera(); currentUser=null; document.getElementById('dashboard').classList.remove('active'); document.getElementById('gateContainer').style.display='block'; showGate('selectUserScreen'); }
+}
+function lockDiary(){
+  if(confirm('Lock the diary?')){ stopCamera(); currentUser=null; sessionStorage.removeItem('unlocked'); document.getElementById('dashboard').classList.remove('active'); document.getElementById('gateContainer').style.display='block'; document.getElementById('enterPassword').value=''; showGate('enterPasswordScreen'); }
+}
 
-        function switchUser() {
-            if (confirm('Switch to the other user?')) {
-                currentUser = null;
-                document.getElementById('dashboard').classList.remove('active');
-                document.getElementById('gateContainer').style.display = 'block';
-                showGate('selectUserScreen');
-            }
-        }
+// ═══════════════════════════════════════════════════
+//  PROFILE
+// ═══════════════════════════════════════════════════
+async function updateProfileName(){
+  const name=document.getElementById('profileDisplayName').value.trim();
+  if(!name){ showMessage('profileMessage','Enter a name','error'); return; }
+  showLoading(true);
+  try {
+    const r=await api({action:'updateUserName',userId:currentUser.id,name});
+    if(r.success){ currentUser.displayName=name; document.getElementById('sidebarName').textContent=name; document.getElementById('sidebarAvatar').textContent=name.charAt(0).toUpperCase(); if(appConfig) appConfig[currentUser.id+'Name']=name; showMessage('profileMessage','✅ Name updated!','success'); }
+    else showMessage('profileMessage',r.message,'error');
+  } catch(e){ showMessage('profileMessage','Connection error','error'); }
+  showLoading(false);
+}
+async function changePassword(){
+  const pw=document.getElementById('newAppPassword').value.trim(), pw2=document.getElementById('confirmAppPassword').value.trim();
+  if(pw.length<4){ showMessage('passwordMessage','At least 4 characters','error'); return; }
+  if(pw!==pw2){    showMessage('passwordMessage','Passwords do not match','error'); return; }
+  showLoading(true);
+  try {
+    const r=await api({action:'setPassword',password:pw});
+    if(r.success){ document.getElementById('newAppPassword').value=''; document.getElementById('confirmAppPassword').value=''; showMessage('passwordMessage','✅ Password changed for all devices!','success'); }
+    else showMessage('passwordMessage',r.message,'error');
+  } catch(e){ showMessage('passwordMessage','Connection error','error'); }
+  showLoading(false);
+}
 
-        function lockDiary() {
-            if (confirm('Lock the diary?')) {
-                currentUser = null;
-                sessionStorage.removeItem('unlocked');
-                document.getElementById('dashboard').classList.remove('active');
-                document.getElementById('gateContainer').style.display = 'block';
-                document.getElementById('enterPassword').value = '';
-                showGate('enterPasswordScreen');
-            }
-        }
+// ═══════════════════════════════════════════════════
+//  SYNC
+// ═══════════════════════════════════════════════════
+async function syncToSheets(type,data){
+  setSyncStatus('syncing','⏳ Saving...');
+  try {
+    const r=await api({action:'save',userId:currentUser.id,type,data});
+    setSyncStatus(r.success?'synced':'error',r.success?'✅ Saved':'⚠️ Failed');
+    return r.success;
+  } catch(e){ setSyncStatus('error','⚠️ Error'); return false; }
+}
 
-        // ═══════════════════════════════════════════════════════
-        //  PROFILE
-        // ═══════════════════════════════════════════════════════
-        async function updateProfileName() {
-            const newName = document.getElementById('profileDisplayName').value.trim();
-            if (!newName) { showMessage('profileMessage', 'Enter a name', 'error'); return; }
+// ═══════════════════════════════════════════════════
+//  HABITS
+// ═══════════════════════════════════════════════════
+const habitTemplates = {
+  sleep:{name:'Sleep',icon:'😴',fields:[{name:'hours',label:'Hours',type:'number',min:0,max:24,step:0.5},{name:'quality',label:'Quality (1-5)',type:'number',min:1,max:5}]},
+  study:{name:'Study',icon:'📚',fields:[{name:'hours',label:'Hours',type:'number',min:0,max:24,step:0.5},{name:'subject',label:'Subject',type:'text'}]},
+  exercise:{name:'Exercise',icon:'🏃',fields:[{name:'minutes',label:'Minutes',type:'number',min:0},{name:'type',label:'Type',type:'select',options:['Running','Walking','Gym','Yoga','Swimming','Cycling','Other']}]},
+  water:{name:'Water Intake',icon:'💧',fields:[{name:'glasses',label:'Glasses',type:'number',min:0}]},
+  meditation:{name:'Meditation',icon:'🧘',fields:[{name:'minutes',label:'Minutes',type:'number',min:0}]},
+  reading:{name:'Reading',icon:'📖',fields:[{name:'minutes',label:'Minutes',type:'number',min:0}]},
+  paperReading:{name:'Paper Reading',icon:'📄',fields:[{name:'minutes',label:'Minutes',type:'number',min:0}]},
+  paperNotes:{name:'Paper Notes',icon:'✍️',fields:[{name:'count',label:'Summaries',type:'number',min:0}]},
+  coding:{name:'Coding',icon:'💻',fields:[{name:'minutes',label:'Minutes',type:'number',min:0}]},
+  experiments:{name:'Experiment Runs',icon:'🧪',fields:[{name:'count',label:'Runs',type:'number',min:0}]},
+  resultAnalysis:{name:'Result Analysis',icon:'📊',fields:[{name:'minutes',label:'Minutes',type:'number',min:0}]},
+  mathTheory:{name:'Math / Theory',icon:'📐',fields:[{name:'minutes',label:'Minutes',type:'number',min:0}]},
+  litWriting:{name:'Literature Writing',icon:'📝',fields:[{name:'minutes',label:'Minutes',type:'number',min:0}]},
+  ideas:{name:'Idea Generation',icon:'💡',fields:[{name:'count',label:'New Ideas',type:'number',min:0}]},
+  thesisWriting:{name:'Thesis Writing',icon:'📖',fields:[{name:'minutes',label:'Minutes',type:'number',min:0}]},
+  paperDrafting:{name:'Paper Drafting',icon:'📑',fields:[{name:'minutes',label:'Minutes',type:'number',min:0}]},
+  figures:{name:'Figures / Tables',icon:'🎨',fields:[{name:'count',label:'Created',type:'number',min:0}]},
+  revision:{name:'Revision / Editing',icon:'🔍',fields:[{name:'minutes',label:'Minutes',type:'number',min:0}]},
+  outdoorWalk:{name:'Outdoor Walk',icon:'🚶',fields:[{name:'minutes',label:'Minutes',type:'number',min:0}]},
+  eyeRest:{name:'Eye Rest (20-20-20)',icon:'👁️',fields:[{name:'count',label:'Times',type:'number',min:0}]},
+  posture:{name:'Posture Check',icon:'🪑',fields:[{name:'done',label:'Done?',type:'yesno'}]},
+  screenFree:{name:'Screen-Free Before Bed',icon:'📵',fields:[{name:'done',label:'Done?',type:'yesno'}]},
+  gratitude:{name:'Gratitude Journal',icon:'🙏',fields:[{name:'done',label:'Done?',type:'yesno'}]},
+  social:{name:'Social / Lab Interaction',icon:'🗣️',fields:[{name:'minutes',label:'Minutes',type:'number',min:0}]},
+  hobby:{name:'Hobby / Fun',icon:'🎸',fields:[{name:'minutes',label:'Minutes',type:'number',min:0}]},
+  weeklyPlanning:{name:'Weekly Planning',icon:'📅',fields:[{name:'done',label:'Done?',type:'yesno'}]}
+};
+const defaultOrder=[...Object.keys(habitTemplates)];
+let _habitSettings=null;
 
-            showLoading(true);
-            try {
-                const result = await api({ action: 'updateUserName', userId: currentUser.id, name: newName });
-                if (result.success) {
-                    currentUser.displayName = newName;
-                    document.getElementById('sidebarName').textContent = newName;
-                    document.getElementById('sidebarAvatar').textContent = newName.charAt(0).toUpperCase();
-                    // Update local config
-                    if (appConfig) appConfig[currentUser.id + 'Name'] = newName;
-                    showMessage('profileMessage', '✅ Name updated!', 'success');
-                } else {
-                    showMessage('profileMessage', result.message, 'error');
-                }
-            } catch (e) {
-                showMessage('profileMessage', 'Connection error', 'error');
-            }
-            showLoading(false);
-        }
+function getHabitSettings(){ if(!_habitSettings) _habitSettings={enabledHabits:[...defaultOrder],habitOrder:[...defaultOrder],customHabits:[]}; return _habitSettings; }
+function applyHabitSettings(s){ _habitSettings=s; }
+function getAllTemplates(){ const s=getHabitSettings(),all={...habitTemplates}; s.customHabits.forEach(ch=>{ all['custom_'+ch.name]={name:ch.name,icon:ch.icon,fields:[{name:'value',label:ch.unit==='yesno'?'Done?':ch.unit==='hours'?'Hours':ch.unit==='count'?'Count':'Minutes',type:ch.unit==='yesno'?'yesno':'number',min:0}]}; }); return all; }
+function generateCard(key,tmpl){ const fh=tmpl.fields.map(f=>{ let inp=''; if(f.type==='number') inp=`<input type="number" id="${key}_${f.name}" min="${f.min??0}" step="${f.step||1}" placeholder="0">`; else if(f.type==='text') inp=`<input type="text" id="${key}_${f.name}" placeholder="${f.label}">`; else if(f.type==='select') inp=`<select id="${key}_${f.name}"><option value="">Select</option>${(f.options||[]).map(o=>`<option>${o}</option>`).join('')}</select>`; else if(f.type==='yesno') inp=`<div id="${key}_${f.name}" class="yesno-toggle"><button class="yesno-btn" data-value="no" onclick="toggleYesNo(this)">No</button><button class="yesno-btn" data-value="yes" onclick="toggleYesNo(this)">Yes</button></div>`; return `<div class="input-row"><label>${f.label}</label>${inp}</div>`; }).join(''); return `<div class="habit-card" data-habit="${key}"><h3>${tmpl.icon} ${tmpl.name}</h3>${fh}</div>`; }
+function toggleYesNo(btn){ const g=btn.parentNode; g.querySelectorAll('.yesno-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+function loadHabitUI(){ const s=getHabitSettings(),all=getAllTemplates(); let h=''; s.habitOrder.forEach(k=>{ if(s.enabledHabits.includes(k)&&all[k]) h+=generateCard(k,all[k]); }); document.getElementById('habitsContainer').innerHTML=h; renderSettingsTab(s); }
+function renderSettingsTab(s){ const all=getAllTemplates(); let th=''; for(let k in all){ const h=all[k],en=s.enabledHabits.includes(k); th+=`<div class="habit-toggle-item"><span class="habit-toggle-icon">${h.icon}</span><span class="habit-toggle-name">${h.name}</span><label class="switch"><input type="checkbox" ${en?'checked':''} onchange="toggleHabit('${k}',this.checked)"><span class="slider"></span></label>${k.startsWith('custom_')?`<button class="delete-custom-btn" onclick="deleteCustomHabit('${k}')"><i class="fas fa-trash"></i></button>`:''}</div>`; } document.getElementById('habitToggleList').innerHTML=th; document.getElementById('customHabitsList').innerHTML=s.customHabits.map(ch=>`<div class="habit-toggle-item"><span>${ch.icon} ${ch.name} (${ch.unit})</span></div>`).join(''); let oh=''; s.habitOrder.forEach(k=>{ if(all[k]) oh+=`<div class="habit-order-item" data-habit="${k}" draggable="true"><span class="drag-handle">☰</span> ${all[k].icon} ${all[k].name}</div>`; }); document.getElementById('habitOrderList').innerHTML=oh; enableDragSort(document.getElementById('habitOrderList')); }
+function enableDragSort(c){ let dr=null; c.addEventListener('dragstart',e=>{dr=e.target.closest('.habit-order-item');}); c.addEventListener('dragover',e=>e.preventDefault()); c.addEventListener('drop',e=>{e.preventDefault();const t=e.target.closest('.habit-order-item');if(dr&&t&&dr!==t)c.insertBefore(dr,t.nextSibling||t);}); }
+function toggleHabit(key,enabled){ const s=getHabitSettings(); if(enabled&&!s.enabledHabits.includes(key)){s.enabledHabits.push(key);if(!s.habitOrder.includes(key))s.habitOrder.push(key);}else if(!enabled)s.enabledHabits=s.enabledHabits.filter(h=>h!==key); _habitSettings=s; loadHabitUI(); }
+function addCustomHabit(){ const name=document.getElementById('customHabitName').value.trim(),icon=document.getElementById('customHabitIcon').value.trim()||'✨',unit=document.getElementById('customHabitUnit').value; if(!name){showMessage('settingsMessage','Enter a habit name','error');return;} const s=getHabitSettings(); if(s.customHabits.find(h=>h.name===name)){showMessage('settingsMessage','Already exists','error');return;} const key='custom_'+name; s.customHabits.push({name,icon,unit}); s.enabledHabits.push(key); s.habitOrder.push(key); _habitSettings=s; document.getElementById('customHabitName').value=''; document.getElementById('customHabitIcon').value=''; loadHabitUI(); showMessage('settingsMessage','Habit added!','success'); }
+function deleteCustomHabit(key){ const s=getHabitSettings(),n=key.replace('custom_',''); s.customHabits=s.customHabits.filter(h=>h.name!==n); s.enabledHabits=s.enabledHabits.filter(h=>h!==key); s.habitOrder=s.habitOrder.filter(h=>h!==key); _habitSettings=s; loadHabitUI(); }
+async function saveHabitSettings(){ const s=getHabitSettings(),order=Array.from(document.querySelectorAll('#habitOrderList .habit-order-item')).map(i=>i.dataset.habit); s.habitOrder=order; _habitSettings=s; loadHabitUI(); await syncToSheets('settings',s); showMessage('settingsMessage','✅ Saved!','success'); }
+function applyTodayHabits(all){ const date=new Date().toISOString().split('T')[0],today=all[date]; if(!today)return; const allT=getAllTemplates(); for(let key in today){ if(!allT[key])continue; const vals=today[key]; allT[key].fields.forEach(f=>{ const elId=`${key}_${f.name}`; if(f.type==='yesno'){ const btn=document.querySelector(`#${elId} .yesno-btn[data-value="${vals[f.name]?'yes':'no'}"]`); if(btn){document.querySelectorAll(`#${elId} .yesno-btn`).forEach(b=>b.classList.remove('active'));btn.classList.add('active');} } else { const el=document.getElementById(elId); if(el) el.value=vals[f.name]||''; } }); } }
+function applyTodayNotes(all){ const date=new Date().toISOString().split('T')[0]; if(all[date]&&all[date].journal) document.getElementById('journalEntry').value=all[date].journal; }
+async function saveHabits(){ const s=getHabitSettings(),allT=getAllTemplates(),date=new Date().toISOString().split('T')[0],data={}; s.enabledHabits.forEach(key=>{ if(!allT[key])return; const entry={}; allT[key].fields.forEach(f=>{ const elId=`${key}_${f.name}`; if(f.type==='yesno'){const a=document.querySelector(`#${elId} .yesno-btn.active`);entry[f.name]=a?a.dataset.value==='yes':false;}else{const el=document.getElementById(elId);entry[f.name]=el?el.value:'';} }); data[key]=entry; }); window._habitsCache[date]=data; const ok=await syncToSheets('habits',window._habitsCache); await syncToSheets('settings',getHabitSettings()); showMessage('habitsMessage',ok?'✅ Habits saved!':'⚠️ Save failed',ok?'success':'error'); }
+async function saveNotes(){ const date=new Date().toISOString().split('T')[0]; if(!window._notesCache[date]) window._notesCache[date]={}; window._notesCache[date].journal=document.getElementById('journalEntry').value; const ok=await syncToSheets('notes',window._notesCache); showMessage('notesMessage',ok?'✅ Notes saved!':'⚠️ Save failed',ok?'success':'error'); }
 
-        async function changePassword() {
-            const pw = document.getElementById('newAppPassword').value.trim();
-            const pw2 = document.getElementById('confirmAppPassword').value.trim();
-            if (pw.length < 4) { showMessage('passwordMessage', 'At least 4 characters', 'error'); return; }
-            if (pw !== pw2) { showMessage('passwordMessage', 'Passwords do not match', 'error'); return; }
+// ═══════════════════════════════════════════════════
+//  TODO
+// ═══════════════════════════════════════════════════
+function loadTodoList(){ const date=document.getElementById('todoDate').value,tasks=window._todos[date]||[]; document.getElementById('todoList').innerHTML=tasks.map((t,i)=>`<li class="todo-item ${t.completed?'completed':''}"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTodo('${date}',${i})"><span>${t.text}</span><button class="btn btn-danger btn-sm" onclick="deleteTodo('${date}',${i})" style="padding:5px 10px;"><i class="fas fa-trash"></i></button></li>`).join(''); }
+async function addTodo(){ const date=document.getElementById('todoDate').value,text=document.getElementById('todoInput').value.trim(); if(!text)return; if(!window._todos[date])window._todos[date]=[]; window._todos[date].push({text,completed:false}); document.getElementById('todoInput').value=''; loadTodoList(); await syncToSheets('todos',window._todos); }
+async function toggleTodo(date,i){ if(window._todos[date]&&window._todos[date][i]!==undefined){window._todos[date][i].completed=!window._todos[date][i].completed;loadTodoList();await syncToSheets('todos',window._todos);} }
+async function deleteTodo(date,i){ if(window._todos[date]){window._todos[date].splice(i,1);loadTodoList();await syncToSheets('todos',window._todos);} }
 
-            showLoading(true);
-            try {
-                const result = await api({ action: 'setPassword', password: pw });
-                if (result.success) {
-                    document.getElementById('newAppPassword').value = '';
-                    document.getElementById('confirmAppPassword').value = '';
-                    showMessage('passwordMessage', '✅ Password changed! All devices will use the new password.', 'success');
-                } else {
-                    showMessage('passwordMessage', result.message, 'error');
-                }
-            } catch (e) {
-                showMessage('passwordMessage', 'Connection error', 'error');
-            }
-            showLoading(false);
-        }
+// ═══════════════════════════════════════════════════
+//  VIDEO — camera stops when leaving tab
+// ═══════════════════════════════════════════════════
+function stopCamera(){
+  if(cameraStream){ cameraStream.getTracks().forEach(t=>t.stop()); cameraStream=null; }
+  if(mediaRecorder&&mediaRecorder.state==='recording') mediaRecorder.stop();
+  mediaRecorder=null;
+  const preview=document.getElementById('preview'); if(preview) preview.srcObject=null;
+  document.getElementById('startBtn').disabled=false;
+  document.getElementById('stopBtn').disabled=true;
+  document.getElementById('camDot').classList.remove('on');
+  const rs=document.getElementById('recordingStatus'); if(rs) rs.style.display='none';
+}
 
-        // ═══════════════════════════════════════════════════════
-        //  HABIT TEMPLATES
-        // ═══════════════════════════════════════════════════════
-        const habitTemplates = {
-            sleep: { name: 'Sleep', icon: '😴', fields: [{ name: 'hours', label: 'Hours', type: 'number', min: 0, max: 24, step: 0.5 }, { name: 'quality', label: 'Quality (1-5)', type: 'number', min: 1, max: 5 }] },
-            study: { name: 'Study', icon: '📚', fields: [{ name: 'hours', label: 'Hours', type: 'number', min: 0, max: 24, step: 0.5 }, { name: 'subject', label: 'Subject', type: 'text' }] },
-            exercise: { name: 'Exercise', icon: '🏃', fields: [{ name: 'minutes', label: 'Minutes', type: 'number', min: 0 }, { name: 'type', label: 'Type', type: 'select', options: ['Running', 'Walking', 'Gym', 'Yoga', 'Swimming', 'Cycling', 'Other'] }] },
-            water: { name: 'Water Intake', icon: '💧', fields: [{ name: 'glasses', label: 'Glasses', type: 'number', min: 0 }] },
-            meditation: { name: 'Meditation', icon: '🧘', fields: [{ name: 'minutes', label: 'Minutes', type: 'number', min: 0 }] },
-            reading: { name: 'Reading', icon: '📖', fields: [{ name: 'minutes', label: 'Minutes', type: 'number', min: 0 }] },
-            paperReading: { name: 'Paper Reading', icon: '📄', fields: [{ name: 'minutes', label: 'Minutes', type: 'number', min: 0 }] },
-            paperNotes: { name: 'Paper Notes', icon: '✍️', fields: [{ name: 'count', label: 'Summaries', type: 'number', min: 0 }] },
-            coding: { name: 'Coding', icon: '💻', fields: [{ name: 'minutes', label: 'Minutes', type: 'number', min: 0 }] },
-            experiments: { name: 'Experiment Runs', icon: '🧪', fields: [{ name: 'count', label: 'Runs', type: 'number', min: 0 }] },
-            resultAnalysis: { name: 'Result Analysis', icon: '📊', fields: [{ name: 'minutes', label: 'Minutes', type: 'number', min: 0 }] },
-            mathTheory: { name: 'Math / Theory', icon: '📐', fields: [{ name: 'minutes', label: 'Minutes', type: 'number', min: 0 }] },
-            litWriting: { name: 'Literature Writing', icon: '📝', fields: [{ name: 'minutes', label: 'Minutes', type: 'number', min: 0 }] },
-            ideas: { name: 'Idea Generation', icon: '💡', fields: [{ name: 'count', label: 'New Ideas', type: 'number', min: 0 }] },
-            thesisWriting: { name: 'Thesis Writing', icon: '📖', fields: [{ name: 'minutes', label: 'Minutes', type: 'number', min: 0 }] },
-            paperDrafting: { name: 'Paper Drafting', icon: '📑', fields: [{ name: 'minutes', label: 'Minutes', type: 'number', min: 0 }] },
-            figures: { name: 'Figures / Tables', icon: '🎨', fields: [{ name: 'count', label: 'Created', type: 'number', min: 0 }] },
-            revision: { name: 'Revision / Editing', icon: '🔍', fields: [{ name: 'minutes', label: 'Minutes', type: 'number', min: 0 }] },
-            outdoorWalk: { name: 'Outdoor Walk', icon: '🚶', fields: [{ name: 'minutes', label: 'Minutes', type: 'number', min: 0 }] },
-            eyeRest: { name: 'Eye Rest (20-20-20)', icon: '👁️', fields: [{ name: 'count', label: 'Times', type: 'number', min: 0 }] },
-            posture: { name: 'Posture Check', icon: '🪑', fields: [{ name: 'done', label: 'Done?', type: 'yesno' }] },
-            screenFree: { name: 'Screen-Free Before Bed', icon: '📵', fields: [{ name: 'done', label: 'Done?', type: 'yesno' }] },
-            gratitude: { name: 'Gratitude Journal', icon: '🙏', fields: [{ name: 'done', label: 'Done?', type: 'yesno' }] },
-            social: { name: 'Social / Lab Interaction', icon: '🗣️', fields: [{ name: 'minutes', label: 'Minutes', type: 'number', min: 0 }] },
-            hobby: { name: 'Hobby / Fun', icon: '🎸', fields: [{ name: 'minutes', label: 'Minutes', type: 'number', min: 0 }] },
-            weeklyPlanning: { name: 'Weekly Planning', icon: '📅', fields: [{ name: 'done', label: 'Done?', type: 'yesno' }] }
-        };
-        const defaultHabitOrder = Object.keys(habitTemplates);
-        const defaultEnabledHabits = [...defaultHabitOrder];
+async function setupCamera(){
+  stopCamera();
+  document.getElementById('videoSaveBox').style.display='none';
+  document.getElementById('driveLinkBox').style.display='none';
+  document.getElementById('recordedVideo').style.display='none';
+  document.getElementById('preview').style.display='block';
+  try {
+    cameraStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+    document.getElementById('preview').srcObject=cameraStream;
+    mediaRecorder=new MediaRecorder(cameraStream);
+    mediaRecorder.ondataavailable=e=>{ if(e.data.size>0) recordedChunks.push(e.data); };
+    mediaRecorder.onstop=()=>{
+      _videoBlob=new Blob(recordedChunks,{type:'video/webm'});
+      document.getElementById('recordedVideo').src=URL.createObjectURL(_videoBlob);
+      document.getElementById('recordedVideo').style.display='block';
+      document.getElementById('preview').style.display='none';
+      document.getElementById('videoSaveBox').style.display='block';
+    };
+  } catch(e){ alert('Camera access denied or unavailable. Please allow camera permissions.'); }
+}
 
-        // In-memory habit settings (loaded from Sheets)
-        let _habitSettings = null;
+function startRecording(){
+  if(!mediaRecorder){ alert('Camera not ready — please wait or refresh.'); return; }
+  recordedChunks=[]; mediaRecorder.start();
+  document.getElementById('startBtn').disabled=true;
+  document.getElementById('stopBtn').disabled=false;
+  document.getElementById('camDot').classList.add('on');
+}
+function stopRecording(){
+  if(mediaRecorder&&mediaRecorder.state==='recording') mediaRecorder.stop();
+  document.getElementById('startBtn').disabled=false;
+  document.getElementById('stopBtn').disabled=true;
+  document.getElementById('camDot').classList.remove('on');
+}
 
-        function getHabitSettings() {
-            if (!_habitSettings) {
-                _habitSettings = { enabledHabits: defaultEnabledHabits, habitOrder: defaultHabitOrder, customHabits: [] };
-            }
-            return _habitSettings;
-        }
+function downloadVideoLocally(){
+  if(!_videoBlob){ alert('No recording found.'); return; }
+  const a=document.createElement('a');
+  const title=(document.getElementById('videoTitle').value.trim()||'diary_video_'+new Date().toISOString().split('T')[0]);
+  a.href=URL.createObjectURL(_videoBlob); a.download=title+'.webm'; a.click();
+}
 
-        function applyHabitSettings(settings) {
-            _habitSettings = settings;
-        }
+async function uploadVideoToDrive(){
+  if(!_videoBlob){ showMessage('videoMessage','No recording to save.','error'); return; }
+  const title=document.getElementById('videoTitle').value.trim()||('Video '+new Date().toLocaleDateString());
+  const note=document.getElementById('videoNote').value.trim();
+  const date=new Date().toISOString().split('T')[0];
 
-        function getAllTemplates() {
-            const settings = getHabitSettings();
-            const all = { ...habitTemplates };
-            settings.customHabits.forEach(ch => {
-                all['custom_' + ch.name] = {
-                    name: ch.name, icon: ch.icon,
-                    fields: [{ name: 'value', label: ch.unit === 'yesno' ? 'Done?' : (ch.unit === 'hours' ? 'Hours' : ch.unit === 'count' ? 'Count' : 'Minutes'), type: ch.unit === 'yesno' ? 'yesno' : 'number', min: 0 }]
-                };
-            });
-            return all;
-        }
+  showMessage('videoMessage','⏳ Uploading to Google Drive... please wait.','info');
+  showLoading(true);
 
-        function generateCard(key, template) {
-            const fieldsHtml = template.fields.map(f => {
-                let input = '';
-                if (f.type === 'number') {
-                    input = `<input type="number" id="${key}_${f.name}" min="${f.min ?? 0}" step="${f.step || 1}" placeholder="0">`;
-                } else if (f.type === 'text') {
-                    input = `<input type="text" id="${key}_${f.name}" placeholder="${f.label}">`;
-                } else if (f.type === 'select') {
-                    input = `<select id="${key}_${f.name}"><option value="">Select</option>${(f.options || []).map(o => `<option>${o}</option>`).join('')}</select>`;
-                } else if (f.type === 'yesno') {
-                    input = `<div id="${key}_${f.name}" class="yesno-toggle">
-                <button class="yesno-btn" data-value="no" onclick="toggleYesNo(this)">No</button>
-                <button class="yesno-btn" data-value="yes" onclick="toggleYesNo(this)">Yes</button>
-            </div>`;
-                }
-                return `<div class="input-row"><label>${f.label}</label>${input}</div>`;
-            }).join('');
-            return `<div class="habit-card" data-habit="${key}"><h3>${template.icon} ${template.name}</h3>${fieldsHtml}</div>`;
-        }
+  try {
+    // Convert blob to base64
+    const base64 = await new Promise((res,rej)=>{
+      const reader=new FileReader();
+      reader.onload=()=>res(reader.result.split(',')[1]);
+      reader.onerror=rej;
+      reader.readAsDataURL(_videoBlob);
+    });
 
-        function toggleYesNo(btn) {
-            const group = btn.parentNode;
-            group.querySelectorAll('.yesno-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        }
+    const r=await api({action:'saveVideoToDrive',userId:currentUser.id,title,note,date,base64,mimeType:_videoBlob.type});
 
-        function loadHabitUI() {
-            const settings = getHabitSettings();
-            const allTemplates = getAllTemplates();
-            let html = '';
-            settings.habitOrder.forEach(key => {
-                if (settings.enabledHabits.includes(key) && allTemplates[key]) {
-                    html += generateCard(key, allTemplates[key]);
-                }
-            });
-            document.getElementById('habitsContainer').innerHTML = html;
-            renderSettingsTab(settings);
-        }
+    if(r.success){
+      showMessage('videoMessage','','info');
+      const box=document.getElementById('driveLinkBox');
+      box.style.display='block';
+      document.getElementById('driveLinkAnchor').href=r.driveUrl;
+      // Refresh entries
+      if(!window._notesCache._videoEntries) window._notesCache._videoEntries=[];
+      window._notesCache._videoEntries.unshift({title,note,date,driveUrl:r.driveUrl,savedAt:new Date().toISOString()});
+      renderVideoEntries();
+      document.getElementById('videoTitle').value='';
+      document.getElementById('videoNote').value='';
+    } else {
+      showMessage('videoMessage','❌ '+r.message,'error');
+    }
+  } catch(e){
+    showMessage('videoMessage','❌ Upload failed: '+e.message,'error');
+  }
+  showLoading(false);
+}
 
-        function renderSettingsTab(settings) {
-            const allTemplates = getAllTemplates();
-            let toggleHtml = '';
-            for (let key in allTemplates) {
-                const h = allTemplates[key];
-                const enabled = settings.enabledHabits.includes(key);
-                toggleHtml += `<div class="habit-toggle-item">
-            <span class="habit-toggle-icon">${h.icon}</span>
-            <span class="habit-toggle-name">${h.name}</span>
-            <label class="switch">
-                <input type="checkbox" ${enabled ? 'checked' : ''} onchange="toggleHabit('${key}', this.checked)">
-                <span class="slider"></span>
-            </label>`;
-                if (key.startsWith('custom_')) {
-                    toggleHtml += `<button class="delete-custom-btn" onclick="deleteCustomHabit('${key}')"><i class="fas fa-trash"></i></button>`;
-                }
-                toggleHtml += `</div>`;
-            }
-            document.getElementById('habitToggleList').innerHTML = toggleHtml;
+function renderVideoEntries(){
+  const entries=(window._notesCache._videoEntries||[]);
+  const container=document.getElementById('videoEntriesList');
+  if(!entries.length){ container.innerHTML=''; return; }
+  container.innerHTML=`<h3 style="margin-bottom:14px;color:#333;">📼 Past Recordings</h3>`
+    +entries.map((e,i)=>`
+    <div class="video-entry-card">
+      <i class="fas fa-film"></i>
+      <div class="video-entry-info">
+        <div class="video-entry-title">${e.title}</div>
+        <div class="video-entry-meta">${e.date} &nbsp;·&nbsp; Saved ${new Date(e.savedAt).toLocaleTimeString()}</div>
+        ${e.note?`<div class="video-entry-note">${e.note}</div>`:''}
+        ${e.driveUrl?`<div class="video-entry-drive"><i class="fab fa-google-drive" style="color:#27ae60;"></i> <a href="${e.driveUrl}" target="_blank">Open in Google Drive</a></div>`:'<div class="video-entry-drive" style="color:#aaa;font-size:.82em;">No Drive link — video downloaded locally</div>'}
+      </div>
+      <button onclick="deleteVideoEntry(${i})" style="background:none;border:none;color:#e74c3c;cursor:pointer;align-self:flex-start;"><i class="fas fa-trash"></i></button>
+    </div>`).join('');
+}
 
-            document.getElementById('customHabitsList').innerHTML = settings.customHabits.map(ch =>
-                `<div class="habit-toggle-item"><span>${ch.icon} ${ch.name} (${ch.unit})</span></div>`
-            ).join('');
+async function deleteVideoEntry(i){
+  if(!confirm('Remove this entry?')) return;
+  window._notesCache._videoEntries.splice(i,1);
+  await syncToSheets('notes',window._notesCache);
+  renderVideoEntries();
+}
 
-            let orderHtml = '';
-            settings.habitOrder.forEach(key => {
-                if (allTemplates[key]) {
-                    const h = allTemplates[key];
-                    orderHtml += `<div class="habit-order-item" data-habit="${key}" draggable="true">
-                <span class="drag-handle">☰</span> ${h.icon} ${h.name}
-            </div>`;
-                }
-            });
-            document.getElementById('habitOrderList').innerHTML = orderHtml;
-            enableDragSort(document.getElementById('habitOrderList'));
-        }
+// ═══════════════════════════════════════════════════
+//  FILE UPLOADS (Notes & Papers)
+// ═══════════════════════════════════════════════════
+function handleDragOver(e,zoneId){ e.preventDefault(); document.getElementById(zoneId).classList.add('dragover'); }
+function handleDragLeave(zoneId){ document.getElementById(zoneId).classList.remove('dragover'); }
+function handleDrop(e,ctx){ e.preventDefault(); const zid=ctx==='notes'?'notesUploadZone':'paperUploadZone'; document.getElementById(zid).classList.remove('dragover'); processFiles(e.dataTransfer.files,ctx); }
+function handleFileSelect(e,ctx){ processFiles(e.target.files,ctx); e.target.value=''; }
 
-        function enableDragSort(container) {
-            let dragged = null;
-            container.addEventListener('dragstart', e => {
-                dragged = e.target.closest('.habit-order-item');
-            });
-            container.addEventListener('dragover', e => e.preventDefault());
-            container.addEventListener('drop', e => {
-                e.preventDefault();
-                const target = e.target.closest('.habit-order-item');
-                if (dragged && target && dragged !== target) {
-                    container.insertBefore(dragged, target.nextSibling || target);
-                }
-            });
-        }
+function processFiles(files,ctx){
+  Array.from(files).forEach(file=>{
+    if(!file.type.startsWith('image/')&&file.type!=='application/pdf'){ alert(file.name+': only images and PDFs are supported'); return; }
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const obj={name:file.name,size:file.size,type:file.type,dataUrl:ev.target.result};
+      if(ctx==='notes'){
+        const date=new Date().toISOString().split('T')[0];
+        if(!window._notesFiles[date]) window._notesFiles[date]=[];
+        window._notesFiles[date].push(obj);
+        renderNotesFiles();
+        syncToSheets('notesfiles',window._notesFiles);
+      } else {
+        window._paperFiles.push(obj);
+        renderPaperFileList();
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
-        function toggleHabit(key, enabled) {
-            const settings = getHabitSettings();
-            if (enabled && !settings.enabledHabits.includes(key)) {
-                settings.enabledHabits.push(key);
-                if (!settings.habitOrder.includes(key)) settings.habitOrder.push(key);
-            } else if (!enabled) {
-                settings.enabledHabits = settings.enabledHabits.filter(h => h !== key);
-            }
-            _habitSettings = settings;
-            loadHabitUI();
-        }
+function fileIcon(type){ return type==='application/pdf'?'fas fa-file-pdf':'fas fa-file-image'; }
+function fileIconColor(type){ return type==='application/pdf'?'#e74c3c':'#667eea'; }
+function fileSize(b){ return b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB'; }
 
-        function addCustomHabit() {
-            const name = document.getElementById('customHabitName').value.trim();
-            const icon = document.getElementById('customHabitIcon').value.trim() || '✨';
-            const unit = document.getElementById('customHabitUnit').value;
-            if (!name) { showMessage('settingsMessage', 'Enter a habit name', 'error'); return; }
-            const settings = getHabitSettings();
-            if (settings.customHabits.find(h => h.name === name)) {
-                showMessage('settingsMessage', 'Habit already exists', 'error'); return;
-            }
-            const key = 'custom_' + name;
-            settings.customHabits.push({ name, icon, unit });
-            settings.enabledHabits.push(key);
-            settings.habitOrder.push(key);
-            _habitSettings = settings;
-            document.getElementById('customHabitName').value = '';
-            document.getElementById('customHabitIcon').value = '';
-            loadHabitUI();
-            showMessage('settingsMessage', 'Custom habit added!', 'success');
-        }
+function renderNotesFiles(){
+  const date=new Date().toISOString().split('T')[0],files=window._notesFiles[date]||[];
+  document.getElementById('notesFileList').innerHTML=files.map((f,i)=>`
+    <li class="file-item">
+      <i class="${fileIcon(f.type)} file-icon" style="color:${fileIconColor(f.type)}"></i>
+      <span class="file-name">${f.name}</span>
+      <span class="file-size">${fileSize(f.size)}</span>
+      <button class="file-view" onclick="previewFile(${i},'notes')">View</button>
+      <button class="file-del" onclick="deleteNotesFile(${i})"><i class="fas fa-times"></i></button>
+    </li>`).join('');
+}
+async function deleteNotesFile(i){ const date=new Date().toISOString().split('T')[0]; if(window._notesFiles[date]){window._notesFiles[date].splice(i,1);renderNotesFiles();await syncToSheets('notesfiles',window._notesFiles);} }
 
-        function deleteCustomHabit(key) {
-            const settings = getHabitSettings();
-            const name = key.replace('custom_', '');
-            settings.customHabits = settings.customHabits.filter(h => h.name !== name);
-            settings.enabledHabits = settings.enabledHabits.filter(h => h !== key);
-            settings.habitOrder = settings.habitOrder.filter(h => h !== key);
-            _habitSettings = settings;
-            loadHabitUI();
-        }
+function renderPaperFileList(){
+  document.getElementById('paperFileList').innerHTML=window._paperFiles.map((f,i)=>`
+    <li class="file-item">
+      <i class="${fileIcon(f.type)} file-icon" style="color:${fileIconColor(f.type)}"></i>
+      <span class="file-name">${f.name}</span>
+      <span class="file-size">${fileSize(f.size)}</span>
+      <button class="file-del" onclick="deletePendingFile(${i})"><i class="fas fa-times"></i></button>
+    </li>`).join('');
+}
+function deletePendingFile(i){ window._paperFiles.splice(i,1); renderPaperFileList(); }
 
-        async function saveHabitSettings() {
-            const settings = getHabitSettings();
-            const orderItems = Array.from(document.querySelectorAll('#habitOrderList .habit-order-item')).map(i => i.dataset.habit);
-            settings.habitOrder = orderItems;
-            _habitSettings = settings;
-            loadHabitUI();
-            await syncToSheets('settings', settings);
-            showMessage('settingsMessage', '✅ Habit settings saved!', 'success');
-        }
+function previewFile(index,ctx,paperId){
+  let file;
+  if(ctx==='notes'){ const date=new Date().toISOString().split('T')[0]; file=(window._notesFiles[date]||[])[index]; }
+  else if(ctx==='paper'){ const p=window._papers.find(p=>p.id===paperId); file=p?p.files[index]:null; }
+  if(!file) return;
+  document.getElementById('previewTitle').textContent=file.name;
+  document.getElementById('previewContent').innerHTML=file.type==='application/pdf'
+    ?`<iframe src="${file.dataUrl}" width="100%" height="520px" style="border:none;border-radius:8px;"></iframe>`
+    :`<img src="${file.dataUrl}" style="max-width:100%;border-radius:8px;">`;
+  document.getElementById('previewModal').classList.add('active');
+}
+function closePreview(){ document.getElementById('previewModal').classList.remove('active'); document.getElementById('previewContent').innerHTML=''; }
 
-        // ═══════════════════════════════════════════════════════
-        //  SAVE / LOAD HABITS, NOTES, TODOS
-        // ═══════════════════════════════════════════════════════
-        function applyTodayHabits(allHabits) {
-            const date = new Date().toISOString().split('T')[0];
-            const today = allHabits[date];
-            if (!today) return;
-            const allTemplates = getAllTemplates();
-            for (let key in today) {
-                if (!allTemplates[key]) continue;
-                const template = allTemplates[key];
-                const values = today[key];
-                template.fields.forEach(f => {
-                    const elId = `${key}_${f.name}`;
-                    if (f.type === 'yesno') {
-                        const val = values[f.name] ? 'yes' : 'no';
-                        const btn = document.querySelector(`#${elId} .yesno-btn[data-value="${val}"]`);
-                        if (btn) {
-                            document.querySelectorAll(`#${elId} .yesno-btn`).forEach(b => b.classList.remove('active'));
-                            btn.classList.add('active');
-                        }
-                    } else {
-                        const el = document.getElementById(elId);
-                        if (el) el.value = values[f.name] || '';
-                    }
-                });
-            }
-        }
+// ═══════════════════════════════════════════════════
+//  PAPER SUMMARIES
+// ═══════════════════════════════════════════════════
+async function addPaper(){
+  const title=document.getElementById('paperTitle').value.trim();
+  if(!title){ showMessage('papersMessage','Paper title is required','error'); return; }
+  const paper={
+    id:'paper_'+Date.now(),
+    title,
+    authors:document.getElementById('paperAuthors').value.trim(),
+    summary:document.getElementById('paperSummary').value.trim(),
+    tags:document.getElementById('paperTags').value.split(',').map(t=>t.trim()).filter(Boolean),
+    date:new Date().toISOString().split('T')[0],
+    files:[...window._paperFiles]
+  };
+  window._papers.unshift(paper);
+  const ok=await syncToSheets('papers',window._papers);
+  showMessage('papersMessage',ok?'✅ Paper added and saved!':'⚠️ Save failed',ok?'success':'error');
+  ['paperTitle','paperAuthors','paperSummary','paperTags'].forEach(id=>document.getElementById(id).value='');
+  window._paperFiles=[]; renderPaperFileList(); renderPapers();
+}
 
-        function applyTodayNotes(allNotes) {
-            const date = new Date().toISOString().split('T')[0];
-            if (allNotes[date] && allNotes[date].journal) {
-                document.getElementById('journalEntry').value = allNotes[date].journal;
-            }
-        }
+function renderPapers(){
+  const q=(document.getElementById('paperSearch')||{}).value||'';
+  const lower=q.toLowerCase();
+  const filtered=window._papers.filter(p=>!q||p.title.toLowerCase().includes(lower)||(p.authors||'').toLowerCase().includes(lower)||(p.summary||'').toLowerCase().includes(lower)||(p.tags||[]).some(t=>t.toLowerCase().includes(lower)));
+  const container=document.getElementById('papersList');
+  if(!filtered.length){
+    container.innerHTML=`<div style="text-align:center;padding:50px;color:#bbb;"><i class="fas fa-scroll" style="font-size:3em;margin-bottom:15px;display:block;"></i>${window._papers.length?'No papers match your search.':'No papers yet. Add your first paper above!'}</div>`;
+    return;
+  }
+  container.innerHTML=filtered.map(p=>`
+    <div class="paper-card">
+      <div class="paper-header">
+        <i class="fas fa-scroll"></i>
+        <div style="flex:1;">
+          <div class="paper-title">${p.title}</div>
+          ${p.authors?`<div class="paper-sub">${p.authors}</div>`:''}
+          <div class="paper-sub">${p.date}</div>
+        </div>
+      </div>
+      <div class="paper-body">
+        ${p.summary?`<div class="paper-summary">${p.summary}</div>`:'<p style="color:#ccc;font-size:.9em;margin-bottom:12px;">No summary added</p>'}
+        ${(p.tags&&p.tags.length)?`<div class="paper-tags">${p.tags.map(t=>`<span class="paper-tag">${t}</span>`).join('')}</div>`:''}
+        ${(p.files&&p.files.length)?`<div class="paper-chips">${p.files.map((f,i)=>`<div class="paper-chip" onclick="previewFile(${i},'paper','${p.id}')"><i class="${fileIcon(f.type)}" style="color:${fileIconColor(f.type)}"></i>${f.name}</div>`).join('')}</div>`:''}
+        <div class="paper-actions">
+          <button class="btn btn-danger btn-sm" onclick="deletePaper('${p.id}')"><i class="fas fa-trash"></i> Delete</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
 
-        async function syncToSheets(type, data) {
-            setSyncStatus('syncing', '⏳ Saving...');
-            try {
-                const result = await api({ action: 'save', userId: currentUser.id, type, data });
-                setSyncStatus(result.success ? 'synced' : 'error', result.success ? '✅ Saved' : '⚠️ Save failed');
-                return result.success;
-            } catch (e) {
-                setSyncStatus('error', '⚠️ Connection error');
-                return false;
-            }
-        }
+async function deletePaper(id){
+  if(!confirm('Delete this paper entry?')) return;
+  window._papers=window._papers.filter(p=>p.id!==id);
+  await syncToSheets('papers',window._papers);
+  renderPapers();
+}
 
-        // We keep a local cache of all habits/notes/todos in memory during session
-        window._habitsCache = {};
-        window._notesCache = {};
-        window._todos = {};
+// ═══════════════════════════════════════════════════
+//  TAB NAVIGATION — stops camera when leaving video
+// ═══════════════════════════════════════════════════
+function switchTab(tabName,el){
+  // Stop camera if we're leaving the video tab
+  const videoTabActive=document.getElementById('tab-video').classList.contains('active');
+  if(videoTabActive && tabName!=='video') stopCamera();
 
-        async function saveHabits() {
-            const settings = getHabitSettings();
-            const allTemplates = getAllTemplates();
-            const date = new Date().toISOString().split('T')[0];
-            const data = {};
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+tabName).classList.add('active');
 
-            settings.enabledHabits.forEach(key => {
-                if (!allTemplates[key]) return;
-                const template = allTemplates[key];
-                const entry = {};
-                template.fields.forEach(f => {
-                    const elId = `${key}_${f.name}`;
-                    if (f.type === 'yesno') {
-                        const active = document.querySelector(`#${elId} .yesno-btn.active`);
-                        entry[f.name] = active ? active.dataset.value === 'yes' : false;
-                    } else {
-                        const el = document.getElementById(elId);
-                        entry[f.name] = el ? el.value : '';
-                    }
-                });
-                data[key] = entry;
-            });
+  if(tabName==='video')  { setupCamera(); renderVideoEntries(); }
+  if(tabName==='todo')   { document.getElementById('todoDate').value=new Date().toISOString().split('T')[0]; loadTodoList(); }
+  if(tabName==='notes')  renderNotesFiles();
+  if(tabName==='papers') renderPapers();
+}
 
-            window._habitsCache[date] = data;
-            const ok = await syncToSheets('habits', window._habitsCache);
-            // Also save settings if changed
-            await syncToSheets('settings', getHabitSettings());
-            showMessage('habitsMessage', ok ? '✅ Habits saved to Google Sheets!' : '⚠️ Save failed', ok ? 'success' : 'error');
-        }
-
-        async function saveNotes() {
-            const date = new Date().toISOString().split('T')[0];
-            window._notesCache[date] = { journal: document.getElementById('journalEntry').value };
-            const ok = await syncToSheets('notes', window._notesCache);
-            showMessage('notesMessage', ok ? '✅ Notes saved!' : '⚠️ Save failed', ok ? 'success' : 'error');
-        }
-
-        // To-Do List
-        function loadTodoList() {
-            const date = document.getElementById('todoDate').value;
-            const tasks = (window._todos[date] || []);
-            document.getElementById('todoList').innerHTML = tasks.map((task, i) => `
-        <li class="todo-item ${task.completed ? 'completed' : ''}">
-            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTodo('${date}', ${i})">
-            <span>${task.text}</span>
-            <button class="btn btn-danger btn-sm" onclick="deleteTodo('${date}', ${i})" style="padding:5px 10px;">
-                <i class="fas fa-trash"></i>
-            </button>
-        </li>`).join('');
-        }
-
-        async function addTodo() {
-            const date = document.getElementById('todoDate').value;
-            const text = document.getElementById('todoInput').value.trim();
-            if (!text) return;
-            if (!window._todos[date]) window._todos[date] = [];
-            window._todos[date].push({ text, completed: false });
-            document.getElementById('todoInput').value = '';
-            loadTodoList();
-            await syncToSheets('todos', window._todos);
-        }
-
-        async function toggleTodo(date, index) {
-            if (window._todos[date] && window._todos[date][index] !== undefined) {
-                window._todos[date][index].completed = !window._todos[date][index].completed;
-                loadTodoList();
-                await syncToSheets('todos', window._todos);
-            }
-        }
-
-        async function deleteTodo(date, index) {
-            if (window._todos[date]) {
-                window._todos[date].splice(index, 1);
-                loadTodoList();
-                await syncToSheets('todos', window._todos);
-            }
-        }
-
-        // ═══════════════════════════════════════════════════════
-        //  TAB NAVIGATION & VIDEO
-        // ═══════════════════════════════════════════════════════
-        function switchTab(tabName, el) {
-            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-            el.classList.add('active');
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            const tabEl = document.getElementById('tab-' + tabName);
-            if (tabEl) tabEl.classList.add('active');
-            if (tabName === 'video') setupCamera();
-            if (tabName === 'todo') {
-                document.getElementById('todoDate').value = new Date().toISOString().split('T')[0];
-                loadTodoList();
-            }
-        }
-
-        async function setupCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                document.getElementById('preview').srcObject = stream;
-                document.getElementById('preview').style.display = 'block';
-                document.getElementById('recordedVideo').style.display = 'none';
-                mediaRecorder = new MediaRecorder(stream);
-                mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
-                mediaRecorder.onstop = () => {
-                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-                    document.getElementById('recordedVideo').src = URL.createObjectURL(blob);
-                    document.getElementById('recordedVideo').style.display = 'block';
-                    document.getElementById('preview').style.display = 'none';
-                };
-            } catch (e) { console.log('Camera unavailable'); }
-        }
-
-        function startRecording() {
-            if (mediaRecorder) {
-                recordedChunks = [];
-                mediaRecorder.start();
-                document.getElementById('startBtn').disabled = true;
-                document.getElementById('stopBtn').disabled = false;
-                document.getElementById('recordingStatus').style.display = 'block';
-            }
-        }
-
-        function stopRecording() {
-            if (mediaRecorder && mediaRecorder.state === 'recording') {
-                mediaRecorder.stop();
-                document.getElementById('startBtn').disabled = false;
-                document.getElementById('stopBtn').disabled = true;
-                document.getElementById('recordingStatus').style.display = 'none';
-            }
-        }
-
-        // ═══════════════════════════════════════════════════════
-        //  BOOT
-        // ═══════════════════════════════════════════════════════
-        document.getElementById('gateContainer').style.display = 'none';
-        boot();
-    </script>
+// ═══════════════════════════════════════════════════
+//  START
+// ═══════════════════════════════════════════════════
+boot();
+</script>
 </body>
-
 </html>
