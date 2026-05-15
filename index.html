@@ -8,8 +8,6 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;display:flex;justify-content:center;align-items:center;}
-
-/* GATE */
 .gate-container{background:white;border-radius:20px;padding:40px;box-shadow:0 20px 60px rgba(0,0,0,.3);width:100%;max-width:420px;text-align:center;}
 .gate-container i.big{font-size:3em;color:#667eea;margin-bottom:15px;display:block;}
 .gate-container h1{color:#333;margin-bottom:8px;}
@@ -42,6 +40,12 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea
 .spinner{width:50px;height:50px;border:4px solid #fff;border-top-color:#667eea;border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* IDLE WARNING BANNER */
+.idle-warning{position:fixed;top:0;left:0;right:0;background:#e74c3c;color:white;text-align:center;padding:12px 20px;font-weight:600;z-index:8888;display:none;animation:slideDown .3s;}
+.idle-warning.active{display:block;}
+@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
+.idle-warning button{background:rgba(255,255,255,.25);border:none;color:white;padding:4px 14px;border-radius:15px;cursor:pointer;margin-left:12px;font-weight:600;}
+
 /* DASHBOARD */
 .dashboard{display:none;}
 .dashboard.active{display:flex;min-height:100vh;width:100%;}
@@ -71,6 +75,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea
 .switch-user-btn{background:none;border:none;color:#667eea;cursor:pointer;font-size:.85em;text-decoration:underline;display:block;margin-top:3px;}
 .sync-status{font-size:.75em;color:#999;text-align:center;padding:5px 0;}
 .sync-status.syncing{color:#f39c12;}.sync-status.synced{color:#27ae60;}.sync-status.error{color:#e74c3c;}
+.idle-display{font-size:.72em;color:#aaa;text-align:center;padding:2px 0;}
 
 /* HABITS settings */
 .habit-toggle-item{display:flex;align-items:center;gap:15px;padding:10px;border-bottom:1px solid #eee;}
@@ -89,13 +94,6 @@ input:checked+.slider:before{transform:translateX(22px);}
 .yesno-btn.active[data-value="yes"]{background:#27ae60;border-color:#27ae60;color:white;}
 .yesno-btn.active[data-value="no"]{background:#e74c3c;border-color:#e74c3c;color:white;}
 
-/* TODO */
-.todo-input-area{display:flex;gap:10px;margin-bottom:18px;}
-.todo-list{list-style:none;}
-.todo-item{display:flex;align-items:center;gap:10px;padding:10px;background:#f8f8f8;margin-bottom:8px;border-radius:5px;}
-.todo-item.completed span{text-decoration:line-through;opacity:.6;}
-.todo-item button{margin-left:auto;}
-
 /* VIDEO */
 .video-wrap{background:#111;border-radius:12px;overflow:hidden;margin:18px 0;max-width:640px;position:relative;}
 .video-wrap video{width:100%;display:block;}
@@ -109,7 +107,7 @@ input:checked+.slider:before{transform:translateX(22px);}
 .drive-link-box a{color:#1565c0;font-weight:600;}
 .video-entries-list{margin-top:20px;}
 .video-entry-card{background:white;border-radius:10px;padding:16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;align-items:flex-start;gap:12px;}
-.video-entry-card i{color:#667eea;font-size:1.4em;margin-top:2px;flex-shrink:0;}
+.video-entry-card i.vi{color:#667eea;font-size:1.4em;margin-top:2px;flex-shrink:0;}
 .video-entry-info{flex:1;}
 .video-entry-title{font-weight:600;color:#333;}
 .video-entry-meta{font-size:.82em;color:#999;margin-top:3px;}
@@ -130,7 +128,6 @@ input:checked+.slider:before{transform:translateX(22px);}
 .file-size{font-size:.78em;color:#999;flex-shrink:0;}
 .file-del{background:none;border:none;color:#e74c3c;cursor:pointer;font-size:1em;flex-shrink:0;}
 .file-view{background:none;border:none;color:#667eea;cursor:pointer;font-size:.85em;text-decoration:underline;flex-shrink:0;}
-.upload-note{font-size:.82em;color:#aaa;margin-top:6px;}
 
 /* PAPERS */
 .papers-grid{display:grid;gap:18px;}
@@ -151,6 +148,59 @@ input:checked+.slider:before{transform:translateX(22px);}
 .add-paper-form{background:white;border-radius:15px;box-shadow:0 2px 10px rgba(0,0,0,.08);padding:25px;margin-bottom:22px;}
 .add-paper-form h3{margin-bottom:18px;color:#333;display:flex;align-items:center;gap:8px;}
 
+/* ── CALENDAR TODO ── */
+.todo-layout{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;}
+.cal-card{background:white;border-radius:15px;box-shadow:0 2px 10px rgba(0,0,0,.08);overflow:hidden;}
+.cal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;}
+.cal-header h3{font-size:1.1em;font-weight:700;}
+.cal-nav{background:none;border:none;color:white;font-size:1.2em;cursor:pointer;padding:4px 8px;border-radius:6px;transition:background .2s;}
+.cal-nav:hover{background:rgba(255,255,255,.2);}
+.cal-legend{display:flex;gap:14px;padding:12px 20px;background:#fafafa;border-bottom:1px solid #eee;flex-wrap:wrap;}
+.cal-legend-item{display:flex;align-items:center;gap:5px;font-size:.78em;color:#555;}
+.cal-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.cal-grid-header{display:grid;grid-template-columns:repeat(7,1fr);background:#f5f5f5;}
+.cal-dow{text-align:center;padding:8px 0;font-size:.75em;font-weight:700;color:#888;text-transform:uppercase;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#eee;}
+.cal-day{background:white;min-height:64px;padding:6px;cursor:pointer;transition:background .15s;position:relative;}
+.cal-day:hover{background:#f0f0ff;}
+.cal-day.empty{background:#fafafa;cursor:default;}
+.cal-day.today{background:#fffde7;}
+.cal-day.today .cal-day-num{background:#667eea;color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.82em;}
+.cal-day.selected{background:#eef0ff;outline:2px solid #667eea;}
+.cal-day-num{font-size:.82em;font-weight:600;color:#444;margin-bottom:4px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;}
+.cal-day-dots{display:flex;flex-wrap:wrap;gap:2px;margin-top:2px;}
+.cal-day-dot{width:7px;height:7px;border-radius:50%;}
+.dot-done{background:#27ae60;}
+.dot-partial{background:#f39c12;}
+.dot-pending{background:#e74c3c;}
+.dot-none{background:#ddd;}
+
+/* Task panel */
+.task-panel{background:white;border-radius:15px;box-shadow:0 2px 10px rgba(0,0,0,.08);overflow:hidden;position:sticky;top:20px;}
+.task-panel-header{padding:16px 20px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;}
+.task-panel-header h3{font-size:1em;font-weight:700;}
+.task-panel-date{font-size:.82em;opacity:.85;margin-top:2px;}
+.task-panel-body{padding:16px;}
+.task-add-row{display:flex;gap:8px;margin-bottom:14px;}
+.task-add-row input{flex:1;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:.9em;}
+.task-add-row button{padding:9px 14px;border:none;border-radius:8px;background:#667eea;color:white;cursor:pointer;font-size:.9em;white-space:nowrap;}
+.task-list{list-style:none;max-height:420px;overflow-y:auto;}
+.task-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;margin-bottom:6px;border:1px solid #eee;background:#fafafa;transition:all .2s;}
+.task-item:hover{background:#f0f0ff;border-color:#c5cff8;}
+.task-item.status-done{background:#f0fff4;border-color:#a5d6a7;}
+.task-item.status-partial{background:#fff8f0;border-color:#f0c080;}
+.task-item.status-pending{background:#fff5f5;border-color:#f5a5a5;}
+.task-text{flex:1;font-size:.9em;color:#333;word-break:break-word;}
+.task-text.done{text-decoration:line-through;color:#aaa;}
+.task-status-btn{border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.75em;font-weight:700;transition:all .2s;white-space:nowrap;flex-shrink:0;}
+.task-status-btn.btn-pending{background:#f8f8f8;color:#999;border:1px solid #ddd;}
+.task-status-btn.btn-partial{background:#fff3cd;color:#856404;border:1px solid #f0c040;}
+.task-status-btn.btn-done{background:#d4edda;color:#155724;border:1px solid #a5d6a7;}
+.task-del-btn{background:none;border:none;color:#e74c3c;cursor:pointer;font-size:.85em;flex-shrink:0;padding:2px 4px;}
+.task-summary-bar{display:flex;gap:10px;padding:10px 16px;background:#f8f8f8;border-top:1px solid #eee;font-size:.8em;}
+.tsb-item{display:flex;align-items:center;gap:4px;color:#666;}
+.tsb-dot{width:8px;height:8px;border-radius:50%;}
+
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:none;align-items:center;justify-content:center;padding:20px;}
 .modal-overlay.active{display:flex;}
@@ -158,6 +208,7 @@ input:checked+.slider:before{transform:translateX(22px);}
 .modal-box h3{margin-bottom:18px;color:#333;}
 .modal-close{float:right;background:none;border:none;font-size:1.4em;cursor:pointer;color:#999;}
 
+@media(max-width:900px){.todo-layout{grid-template-columns:1fr;}}
 @media(max-width:768px){
   body{align-items:flex-start;}
   .gate-container{border-radius:0;min-height:100vh;display:flex;flex-direction:column;justify-content:center;}
@@ -168,6 +219,12 @@ input:checked+.slider:before{transform:translateX(22px);}
 </style>
 </head>
 <body>
+
+<!-- IDLE WARNING -->
+<div class="idle-warning" id="idleWarning">
+  <span id="idleWarningText">⏱ Locking in <span id="idleCountdown">30</span>s due to inactivity</span>
+  <button onclick="resetIdleTimer()">I'm here</button>
+</div>
 
 <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
 
@@ -182,7 +239,6 @@ input:checked+.slider:before{transform:translateX(22px);}
 
 <!-- GATE -->
 <div id="gateContainer" class="gate-container" style="display:none;">
-
   <div id="setPasswordScreen" class="gate-screen">
     <i class="fas fa-lock big"></i>
     <h1>Set Your Password</h1>
@@ -243,6 +299,7 @@ input:checked+.slider:before{transform:translateX(22px);}
       <li class="nav-tab"        onclick="switchTab('settings',this)"><i class="fas fa-cogs"></i> Customize Habits</li>
     </ul>
     <div id="syncStatus" class="sync-status">● Ready</div>
+    <div class="idle-display" id="idleDisplay"></div>
     <button class="btn btn-danger" onclick="lockDiary()" style="margin-top:10px;"><i class="fas fa-sign-out-alt"></i> Lock Diary</button>
   </nav>
 
@@ -262,7 +319,7 @@ input:checked+.slider:before{transform:translateX(22px);}
     <div id="tab-video" class="tab-content">
       <div class="page-header">
         <h1>🎥 Video Diary</h1>
-        <p>Camera turns off automatically when you leave this tab. Videos are saved directly to your Google Drive.</p>
+        <p>Camera turns off automatically when you leave this tab. Videos are saved to your Google Drive.</p>
       </div>
       <div class="button-group">
         <button class="btn btn-danger btn-sm" id="startBtn" onclick="startRecording()"><i class="fas fa-circle"></i> Start Recording</button>
@@ -284,10 +341,8 @@ input:checked+.slider:before{transform:translateX(22px);}
           <button class="btn btn-secondary btn-sm" onclick="downloadVideoLocally()"><i class="fas fa-download"></i> Download locally</button>
         </div>
         <div id="videoMessage" class="message"></div>
-        <div class="drive-link-box" id="driveLinkBox">
-          ✅ Saved! <a id="driveLinkAnchor" href="#" target="_blank">Open in Google Drive</a>
-        </div>
-        <p style="color:#aaa;font-size:.8em;margin-top:10px;"><i class="fas fa-info-circle"></i> Large videos may take a moment to upload. Keep this tab open until done.</p>
+        <div class="drive-link-box" id="driveLinkBox">✅ Saved! <a id="driveLinkAnchor" href="#" target="_blank">Open in Google Drive</a></div>
+        <p style="color:#aaa;font-size:.8em;margin-top:10px;"><i class="fas fa-info-circle"></i> Large videos may take a moment. Keep this tab open until done.</p>
       </div>
       <div class="video-entries-list" id="videoEntriesList"></div>
     </div>
@@ -305,14 +360,10 @@ input:checked+.slider:before{transform:translateX(22px);}
       </div>
       <div class="profile-section">
         <h3>📎 Attachments for Today</h3>
-        <div class="upload-zone" id="notesUploadZone"
-             onclick="document.getElementById('notesFileInput').click()"
-             ondragover="handleDragOver(event,'notesUploadZone')"
-             ondragleave="handleDragLeave('notesUploadZone')"
-             ondrop="handleDrop(event,'notes')">
+        <div class="upload-zone" id="notesUploadZone" onclick="document.getElementById('notesFileInput').click()" ondragover="handleDragOver(event,'notesUploadZone')" ondragleave="handleDragLeave('notesUploadZone')" ondrop="handleDrop(event,'notes')">
           <i class="fas fa-cloud-upload-alt"></i>
           <p><strong>Click or drag & drop</strong> files here</p>
-          <p>Images (JPG, PNG, GIF) or PDFs — stored in Google Sheets</p>
+          <p>Images (JPG, PNG, GIF) or PDFs</p>
         </div>
         <input type="file" id="notesFileInput" accept="image/*,.pdf" multiple style="display:none;" onchange="handleFileSelect(event,'notes')">
         <ul class="file-list" id="notesFileList"></ul>
@@ -321,41 +372,19 @@ input:checked+.slider:before{transform:translateX(22px);}
 
     <!-- PAPER SUMMARIES -->
     <div id="tab-papers" class="tab-content">
-      <div class="page-header">
-        <h1>📄 Paper Summaries</h1>
-        <p>Track papers you've read — add summaries, tags, and attach PDFs or screenshots</p>
-      </div>
-
-      <!-- Add form -->
+      <div class="page-header"><h1>📄 Paper Summaries</h1><p>Track papers you've read — summaries, tags, and attached PDFs</p></div>
       <div class="add-paper-form">
         <h3><i class="fas fa-plus-circle" style="color:#667eea;"></i> Add New Paper</h3>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
-          <div class="input-row">
-            <label>Paper Title / Name <span style="color:#e74c3c;">*</span></label>
-            <input type="text" id="paperTitle" placeholder="e.g. Attention Is All You Need">
-          </div>
-          <div class="input-row">
-            <label>Authors</label>
-            <input type="text" id="paperAuthors" placeholder="e.g. Vaswani et al., 2017">
-          </div>
+          <div class="input-row"><label>Paper Title <span style="color:#e74c3c;">*</span></label><input type="text" id="paperTitle" placeholder="e.g. Attention Is All You Need"></div>
+          <div class="input-row"><label>Authors</label><input type="text" id="paperAuthors" placeholder="e.g. Vaswani et al., 2017"></div>
         </div>
-        <div class="input-row">
-          <label>Your Summary / Key Findings</label>
-          <textarea id="paperSummary" rows="5" placeholder="Main contributions, methodology, your thoughts, open questions..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;resize:vertical;font-family:inherit;"></textarea>
-        </div>
-        <div class="input-row">
-          <label>Tags <span style="color:#aaa;font-size:.85em;">(comma-separated)</span></label>
-          <input type="text" id="paperTags" placeholder="e.g. NLP, Transformer, Deep Learning, CV">
-        </div>
+        <div class="input-row"><label>Your Summary / Key Findings</label><textarea id="paperSummary" rows="5" placeholder="Main contributions, methodology, your thoughts..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;resize:vertical;font-family:inherit;"></textarea></div>
+        <div class="input-row"><label>Tags <span style="color:#aaa;font-size:.85em;">(comma-separated)</span></label><input type="text" id="paperTags" placeholder="e.g. NLP, Transformer, Deep Learning"></div>
         <div style="margin-bottom:15px;">
           <label style="display:block;margin-bottom:8px;color:#666;font-size:.9em;">📎 Attach PDF or Images</label>
-          <div class="upload-zone" id="paperUploadZone"
-               onclick="document.getElementById('paperFileInput').click()"
-               ondragover="handleDragOver(event,'paperUploadZone')"
-               ondragleave="handleDragLeave('paperUploadZone')"
-               ondrop="handleDrop(event,'paper')">
-            <i class="fas fa-file-upload"></i>
-            <p><strong>Click or drag & drop</strong> the paper PDF or screenshots</p>
+          <div class="upload-zone" id="paperUploadZone" onclick="document.getElementById('paperFileInput').click()" ondragover="handleDragOver(event,'paperUploadZone')" ondragleave="handleDragLeave('paperUploadZone')" ondrop="handleDrop(event,'paper')">
+            <i class="fas fa-file-upload"></i><p><strong>Click or drag & drop</strong> the paper PDF or screenshots</p>
           </div>
           <input type="file" id="paperFileInput" accept="image/*,.pdf" multiple style="display:none;" onchange="handleFileSelect(event,'paper')">
           <ul class="file-list" id="paperFileList"></ul>
@@ -363,25 +392,56 @@ input:checked+.slider:before{transform:translateX(22px);}
         <button class="btn btn-primary btn-sm" onclick="addPaper()"><i class="fas fa-plus"></i> Add Paper</button>
         <div id="papersMessage" class="message"></div>
       </div>
-
-      <!-- Search -->
-      <div style="margin-bottom:18px;">
-        <input type="text" id="paperSearch" placeholder="🔍 Search by title, authors, tags..." style="width:100%;padding:11px 15px;border:1px solid #ddd;border-radius:10px;font-size:.95em;" oninput="renderPapers()">
-      </div>
-
+      <div style="margin-bottom:18px;"><input type="text" id="paperSearch" placeholder="🔍 Search by title, authors, tags..." style="width:100%;padding:11px 15px;border:1px solid #ddd;border-radius:10px;font-size:.95em;" oninput="renderPapers()"></div>
       <div class="papers-grid" id="papersList"></div>
     </div>
 
-    <!-- TO-DO -->
+    <!-- TO-DO CALENDAR -->
     <div id="tab-todo" class="tab-content">
-      <div class="page-header"><h1>✅ To-Do List</h1></div>
-      <div class="profile-section">
-        <div class="input-row"><label>Date</label><input type="date" id="todoDate"></div>
-        <div class="todo-input-area">
-          <input type="text" id="todoInput" placeholder="Enter a new task..." style="flex:1;" onkeydown="if(event.key==='Enter')addTodo()">
-          <button class="btn btn-primary btn-sm" onclick="addTodo()"><i class="fas fa-plus"></i> Add</button>
+      <div class="page-header">
+        <h1>✅ To-Do List</h1>
+        <p>Click any date to see and manage tasks. Mark tasks as Pending, Partial, or Done.</p>
+      </div>
+      <div class="todo-layout">
+        <!-- Calendar -->
+        <div class="cal-card">
+          <div class="cal-header">
+            <button class="cal-nav" onclick="calPrev()">‹</button>
+            <h3 id="calMonthLabel">Month Year</h3>
+            <button class="cal-nav" onclick="calNext()">›</button>
+          </div>
+          <div class="cal-legend">
+            <div class="cal-legend-item"><div class="cal-legend-dot dot-done"></div> All done</div>
+            <div class="cal-legend-item"><div class="cal-legend-dot dot-partial"></div> Partial</div>
+            <div class="cal-legend-item"><div class="cal-legend-dot dot-pending"></div> Has pending</div>
+            <div class="cal-legend-item"><div class="cal-legend-dot dot-none"></div> No tasks</div>
+          </div>
+          <div class="cal-grid-header">
+            <div class="cal-dow">Sun</div><div class="cal-dow">Mon</div><div class="cal-dow">Tue</div>
+            <div class="cal-dow">Wed</div><div class="cal-dow">Thu</div><div class="cal-dow">Fri</div><div class="cal-dow">Sat</div>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
         </div>
-        <ul id="todoList" class="todo-list"></ul>
+
+        <!-- Task panel -->
+        <div class="task-panel">
+          <div class="task-panel-header">
+            <h3>Tasks</h3>
+            <div class="task-panel-date" id="taskPanelDate">Select a date</div>
+          </div>
+          <div class="task-panel-body">
+            <div class="task-add-row">
+              <input type="text" id="todoInput" placeholder="Add a task..." onkeydown="if(event.key==='Enter')addTodo()">
+              <button onclick="addTodo()"><i class="fas fa-plus"></i> Add</button>
+            </div>
+            <ul class="task-list" id="todoList"></ul>
+          </div>
+          <div class="task-summary-bar" id="taskSummaryBar" style="display:none;">
+            <div class="tsb-item"><div class="tsb-dot dot-done"></div><span id="tsbDone">0 done</span></div>
+            <div class="tsb-item"><div class="tsb-dot dot-partial"></div><span id="tsbPartial">0 partial</span></div>
+            <div class="tsb-item"><div class="tsb-dot dot-pending"></div><span id="tsbPending">0 pending</span></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -393,6 +453,16 @@ input:checked+.slider:before{transform:translateX(22px);}
         <div class="input-row"><label>Name</label><input type="text" id="profileDisplayName"></div>
         <button class="btn btn-primary btn-sm" onclick="updateProfileName()"><i class="fas fa-save"></i> Update Name</button>
         <div id="profileMessage" class="message"></div>
+      </div>
+      <div class="profile-section">
+        <h3>⏱ Auto-Lock Timeout</h3>
+        <p style="color:#777;font-size:.9em;margin-bottom:15px;">If idle and not recording, the diary will lock automatically. Set to 0 to disable.</p>
+        <div class="input-row">
+          <label>Lock after (minutes)</label>
+          <input type="number" id="idleTimeoutInput" min="0" max="60" step="1" placeholder="2" style="max-width:120px;">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveIdleTimeout()"><i class="fas fa-save"></i> Save Timeout</button>
+        <div id="idleMessage" class="message"></div>
       </div>
       <div class="profile-section">
         <h3>Change Diary Password</h3>
@@ -436,109 +506,158 @@ input:checked+.slider:before{transform:translateX(22px);}
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════
-//  CONFIG — replace with YOUR deployed Apps Script URL
-// ═══════════════════════════════════════════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzkmP4Ojn4r4RTzRqPpbaeWANi239SKMoU9_Ihuh9CCVr0l2hvZupzJ7sJHCC7DtfVX/exec';
+// ════════════════════════════════════════════════
+//  CONFIG
+// ════════════════════════════════════════════════
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIxLNnqQQMK-YY_DgQH_mMo-vOREnbraDJdZl99J5rNzqSRo8Y65bhN5zsWwllFDZK/exec';
 
-// ═══════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 //  STATE
-// ═══════════════════════════════════════════════════
-let currentUser   = null;
-let appConfig     = null;
-let cameraStream  = null;
-let mediaRecorder = null;
-let recordedChunks= [];
-let _videoBlob    = null;
+// ════════════════════════════════════════════════
+let currentUser=null, appConfig=null;
+let cameraStream=null, mediaRecorder=null, recordedChunks=[], _videoBlob=null;
+window._habitsCache={}; window._notesCache={}; window._todos={};
+window._papers=[]; window._notesFiles={}; window._paperFiles=[];
 
-window._habitsCache = {};
-window._notesCache  = {};
-window._todos       = {};
-window._papers      = [];
-window._notesFiles  = {};   // { date: [{name,size,type,dataUrl}] }
-window._paperFiles  = [];   // pending files for new paper
+// ── Idle timer ────────────────────────────────
+let idleTimeoutMins = 2;       // default 2 min, editable
+let idleTimer       = null;
+let warnTimer       = null;
+let countdownTimer  = null;
+let warnSeconds     = 30;      // show warning 30s before lock
 
-// ═══════════════════════════════════════════════════
+function isRecording(){ return mediaRecorder && mediaRecorder.state==='recording'; }
+
+function resetIdleTimer(){
+  clearTimeout(idleTimer); clearTimeout(warnTimer); clearInterval(countdownTimer);
+  document.getElementById('idleWarning').classList.remove('active');
+  if(!currentUser || idleTimeoutMins<=0) return;
+  const totalMs = idleTimeoutMins*60*1000;
+  const warnMs  = Math.max(0, totalMs - warnSeconds*1000);
+  warnTimer  = setTimeout(showIdleWarning, warnMs);
+  idleTimer  = setTimeout(()=>{ if(!isRecording()) autoLock(); }, totalMs);
+  updateIdleDisplay();
+}
+
+function showIdleWarning(){
+  if(isRecording()) { resetIdleTimer(); return; }
+  let secs = warnSeconds;
+  document.getElementById('idleCountdown').textContent = secs;
+  document.getElementById('idleWarning').classList.add('active');
+  countdownTimer = setInterval(()=>{
+    secs--;
+    document.getElementById('idleCountdown').textContent = secs;
+    if(secs<=0){ clearInterval(countdownTimer); }
+  }, 1000);
+}
+
+function autoLock(){
+  if(isRecording()) { resetIdleTimer(); return; }
+  document.getElementById('idleWarning').classList.remove('active');
+  clearTimeout(idleTimer); clearTimeout(warnTimer); clearInterval(countdownTimer);
+  stopCamera();
+  currentUser=null; sessionStorage.removeItem('unlocked');
+  document.getElementById('dashboard').classList.remove('active');
+  document.getElementById('gateContainer').style.display='block';
+  document.getElementById('enterPassword').value='';
+  showGate('enterPasswordScreen');
+}
+
+function updateIdleDisplay(){
+  const el=document.getElementById('idleDisplay');
+  if(!currentUser||idleTimeoutMins<=0){ el.textContent=''; return; }
+  el.textContent=`🔒 Auto-lock: ${idleTimeoutMins} min`;
+}
+
+function saveIdleTimeout(){
+  const v=parseInt(document.getElementById('idleTimeoutInput').value)||0;
+  idleTimeoutMins=Math.max(0,v);
+  // persist in user settings
+  const s=getHabitSettings();
+  s.idleTimeoutMins=idleTimeoutMins;
+  _habitSettings=s;
+  syncToSheets('settings',s);
+  resetIdleTimer();
+  showMessage('idleMessage', idleTimeoutMins>0?`✅ Auto-lock set to ${idleTimeoutMins} minute(s)`:'✅ Auto-lock disabled','success');
+}
+
+// Attach activity listeners
+['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(ev=>
+  document.addEventListener(ev, ()=>{ if(currentUser) resetIdleTimer(); }, {passive:true})
+);
+
+// ════════════════════════════════════════════════
 //  HELPERS
-// ═══════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 function showLoading(on){ document.getElementById('loadingOverlay').classList.toggle('active',on); }
 function setSyncStatus(s,m){ const el=document.getElementById('syncStatus'); el.className='sync-status '+s; el.textContent=m; }
 function showMessage(id,text,type){ const el=document.getElementById(id); if(!el)return; el.textContent=text; el.className='message '+type; if(type!=='info')setTimeout(()=>{el.className='message';},4500); }
 function showGate(id){ document.querySelectorAll('.gate-screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+async function api(payload){ const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)}); return r.json(); }
 
-async function api(payload){
-  const res = await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});
-  return res.json();
-}
-
-// ═══════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 //  BOOT
-// ═══════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 async function boot(){
   showLoading(true);
   try {
-    const r = await api({action:'getConfig'});
+    const r=await api({action:'getConfig'});
     if(r.success){
-      appConfig = r;
-      document.getElementById('user1Name').textContent = r.user1Name||'Person 1';
-      document.getElementById('user2Name').textContent = r.user2Name||'Person 2';
-      if(!r.hasPassword)                              showGate('setPasswordScreen');
+      appConfig=r;
+      document.getElementById('user1Name').textContent=r.user1Name||'Person 1';
+      document.getElementById('user2Name').textContent=r.user2Name||'Person 2';
+      if(!r.hasPassword) showGate('setPasswordScreen');
       else if(sessionStorage.getItem('unlocked')==='true') showGate('selectUserScreen');
-      else                                            showGate('enterPasswordScreen');
-    } else { showGate('enterPasswordScreen'); }
-  } catch(e) {
+      else showGate('enterPasswordScreen');
+    } else showGate('enterPasswordScreen');
+  } catch(e){
     showGate('enterPasswordScreen');
-    showMessage('pwMessage','⚠️ Cannot reach server. Check your internet and that SCRIPT_URL is correct.','error');
+    showMessage('pwMessage','⚠️ Cannot reach server. Check your internet and SCRIPT_URL.','error');
   }
   showLoading(false);
   document.getElementById('gateContainer').style.display='block';
 }
 
-// ═══════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 //  PASSWORD
-// ═══════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 async function setPasswordAction(){
-  const pw=document.getElementById('newPassword').value.trim();
-  const pw2=document.getElementById('confirmPassword').value.trim();
-  if(pw.length<4){ showMessage('setPwMessage','Password must be at least 4 characters','error'); return; }
-  if(pw!==pw2){    showMessage('setPwMessage','Passwords do not match','error'); return; }
+  const pw=document.getElementById('newPassword').value.trim(), pw2=document.getElementById('confirmPassword').value.trim();
+  if(pw.length<4){showMessage('setPwMessage','At least 4 characters','error');return;}
+  if(pw!==pw2){showMessage('setPwMessage','Passwords do not match','error');return;}
   showLoading(true);
-  try {
-    const r = await api({action:'setPassword',password:pw});
+  try{
+    const r=await api({action:'setPassword',password:pw});
     if(r.success){
       sessionStorage.setItem('unlocked','true');
       const cfg=await api({action:'getConfig'});
-      if(cfg.success){ appConfig=cfg; document.getElementById('user1Name').textContent=cfg.user1Name; document.getElementById('user2Name').textContent=cfg.user2Name; }
+      if(cfg.success){appConfig=cfg;document.getElementById('user1Name').textContent=cfg.user1Name;document.getElementById('user2Name').textContent=cfg.user2Name;}
       showGate('selectUserScreen');
-    } else { showMessage('setPwMessage',r.message,'error'); }
-  } catch(e){ showMessage('setPwMessage','Connection error — try again','error'); }
+    } else showMessage('setPwMessage',r.message,'error');
+  }catch(e){showMessage('setPwMessage','Connection error','error');}
   showLoading(false);
 }
 
 async function checkPasswordAction(){
   const entered=document.getElementById('enterPassword').value.trim();
-  if(!entered){ showMessage('pwMessage','Enter your password','error'); return; }
+  if(!entered){showMessage('pwMessage','Enter your password','error');return;}
   const btn=document.getElementById('unlockBtn'); btn.disabled=true; showLoading(true);
-  try {
+  try{
     const r=await api({action:'verifyPassword',password:entered});
     if(r.success){
       sessionStorage.setItem('unlocked','true');
       const cfg=await api({action:'getConfig'});
-      if(cfg.success){ appConfig=cfg; document.getElementById('user1Name').textContent=cfg.user1Name; document.getElementById('user2Name').textContent=cfg.user2Name; }
+      if(cfg.success){appConfig=cfg;document.getElementById('user1Name').textContent=cfg.user1Name;document.getElementById('user2Name').textContent=cfg.user2Name;}
       document.getElementById('enterPassword').value='';
       showGate('selectUserScreen');
-    } else {
-      showMessage('pwMessage','❌ '+r.message,'error');
-      document.getElementById('enterPassword').value='';
-      document.getElementById('enterPassword').focus();
-    }
-  } catch(e){ showMessage('pwMessage','Connection error','error'); }
+    } else {showMessage('pwMessage','❌ '+r.message,'error'); document.getElementById('enterPassword').value='';}
+  }catch(e){showMessage('pwMessage','Connection error','error');}
   showLoading(false); btn.disabled=false;
 }
 
-// ═══════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 //  USER SELECTION
-// ═══════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 async function selectUser(userId){
   const name=appConfig?(appConfig[userId+'Name']||userId):userId;
   currentUser={id:userId,displayName:name};
@@ -548,80 +667,87 @@ async function selectUser(userId){
   document.getElementById('sidebarAvatar').textContent=name.charAt(0).toUpperCase();
   document.getElementById('todayDate').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   document.getElementById('profileDisplayName').value=name;
-  document.getElementById('todoDate').value=new Date().toISOString().split('T')[0];
 
-  setSyncStatus('syncing','⏳ Loading your data...');
+  setSyncStatus('syncing','⏳ Loading...');
   showLoading(true);
-  try {
+  try{
     const r=await api({action:'load',userId});
     if(r.success){
       const d=r.data;
-      if(d.settings)    applyHabitSettings(d.settings);
+      if(d.settings){
+        applyHabitSettings(d.settings);
+        // restore idle timeout
+        if(d.settings.idleTimeoutMins!==undefined){
+          idleTimeoutMins=d.settings.idleTimeoutMins;
+          document.getElementById('idleTimeoutInput').value=idleTimeoutMins;
+        }
+      }
       loadHabitUI();
-      if(d.habits)      { window._habitsCache=d.habits;  applyTodayHabits(d.habits); }
-      if(d.notes)       { window._notesCache=d.notes;    applyTodayNotes(d.notes); }
-      if(d.todos)       window._todos=d.todos||{};
-      if(d.papers)      window._papers=d.papers||[];
-      if(d.notesfiles)  window._notesFiles=d.notesfiles||{};
-      renderNotesFiles();
-      renderPapers();
-      renderVideoEntries();
+      if(d.habits){window._habitsCache=d.habits; applyTodayHabits(d.habits);}
+      if(d.notes){window._notesCache=d.notes; applyTodayNotes(d.notes);}
+      if(d.todos)  window._todos=d.todos||{};
+      if(d.papers) window._papers=d.papers||[];
+      if(d.notesfiles) window._notesFiles=d.notesfiles||{};
+      renderNotesFiles(); renderPapers(); renderVideoEntries();
       setSyncStatus('synced','✅ Synced');
-    } else { loadHabitUI(); setSyncStatus('error','⚠️ Load failed'); }
-  } catch(e){ loadHabitUI(); setSyncStatus('error','⚠️ Offline'); }
+    } else {loadHabitUI(); setSyncStatus('error','⚠️ Load failed');}
+  }catch(e){loadHabitUI(); setSyncStatus('error','⚠️ Offline');}
   showLoading(false);
+
+  // Init calendar on today
+  calSelectedDate=new Date().toISOString().split('T')[0];
+  calYear=new Date().getFullYear(); calMonth=new Date().getMonth();
+
+  resetIdleTimer();
+  updateIdleDisplay();
 }
 
-function switchUser(){
-  if(confirm('Switch user?')){ stopCamera(); currentUser=null; document.getElementById('dashboard').classList.remove('active'); document.getElementById('gateContainer').style.display='block'; showGate('selectUserScreen'); }
-}
-function lockDiary(){
-  if(confirm('Lock the diary?')){ stopCamera(); currentUser=null; sessionStorage.removeItem('unlocked'); document.getElementById('dashboard').classList.remove('active'); document.getElementById('gateContainer').style.display='block'; document.getElementById('enterPassword').value=''; showGate('enterPasswordScreen'); }
-}
+function switchUser(){ if(confirm('Switch user?')){stopCamera();clearTimeout(idleTimer);clearTimeout(warnTimer);clearInterval(countdownTimer);document.getElementById('idleWarning').classList.remove('active');currentUser=null;document.getElementById('dashboard').classList.remove('active');document.getElementById('gateContainer').style.display='block';showGate('selectUserScreen');} }
+function lockDiary(){ if(confirm('Lock the diary?')){stopCamera();clearTimeout(idleTimer);clearTimeout(warnTimer);clearInterval(countdownTimer);document.getElementById('idleWarning').classList.remove('active');currentUser=null;sessionStorage.removeItem('unlocked');document.getElementById('dashboard').classList.remove('active');document.getElementById('gateContainer').style.display='block';document.getElementById('enterPassword').value='';showGate('enterPasswordScreen');} }
 
-// ═══════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 //  PROFILE
-// ═══════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 async function updateProfileName(){
   const name=document.getElementById('profileDisplayName').value.trim();
-  if(!name){ showMessage('profileMessage','Enter a name','error'); return; }
+  if(!name){showMessage('profileMessage','Enter a name','error');return;}
   showLoading(true);
-  try {
+  try{
     const r=await api({action:'updateUserName',userId:currentUser.id,name});
-    if(r.success){ currentUser.displayName=name; document.getElementById('sidebarName').textContent=name; document.getElementById('sidebarAvatar').textContent=name.charAt(0).toUpperCase(); if(appConfig) appConfig[currentUser.id+'Name']=name; showMessage('profileMessage','✅ Name updated!','success'); }
+    if(r.success){currentUser.displayName=name;document.getElementById('sidebarName').textContent=name;document.getElementById('sidebarAvatar').textContent=name.charAt(0).toUpperCase();if(appConfig)appConfig[currentUser.id+'Name']=name;showMessage('profileMessage','✅ Name updated!','success');}
     else showMessage('profileMessage',r.message,'error');
-  } catch(e){ showMessage('profileMessage','Connection error','error'); }
+  }catch(e){showMessage('profileMessage','Connection error','error');}
   showLoading(false);
 }
 async function changePassword(){
   const pw=document.getElementById('newAppPassword').value.trim(), pw2=document.getElementById('confirmAppPassword').value.trim();
-  if(pw.length<4){ showMessage('passwordMessage','At least 4 characters','error'); return; }
-  if(pw!==pw2){    showMessage('passwordMessage','Passwords do not match','error'); return; }
+  if(pw.length<4){showMessage('passwordMessage','At least 4 characters','error');return;}
+  if(pw!==pw2){showMessage('passwordMessage','Passwords do not match','error');return;}
   showLoading(true);
-  try {
+  try{
     const r=await api({action:'setPassword',password:pw});
-    if(r.success){ document.getElementById('newAppPassword').value=''; document.getElementById('confirmAppPassword').value=''; showMessage('passwordMessage','✅ Password changed for all devices!','success'); }
+    if(r.success){document.getElementById('newAppPassword').value='';document.getElementById('confirmAppPassword').value='';showMessage('passwordMessage','✅ Password changed for all devices!','success');}
     else showMessage('passwordMessage',r.message,'error');
-  } catch(e){ showMessage('passwordMessage','Connection error','error'); }
+  }catch(e){showMessage('passwordMessage','Connection error','error');}
   showLoading(false);
 }
 
-// ═══════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 //  SYNC
-// ═══════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 async function syncToSheets(type,data){
   setSyncStatus('syncing','⏳ Saving...');
-  try {
+  try{
     const r=await api({action:'save',userId:currentUser.id,type,data});
     setSyncStatus(r.success?'synced':'error',r.success?'✅ Saved':'⚠️ Failed');
     return r.success;
-  } catch(e){ setSyncStatus('error','⚠️ Error'); return false; }
+  }catch(e){setSyncStatus('error','⚠️ Error');return false;}
 }
 
-// ═══════════════════════════════════════════════════
+// ════════════════════════════════════════════════
 //  HABITS
-// ═══════════════════════════════════════════════════
-const habitTemplates = {
+// ════════════════════════════════════════════════
+const habitTemplates={
   sleep:{name:'Sleep',icon:'😴',fields:[{name:'hours',label:'Hours',type:'number',min:0,max:24,step:0.5},{name:'quality',label:'Quality (1-5)',type:'number',min:1,max:5}]},
   study:{name:'Study',icon:'📚',fields:[{name:'hours',label:'Hours',type:'number',min:0,max:24,step:0.5},{name:'subject',label:'Subject',type:'text'}]},
   exercise:{name:'Exercise',icon:'🏃',fields:[{name:'minutes',label:'Minutes',type:'number',min:0},{name:'type',label:'Type',type:'select',options:['Running','Walking','Gym','Yoga','Swimming','Cycling','Other']}]},
@@ -651,304 +777,249 @@ const habitTemplates = {
 };
 const defaultOrder=[...Object.keys(habitTemplates)];
 let _habitSettings=null;
+function getHabitSettings(){if(!_habitSettings)_habitSettings={enabledHabits:[...defaultOrder],habitOrder:[...defaultOrder],customHabits:[]};return _habitSettings;}
+function applyHabitSettings(s){_habitSettings=s;}
+function getAllTemplates(){const s=getHabitSettings(),all={...habitTemplates};s.customHabits.forEach(ch=>{all['custom_'+ch.name]={name:ch.name,icon:ch.icon,fields:[{name:'value',label:ch.unit==='yesno'?'Done?':ch.unit==='hours'?'Hours':ch.unit==='count'?'Count':'Minutes',type:ch.unit==='yesno'?'yesno':'number',min:0}]};});return all;}
+function generateCard(key,tmpl){const fh=tmpl.fields.map(f=>{let inp='';if(f.type==='number')inp=`<input type="number" id="${key}_${f.name}" min="${f.min??0}" step="${f.step||1}" placeholder="0">`;else if(f.type==='text')inp=`<input type="text" id="${key}_${f.name}" placeholder="${f.label}">`;else if(f.type==='select')inp=`<select id="${key}_${f.name}"><option value="">Select</option>${(f.options||[]).map(o=>`<option>${o}</option>`).join('')}</select>`;else if(f.type==='yesno')inp=`<div id="${key}_${f.name}" class="yesno-toggle"><button class="yesno-btn" data-value="no" onclick="toggleYesNo(this)">No</button><button class="yesno-btn" data-value="yes" onclick="toggleYesNo(this)">Yes</button></div>`;return`<div class="input-row"><label>${f.label}</label>${inp}</div>`;}).join('');return`<div class="habit-card" data-habit="${key}"><h3>${tmpl.icon} ${tmpl.name}</h3>${fh}</div>`;}
+function toggleYesNo(btn){const g=btn.parentNode;g.querySelectorAll('.yesno-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function loadHabitUI(){const s=getHabitSettings(),all=getAllTemplates();let h='';s.habitOrder.forEach(k=>{if(s.enabledHabits.includes(k)&&all[k])h+=generateCard(k,all[k]);});document.getElementById('habitsContainer').innerHTML=h;renderSettingsTab(s);}
+function renderSettingsTab(s){const all=getAllTemplates();let th='';for(let k in all){const h=all[k],en=s.enabledHabits.includes(k);th+=`<div class="habit-toggle-item"><span class="habit-toggle-icon">${h.icon}</span><span class="habit-toggle-name">${h.name}</span><label class="switch"><input type="checkbox" ${en?'checked':''} onchange="toggleHabit('${k}',this.checked)"><span class="slider"></span></label>${k.startsWith('custom_')?`<button class="delete-custom-btn" onclick="deleteCustomHabit('${k}')"><i class="fas fa-trash"></i></button>`:''}</div>`;}document.getElementById('habitToggleList').innerHTML=th;document.getElementById('customHabitsList').innerHTML=s.customHabits.map(ch=>`<div class="habit-toggle-item"><span>${ch.icon} ${ch.name} (${ch.unit})</span></div>`).join('');let oh='';s.habitOrder.forEach(k=>{if(all[k])oh+=`<div class="habit-order-item" data-habit="${k}" draggable="true"><span class="drag-handle">☰</span> ${all[k].icon} ${all[k].name}</div>`;});document.getElementById('habitOrderList').innerHTML=oh;enableDragSort(document.getElementById('habitOrderList'));}
+function enableDragSort(c){let dr=null;c.addEventListener('dragstart',e=>{dr=e.target.closest('.habit-order-item');});c.addEventListener('dragover',e=>e.preventDefault());c.addEventListener('drop',e=>{e.preventDefault();const t=e.target.closest('.habit-order-item');if(dr&&t&&dr!==t)c.insertBefore(dr,t.nextSibling||t);});}
+function toggleHabit(key,enabled){const s=getHabitSettings();if(enabled&&!s.enabledHabits.includes(key)){s.enabledHabits.push(key);if(!s.habitOrder.includes(key))s.habitOrder.push(key);}else if(!enabled)s.enabledHabits=s.enabledHabits.filter(h=>h!==key);_habitSettings=s;loadHabitUI();}
+function addCustomHabit(){const name=document.getElementById('customHabitName').value.trim(),icon=document.getElementById('customHabitIcon').value.trim()||'✨',unit=document.getElementById('customHabitUnit').value;if(!name){showMessage('settingsMessage','Enter a habit name','error');return;}const s=getHabitSettings();if(s.customHabits.find(h=>h.name===name)){showMessage('settingsMessage','Already exists','error');return;}const key='custom_'+name;s.customHabits.push({name,icon,unit});s.enabledHabits.push(key);s.habitOrder.push(key);_habitSettings=s;document.getElementById('customHabitName').value='';document.getElementById('customHabitIcon').value='';loadHabitUI();showMessage('settingsMessage','Habit added!','success');}
+function deleteCustomHabit(key){const s=getHabitSettings(),n=key.replace('custom_','');s.customHabits=s.customHabits.filter(h=>h.name!==n);s.enabledHabits=s.enabledHabits.filter(h=>h!==key);s.habitOrder=s.habitOrder.filter(h=>h!==key);_habitSettings=s;loadHabitUI();}
+async function saveHabitSettings(){const s=getHabitSettings(),order=Array.from(document.querySelectorAll('#habitOrderList .habit-order-item')).map(i=>i.dataset.habit);s.habitOrder=order;_habitSettings=s;loadHabitUI();await syncToSheets('settings',s);showMessage('settingsMessage','✅ Saved!','success');}
+function applyTodayHabits(all){const date=new Date().toISOString().split('T')[0],today=all[date];if(!today)return;const allT=getAllTemplates();for(let key in today){if(!allT[key])continue;const vals=today[key];allT[key].fields.forEach(f=>{const elId=`${key}_${f.name}`;if(f.type==='yesno'){const btn=document.querySelector(`#${elId} .yesno-btn[data-value="${vals[f.name]?'yes':'no'}"]`);if(btn){document.querySelectorAll(`#${elId} .yesno-btn`).forEach(b=>b.classList.remove('active'));btn.classList.add('active');}}else{const el=document.getElementById(elId);if(el)el.value=vals[f.name]||'';}});}}
+function applyTodayNotes(all){const date=new Date().toISOString().split('T')[0];if(all[date]&&all[date].journal)document.getElementById('journalEntry').value=all[date].journal;}
+async function saveHabits(){const s=getHabitSettings(),allT=getAllTemplates(),date=new Date().toISOString().split('T')[0],data={};s.enabledHabits.forEach(key=>{if(!allT[key])return;const entry={};allT[key].fields.forEach(f=>{const elId=`${key}_${f.name}`;if(f.type==='yesno'){const a=document.querySelector(`#${elId} .yesno-btn.active`);entry[f.name]=a?a.dataset.value==='yes':false;}else{const el=document.getElementById(elId);entry[f.name]=el?el.value:'';}});data[key]=entry;});window._habitsCache[date]=data;const ok=await syncToSheets('habits',window._habitsCache);await syncToSheets('settings',getHabitSettings());showMessage('habitsMessage',ok?'✅ Habits saved!':'⚠️ Save failed',ok?'success':'error');}
+async function saveNotes(){const date=new Date().toISOString().split('T')[0];if(!window._notesCache[date])window._notesCache[date]={};window._notesCache[date].journal=document.getElementById('journalEntry').value;const ok=await syncToSheets('notes',window._notesCache);showMessage('notesMessage',ok?'✅ Notes saved!':'⚠️ Save failed',ok?'success':'error');}
 
-function getHabitSettings(){ if(!_habitSettings) _habitSettings={enabledHabits:[...defaultOrder],habitOrder:[...defaultOrder],customHabits:[]}; return _habitSettings; }
-function applyHabitSettings(s){ _habitSettings=s; }
-function getAllTemplates(){ const s=getHabitSettings(),all={...habitTemplates}; s.customHabits.forEach(ch=>{ all['custom_'+ch.name]={name:ch.name,icon:ch.icon,fields:[{name:'value',label:ch.unit==='yesno'?'Done?':ch.unit==='hours'?'Hours':ch.unit==='count'?'Count':'Minutes',type:ch.unit==='yesno'?'yesno':'number',min:0}]}; }); return all; }
-function generateCard(key,tmpl){ const fh=tmpl.fields.map(f=>{ let inp=''; if(f.type==='number') inp=`<input type="number" id="${key}_${f.name}" min="${f.min??0}" step="${f.step||1}" placeholder="0">`; else if(f.type==='text') inp=`<input type="text" id="${key}_${f.name}" placeholder="${f.label}">`; else if(f.type==='select') inp=`<select id="${key}_${f.name}"><option value="">Select</option>${(f.options||[]).map(o=>`<option>${o}</option>`).join('')}</select>`; else if(f.type==='yesno') inp=`<div id="${key}_${f.name}" class="yesno-toggle"><button class="yesno-btn" data-value="no" onclick="toggleYesNo(this)">No</button><button class="yesno-btn" data-value="yes" onclick="toggleYesNo(this)">Yes</button></div>`; return `<div class="input-row"><label>${f.label}</label>${inp}</div>`; }).join(''); return `<div class="habit-card" data-habit="${key}"><h3>${tmpl.icon} ${tmpl.name}</h3>${fh}</div>`; }
-function toggleYesNo(btn){ const g=btn.parentNode; g.querySelectorAll('.yesno-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
-function loadHabitUI(){ const s=getHabitSettings(),all=getAllTemplates(); let h=''; s.habitOrder.forEach(k=>{ if(s.enabledHabits.includes(k)&&all[k]) h+=generateCard(k,all[k]); }); document.getElementById('habitsContainer').innerHTML=h; renderSettingsTab(s); }
-function renderSettingsTab(s){ const all=getAllTemplates(); let th=''; for(let k in all){ const h=all[k],en=s.enabledHabits.includes(k); th+=`<div class="habit-toggle-item"><span class="habit-toggle-icon">${h.icon}</span><span class="habit-toggle-name">${h.name}</span><label class="switch"><input type="checkbox" ${en?'checked':''} onchange="toggleHabit('${k}',this.checked)"><span class="slider"></span></label>${k.startsWith('custom_')?`<button class="delete-custom-btn" onclick="deleteCustomHabit('${k}')"><i class="fas fa-trash"></i></button>`:''}</div>`; } document.getElementById('habitToggleList').innerHTML=th; document.getElementById('customHabitsList').innerHTML=s.customHabits.map(ch=>`<div class="habit-toggle-item"><span>${ch.icon} ${ch.name} (${ch.unit})</span></div>`).join(''); let oh=''; s.habitOrder.forEach(k=>{ if(all[k]) oh+=`<div class="habit-order-item" data-habit="${k}" draggable="true"><span class="drag-handle">☰</span> ${all[k].icon} ${all[k].name}</div>`; }); document.getElementById('habitOrderList').innerHTML=oh; enableDragSort(document.getElementById('habitOrderList')); }
-function enableDragSort(c){ let dr=null; c.addEventListener('dragstart',e=>{dr=e.target.closest('.habit-order-item');}); c.addEventListener('dragover',e=>e.preventDefault()); c.addEventListener('drop',e=>{e.preventDefault();const t=e.target.closest('.habit-order-item');if(dr&&t&&dr!==t)c.insertBefore(dr,t.nextSibling||t);}); }
-function toggleHabit(key,enabled){ const s=getHabitSettings(); if(enabled&&!s.enabledHabits.includes(key)){s.enabledHabits.push(key);if(!s.habitOrder.includes(key))s.habitOrder.push(key);}else if(!enabled)s.enabledHabits=s.enabledHabits.filter(h=>h!==key); _habitSettings=s; loadHabitUI(); }
-function addCustomHabit(){ const name=document.getElementById('customHabitName').value.trim(),icon=document.getElementById('customHabitIcon').value.trim()||'✨',unit=document.getElementById('customHabitUnit').value; if(!name){showMessage('settingsMessage','Enter a habit name','error');return;} const s=getHabitSettings(); if(s.customHabits.find(h=>h.name===name)){showMessage('settingsMessage','Already exists','error');return;} const key='custom_'+name; s.customHabits.push({name,icon,unit}); s.enabledHabits.push(key); s.habitOrder.push(key); _habitSettings=s; document.getElementById('customHabitName').value=''; document.getElementById('customHabitIcon').value=''; loadHabitUI(); showMessage('settingsMessage','Habit added!','success'); }
-function deleteCustomHabit(key){ const s=getHabitSettings(),n=key.replace('custom_',''); s.customHabits=s.customHabits.filter(h=>h.name!==n); s.enabledHabits=s.enabledHabits.filter(h=>h!==key); s.habitOrder=s.habitOrder.filter(h=>h!==key); _habitSettings=s; loadHabitUI(); }
-async function saveHabitSettings(){ const s=getHabitSettings(),order=Array.from(document.querySelectorAll('#habitOrderList .habit-order-item')).map(i=>i.dataset.habit); s.habitOrder=order; _habitSettings=s; loadHabitUI(); await syncToSheets('settings',s); showMessage('settingsMessage','✅ Saved!','success'); }
-function applyTodayHabits(all){ const date=new Date().toISOString().split('T')[0],today=all[date]; if(!today)return; const allT=getAllTemplates(); for(let key in today){ if(!allT[key])continue; const vals=today[key]; allT[key].fields.forEach(f=>{ const elId=`${key}_${f.name}`; if(f.type==='yesno'){ const btn=document.querySelector(`#${elId} .yesno-btn[data-value="${vals[f.name]?'yes':'no'}"]`); if(btn){document.querySelectorAll(`#${elId} .yesno-btn`).forEach(b=>b.classList.remove('active'));btn.classList.add('active');} } else { const el=document.getElementById(elId); if(el) el.value=vals[f.name]||''; } }); } }
-function applyTodayNotes(all){ const date=new Date().toISOString().split('T')[0]; if(all[date]&&all[date].journal) document.getElementById('journalEntry').value=all[date].journal; }
-async function saveHabits(){ const s=getHabitSettings(),allT=getAllTemplates(),date=new Date().toISOString().split('T')[0],data={}; s.enabledHabits.forEach(key=>{ if(!allT[key])return; const entry={}; allT[key].fields.forEach(f=>{ const elId=`${key}_${f.name}`; if(f.type==='yesno'){const a=document.querySelector(`#${elId} .yesno-btn.active`);entry[f.name]=a?a.dataset.value==='yes':false;}else{const el=document.getElementById(elId);entry[f.name]=el?el.value:'';} }); data[key]=entry; }); window._habitsCache[date]=data; const ok=await syncToSheets('habits',window._habitsCache); await syncToSheets('settings',getHabitSettings()); showMessage('habitsMessage',ok?'✅ Habits saved!':'⚠️ Save failed',ok?'success':'error'); }
-async function saveNotes(){ const date=new Date().toISOString().split('T')[0]; if(!window._notesCache[date]) window._notesCache[date]={}; window._notesCache[date].journal=document.getElementById('journalEntry').value; const ok=await syncToSheets('notes',window._notesCache); showMessage('notesMessage',ok?'✅ Notes saved!':'⚠️ Save failed',ok?'success':'error'); }
+// ════════════════════════════════════════════════
+//  CALENDAR + TODO
+// ════════════════════════════════════════════════
+let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
+let calSelectedDate=new Date().toISOString().split('T')[0];
 
-// ═══════════════════════════════════════════════════
-//  TODO
-// ═══════════════════════════════════════════════════
-function loadTodoList(){ const date=document.getElementById('todoDate').value,tasks=window._todos[date]||[]; document.getElementById('todoList').innerHTML=tasks.map((t,i)=>`<li class="todo-item ${t.completed?'completed':''}"><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTodo('${date}',${i})"><span>${t.text}</span><button class="btn btn-danger btn-sm" onclick="deleteTodo('${date}',${i})" style="padding:5px 10px;"><i class="fas fa-trash"></i></button></li>`).join(''); }
-async function addTodo(){ const date=document.getElementById('todoDate').value,text=document.getElementById('todoInput').value.trim(); if(!text)return; if(!window._todos[date])window._todos[date]=[]; window._todos[date].push({text,completed:false}); document.getElementById('todoInput').value=''; loadTodoList(); await syncToSheets('todos',window._todos); }
-async function toggleTodo(date,i){ if(window._todos[date]&&window._todos[date][i]!==undefined){window._todos[date][i].completed=!window._todos[date][i].completed;loadTodoList();await syncToSheets('todos',window._todos);} }
-async function deleteTodo(date,i){ if(window._todos[date]){window._todos[date].splice(i,1);loadTodoList();await syncToSheets('todos',window._todos);} }
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-// ═══════════════════════════════════════════════════
-//  VIDEO — camera stops when leaving tab
-// ═══════════════════════════════════════════════════
+function calPrev(){ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCal(); }
+function calNext(){ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCal(); }
+
+function getDayStatus(dateStr){
+  const tasks=window._todos[dateStr]||[];
+  if(!tasks.length) return 'none';
+  const done=tasks.filter(t=>t.status==='done').length;
+  const partial=tasks.filter(t=>t.status==='partial').length;
+  const pending=tasks.filter(t=>!t.status||t.status==='pending').length;
+  if(done===tasks.length) return 'done';
+  if(pending===tasks.length) return 'pending';
+  return 'partial';
+}
+
+function renderCal(){
+  document.getElementById('calMonthLabel').textContent=MONTHS[calMonth]+' '+calYear;
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const today=new Date().toISOString().split('T')[0];
+  let html='';
+  for(let i=0;i<firstDay;i++) html+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=dateStr===today;
+    const isSel=dateStr===calSelectedDate;
+    const status=getDayStatus(dateStr);
+    const tasks=window._todos[dateStr]||[];
+    // Show up to 3 dots
+    const dots=tasks.slice(0,3).map(t=>{
+      const sc=!t.status||t.status==='pending'?'dot-pending':t.status==='partial'?'dot-partial':'dot-done';
+      return`<div class="cal-day-dot ${sc}"></div>`;
+    }).join('');
+    html+=`<div class="cal-day${isToday?' today':''}${isSel?' selected':''}" onclick="calSelectDate('${dateStr}')">
+      <div class="cal-day-num">${d}</div>
+      <div class="cal-day-dots">${dots}</div>
+    </div>`;
+  }
+  document.getElementById('calGrid').innerHTML=html;
+}
+
+function calSelectDate(dateStr){
+  calSelectedDate=dateStr;
+  renderCal();
+  loadTaskPanel(dateStr);
+}
+
+function loadTaskPanel(dateStr){
+  const d=new Date(dateStr+'T00:00:00');
+  document.getElementById('taskPanelDate').textContent=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const tasks=window._todos[dateStr]||[];
+  const done=tasks.filter(t=>t.status==='done').length;
+  const partial=tasks.filter(t=>t.status==='partial').length;
+  const pending=tasks.filter(t=>!t.status||t.status==='pending').length;
+
+  // Summary bar
+  const bar=document.getElementById('taskSummaryBar');
+  if(tasks.length){ bar.style.display='flex'; document.getElementById('tsbDone').textContent=done+' done'; document.getElementById('tsbPartial').textContent=partial+' partial'; document.getElementById('tsbPending').textContent=pending+' pending'; }
+  else bar.style.display='none';
+
+  if(!tasks.length){
+    document.getElementById('todoList').innerHTML=`<li style="text-align:center;padding:20px;color:#bbb;font-size:.9em;list-style:none;"><i class="fas fa-check-circle" style="font-size:2em;display:block;margin-bottom:8px;"></i>No tasks for this day</li>`;
+    return;
+  }
+
+  document.getElementById('todoList').innerHTML=tasks.map((t,i)=>{
+    const st=t.status||'pending';
+    const nextStatus=st==='pending'?'partial':st==='partial'?'done':'pending';
+    const btnLabel=st==='pending'?'Pending':st==='partial'?'Partial':'Done';
+    const btnClass=st==='pending'?'btn-pending':st==='partial'?'btn-partial':'btn-done';
+    return`<li class="task-item status-${st}">
+      <span class="task-text${st==='done'?' done':''}">${t.text}</span>
+      <button class="task-status-btn ${btnClass}" onclick="cycleTaskStatus('${dateStr}',${i})" title="Click to change status">${btnLabel}</button>
+      <button class="task-del-btn" onclick="deleteTask('${dateStr}',${i})" title="Delete"><i class="fas fa-times"></i></button>
+    </li>`;
+  }).join('');
+}
+
+async function cycleTaskStatus(dateStr,i){
+  if(!window._todos[dateStr]||window._todos[dateStr][i]===undefined) return;
+  const t=window._todos[dateStr][i];
+  const cur=t.status||'pending';
+  t.status=cur==='pending'?'partial':cur==='partial'?'done':'pending';
+  loadTaskPanel(dateStr);
+  renderCal();
+  await syncToSheets('todos',window._todos);
+}
+
+async function addTodo(){
+  const text=document.getElementById('todoInput').value.trim();
+  if(!text) return;
+  if(!window._todos[calSelectedDate]) window._todos[calSelectedDate]=[];
+  window._todos[calSelectedDate].push({text,status:'pending'});
+  document.getElementById('todoInput').value='';
+  loadTaskPanel(calSelectedDate);
+  renderCal();
+  await syncToSheets('todos',window._todos);
+}
+
+async function deleteTask(dateStr,i){
+  if(window._todos[dateStr]){
+    window._todos[dateStr].splice(i,1);
+    if(!window._todos[dateStr].length) delete window._todos[dateStr];
+    loadTaskPanel(dateStr);
+    renderCal();
+    await syncToSheets('todos',window._todos);
+  }
+}
+
+// ════════════════════════════════════════════════
+//  VIDEO
+// ════════════════════════════════════════════════
 function stopCamera(){
-  if(cameraStream){ cameraStream.getTracks().forEach(t=>t.stop()); cameraStream=null; }
-  if(mediaRecorder&&mediaRecorder.state==='recording') mediaRecorder.stop();
+  if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}
+  if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();
   mediaRecorder=null;
-  const preview=document.getElementById('preview'); if(preview) preview.srcObject=null;
+  const p=document.getElementById('preview');if(p)p.srcObject=null;
   document.getElementById('startBtn').disabled=false;
   document.getElementById('stopBtn').disabled=true;
   document.getElementById('camDot').classList.remove('on');
-  const rs=document.getElementById('recordingStatus'); if(rs) rs.style.display='none';
 }
-
 async function setupCamera(){
   stopCamera();
   document.getElementById('videoSaveBox').style.display='none';
   document.getElementById('driveLinkBox').style.display='none';
   document.getElementById('recordedVideo').style.display='none';
   document.getElementById('preview').style.display='block';
-  try {
+  try{
     cameraStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
     document.getElementById('preview').srcObject=cameraStream;
     mediaRecorder=new MediaRecorder(cameraStream);
-    mediaRecorder.ondataavailable=e=>{ if(e.data.size>0) recordedChunks.push(e.data); };
-    mediaRecorder.onstop=()=>{
-      _videoBlob=new Blob(recordedChunks,{type:'video/webm'});
-      document.getElementById('recordedVideo').src=URL.createObjectURL(_videoBlob);
-      document.getElementById('recordedVideo').style.display='block';
-      document.getElementById('preview').style.display='none';
-      document.getElementById('videoSaveBox').style.display='block';
-    };
-  } catch(e){ alert('Camera access denied or unavailable. Please allow camera permissions.'); }
+    mediaRecorder.ondataavailable=e=>{if(e.data.size>0)recordedChunks.push(e.data);};
+    mediaRecorder.onstop=()=>{_videoBlob=new Blob(recordedChunks,{type:'video/webm'});document.getElementById('recordedVideo').src=URL.createObjectURL(_videoBlob);document.getElementById('recordedVideo').style.display='block';document.getElementById('preview').style.display='none';document.getElementById('videoSaveBox').style.display='block';};
+  }catch(e){alert('Camera access denied or unavailable.');}
 }
-
-function startRecording(){
-  if(!mediaRecorder){ alert('Camera not ready — please wait or refresh.'); return; }
-  recordedChunks=[]; mediaRecorder.start();
-  document.getElementById('startBtn').disabled=true;
-  document.getElementById('stopBtn').disabled=false;
-  document.getElementById('camDot').classList.add('on');
-}
-function stopRecording(){
-  if(mediaRecorder&&mediaRecorder.state==='recording') mediaRecorder.stop();
-  document.getElementById('startBtn').disabled=false;
-  document.getElementById('stopBtn').disabled=true;
-  document.getElementById('camDot').classList.remove('on');
-}
-
-function downloadVideoLocally(){
-  if(!_videoBlob){ alert('No recording found.'); return; }
-  const a=document.createElement('a');
-  const title=(document.getElementById('videoTitle').value.trim()||'diary_video_'+new Date().toISOString().split('T')[0]);
-  a.href=URL.createObjectURL(_videoBlob); a.download=title+'.webm'; a.click();
-}
-
+function startRecording(){if(!mediaRecorder){alert('Camera not ready.');return;}recordedChunks=[];mediaRecorder.start();document.getElementById('startBtn').disabled=true;document.getElementById('stopBtn').disabled=false;document.getElementById('camDot').classList.add('on');}
+function stopRecording(){if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();document.getElementById('startBtn').disabled=false;document.getElementById('stopBtn').disabled=true;document.getElementById('camDot').classList.remove('on');}
+function downloadVideoLocally(){if(!_videoBlob){alert('No recording found.');return;}const a=document.createElement('a');const title=document.getElementById('videoTitle').value.trim()||'diary_video_'+new Date().toISOString().split('T')[0];a.href=URL.createObjectURL(_videoBlob);a.download=title+'.webm';a.click();}
 async function uploadVideoToDrive(){
-  if(!_videoBlob){ showMessage('videoMessage','No recording to save.','error'); return; }
+  if(!_videoBlob){showMessage('videoMessage','No recording to save.','error');return;}
   const title=document.getElementById('videoTitle').value.trim()||('Video '+new Date().toLocaleDateString());
   const note=document.getElementById('videoNote').value.trim();
   const date=new Date().toISOString().split('T')[0];
-
   showMessage('videoMessage','⏳ Uploading to Google Drive... please wait.','info');
   showLoading(true);
-
-  try {
-    // Convert blob to base64
-    const base64 = await new Promise((res,rej)=>{
-      const reader=new FileReader();
-      reader.onload=()=>res(reader.result.split(',')[1]);
-      reader.onerror=rej;
-      reader.readAsDataURL(_videoBlob);
-    });
-
+  try{
+    const base64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(_videoBlob);});
     const r=await api({action:'saveVideoToDrive',userId:currentUser.id,title,note,date,base64,mimeType:_videoBlob.type});
-
     if(r.success){
       showMessage('videoMessage','','info');
-      const box=document.getElementById('driveLinkBox');
-      box.style.display='block';
+      document.getElementById('driveLinkBox').style.display='block';
       document.getElementById('driveLinkAnchor').href=r.driveUrl;
-      // Refresh entries
-      if(!window._notesCache._videoEntries) window._notesCache._videoEntries=[];
+      if(!window._notesCache._videoEntries)window._notesCache._videoEntries=[];
       window._notesCache._videoEntries.unshift({title,note,date,driveUrl:r.driveUrl,savedAt:new Date().toISOString()});
       renderVideoEntries();
-      document.getElementById('videoTitle').value='';
-      document.getElementById('videoNote').value='';
-    } else {
-      showMessage('videoMessage','❌ '+r.message,'error');
-    }
-  } catch(e){
-    showMessage('videoMessage','❌ Upload failed: '+e.message,'error');
-  }
+      document.getElementById('videoTitle').value='';document.getElementById('videoNote').value='';
+    }else showMessage('videoMessage','❌ '+r.message,'error');
+  }catch(e){showMessage('videoMessage','❌ Upload failed: '+e.message,'error');}
   showLoading(false);
 }
-
 function renderVideoEntries(){
-  const entries=(window._notesCache._videoEntries||[]);
-  const container=document.getElementById('videoEntriesList');
-  if(!entries.length){ container.innerHTML=''; return; }
-  container.innerHTML=`<h3 style="margin-bottom:14px;color:#333;">📼 Past Recordings</h3>`
-    +entries.map((e,i)=>`
+  const entries=window._notesCache._videoEntries||[];
+  const c=document.getElementById('videoEntriesList');
+  if(!entries.length){c.innerHTML='';return;}
+  c.innerHTML=`<h3 style="margin-bottom:14px;color:#333;">📼 Past Recordings</h3>`+entries.map((e,i)=>`
     <div class="video-entry-card">
-      <i class="fas fa-film"></i>
+      <i class="fas fa-film vi"></i>
       <div class="video-entry-info">
         <div class="video-entry-title">${e.title}</div>
-        <div class="video-entry-meta">${e.date} &nbsp;·&nbsp; Saved ${new Date(e.savedAt).toLocaleTimeString()}</div>
+        <div class="video-entry-meta">${e.date} · Saved ${new Date(e.savedAt).toLocaleTimeString()}</div>
         ${e.note?`<div class="video-entry-note">${e.note}</div>`:''}
-        ${e.driveUrl?`<div class="video-entry-drive"><i class="fab fa-google-drive" style="color:#27ae60;"></i> <a href="${e.driveUrl}" target="_blank">Open in Google Drive</a></div>`:'<div class="video-entry-drive" style="color:#aaa;font-size:.82em;">No Drive link — video downloaded locally</div>'}
+        ${e.driveUrl?`<div class="video-entry-drive"><i class="fab fa-google-drive" style="color:#27ae60;"></i> <a href="${e.driveUrl}" target="_blank">Open in Google Drive</a></div>`:'<div class="video-entry-drive" style="color:#aaa;font-size:.82em;">Downloaded locally</div>'}
       </div>
       <button onclick="deleteVideoEntry(${i})" style="background:none;border:none;color:#e74c3c;cursor:pointer;align-self:flex-start;"><i class="fas fa-trash"></i></button>
     </div>`).join('');
 }
+async function deleteVideoEntry(i){if(!confirm('Remove this entry?'))return;window._notesCache._videoEntries.splice(i,1);await syncToSheets('notes',window._notesCache);renderVideoEntries();}
 
-async function deleteVideoEntry(i){
-  if(!confirm('Remove this entry?')) return;
-  window._notesCache._videoEntries.splice(i,1);
-  await syncToSheets('notes',window._notesCache);
-  renderVideoEntries();
-}
+// ════════════════════════════════════════════════
+//  FILE UPLOADS
+// ════════════════════════════════════════════════
+function handleDragOver(e,z){e.preventDefault();document.getElementById(z).classList.add('dragover');}
+function handleDragLeave(z){document.getElementById(z).classList.remove('dragover');}
+function handleDrop(e,ctx){e.preventDefault();const z=ctx==='notes'?'notesUploadZone':'paperUploadZone';document.getElementById(z).classList.remove('dragover');processFiles(e.dataTransfer.files,ctx);}
+function handleFileSelect(e,ctx){processFiles(e.target.files,ctx);e.target.value='';}
+function processFiles(files,ctx){Array.from(files).forEach(file=>{if(!file.type.startsWith('image/')&&file.type!=='application/pdf'){alert(file.name+': only images and PDFs');return;}const reader=new FileReader();reader.onload=ev=>{const obj={name:file.name,size:file.size,type:file.type,dataUrl:ev.target.result};if(ctx==='notes'){const date=new Date().toISOString().split('T')[0];if(!window._notesFiles[date])window._notesFiles[date]=[];window._notesFiles[date].push(obj);renderNotesFiles();syncToSheets('notesfiles',window._notesFiles);}else{window._paperFiles.push(obj);renderPaperFileList();}};reader.readAsDataURL(file);});}
+function fileIcon(t){return t==='application/pdf'?'fas fa-file-pdf':'fas fa-file-image';}
+function fileIconColor(t){return t==='application/pdf'?'#e74c3c':'#667eea';}
+function fileSize(b){return b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB';}
+function renderNotesFiles(){const date=new Date().toISOString().split('T')[0],files=window._notesFiles[date]||[];document.getElementById('notesFileList').innerHTML=files.map((f,i)=>`<li class="file-item"><i class="${fileIcon(f.type)} file-icon" style="color:${fileIconColor(f.type)}"></i><span class="file-name">${f.name}</span><span class="file-size">${fileSize(f.size)}</span><button class="file-view" onclick="previewFile(${i},'notes')">View</button><button class="file-del" onclick="deleteNotesFile(${i})"><i class="fas fa-times"></i></button></li>`).join('');}
+async function deleteNotesFile(i){const date=new Date().toISOString().split('T')[0];if(window._notesFiles[date]){window._notesFiles[date].splice(i,1);renderNotesFiles();await syncToSheets('notesfiles',window._notesFiles);}}
+function renderPaperFileList(){document.getElementById('paperFileList').innerHTML=window._paperFiles.map((f,i)=>`<li class="file-item"><i class="${fileIcon(f.type)} file-icon" style="color:${fileIconColor(f.type)}"></i><span class="file-name">${f.name}</span><span class="file-size">${fileSize(f.size)}</span><button class="file-del" onclick="deletePendingFile(${i})"><i class="fas fa-times"></i></button></li>`).join('');}
+function deletePendingFile(i){window._paperFiles.splice(i,1);renderPaperFileList();}
+function previewFile(index,ctx,paperId){let file;if(ctx==='notes'){const date=new Date().toISOString().split('T')[0];file=(window._notesFiles[date]||[])[index];}else if(ctx==='paper'){const p=window._papers.find(p=>p.id===paperId);file=p?p.files[index]:null;}if(!file)return;document.getElementById('previewTitle').textContent=file.name;document.getElementById('previewContent').innerHTML=file.type==='application/pdf'?`<iframe src="${file.dataUrl}" width="100%" height="520px" style="border:none;border-radius:8px;"></iframe>`:`<img src="${file.dataUrl}" style="max-width:100%;border-radius:8px;">`;document.getElementById('previewModal').classList.add('active');}
+function closePreview(){document.getElementById('previewModal').classList.remove('active');document.getElementById('previewContent').innerHTML='';}
 
-// ═══════════════════════════════════════════════════
-//  FILE UPLOADS (Notes & Papers)
-// ═══════════════════════════════════════════════════
-function handleDragOver(e,zoneId){ e.preventDefault(); document.getElementById(zoneId).classList.add('dragover'); }
-function handleDragLeave(zoneId){ document.getElementById(zoneId).classList.remove('dragover'); }
-function handleDrop(e,ctx){ e.preventDefault(); const zid=ctx==='notes'?'notesUploadZone':'paperUploadZone'; document.getElementById(zid).classList.remove('dragover'); processFiles(e.dataTransfer.files,ctx); }
-function handleFileSelect(e,ctx){ processFiles(e.target.files,ctx); e.target.value=''; }
+// ════════════════════════════════════════════════
+//  PAPERS
+// ════════════════════════════════════════════════
+async function addPaper(){const title=document.getElementById('paperTitle').value.trim();if(!title){showMessage('papersMessage','Paper title is required','error');return;}const paper={id:'paper_'+Date.now(),title,authors:document.getElementById('paperAuthors').value.trim(),summary:document.getElementById('paperSummary').value.trim(),tags:document.getElementById('paperTags').value.split(',').map(t=>t.trim()).filter(Boolean),date:new Date().toISOString().split('T')[0],files:[...window._paperFiles]};window._papers.unshift(paper);const ok=await syncToSheets('papers',window._papers);showMessage('papersMessage',ok?'✅ Paper added!':'⚠️ Save failed',ok?'success':'error');['paperTitle','paperAuthors','paperSummary','paperTags'].forEach(id=>document.getElementById(id).value='');window._paperFiles=[];renderPaperFileList();renderPapers();}
+function renderPapers(){const q=(document.getElementById('paperSearch')||{}).value||'';const lower=q.toLowerCase();const filtered=window._papers.filter(p=>!q||p.title.toLowerCase().includes(lower)||(p.authors||'').toLowerCase().includes(lower)||(p.summary||'').toLowerCase().includes(lower)||(p.tags||[]).some(t=>t.toLowerCase().includes(lower)));const c=document.getElementById('papersList');if(!filtered.length){c.innerHTML=`<div style="text-align:center;padding:50px;color:#bbb;"><i class="fas fa-scroll" style="font-size:3em;margin-bottom:15px;display:block;"></i>${window._papers.length?'No papers match your search.':'No papers yet. Add your first paper above!'}</div>`;return;}c.innerHTML=filtered.map(p=>`<div class="paper-card"><div class="paper-header"><i class="fas fa-scroll"></i><div style="flex:1;"><div class="paper-title">${p.title}</div>${p.authors?`<div class="paper-sub">${p.authors}</div>`:''}<div class="paper-sub">${p.date}</div></div></div><div class="paper-body">${p.summary?`<div class="paper-summary">${p.summary}</div>`:'<p style="color:#ccc;font-size:.9em;margin-bottom:12px;">No summary added</p>'}${(p.tags&&p.tags.length)?`<div class="paper-tags">${p.tags.map(t=>`<span class="paper-tag">${t}</span>`).join('')}</div>`:''}${(p.files&&p.files.length)?`<div class="paper-chips">${p.files.map((f,i)=>`<div class="paper-chip" onclick="previewFile(${i},'paper','${p.id}')"><i class="${fileIcon(f.type)}" style="color:${fileIconColor(f.type)}"></i>${f.name}</div>`).join('')}</div>`:''}<div class="paper-actions"><button class="btn btn-danger btn-sm" onclick="deletePaper('${p.id}')"><i class="fas fa-trash"></i> Delete</button></div></div></div>`).join('');}
+async function deletePaper(id){if(!confirm('Delete this paper entry?'))return;window._papers=window._papers.filter(p=>p.id!==id);await syncToSheets('papers',window._papers);renderPapers();}
 
-function processFiles(files,ctx){
-  Array.from(files).forEach(file=>{
-    if(!file.type.startsWith('image/')&&file.type!=='application/pdf'){ alert(file.name+': only images and PDFs are supported'); return; }
-    const reader=new FileReader();
-    reader.onload=ev=>{
-      const obj={name:file.name,size:file.size,type:file.type,dataUrl:ev.target.result};
-      if(ctx==='notes'){
-        const date=new Date().toISOString().split('T')[0];
-        if(!window._notesFiles[date]) window._notesFiles[date]=[];
-        window._notesFiles[date].push(obj);
-        renderNotesFiles();
-        syncToSheets('notesfiles',window._notesFiles);
-      } else {
-        window._paperFiles.push(obj);
-        renderPaperFileList();
-      }
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-function fileIcon(type){ return type==='application/pdf'?'fas fa-file-pdf':'fas fa-file-image'; }
-function fileIconColor(type){ return type==='application/pdf'?'#e74c3c':'#667eea'; }
-function fileSize(b){ return b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB'; }
-
-function renderNotesFiles(){
-  const date=new Date().toISOString().split('T')[0],files=window._notesFiles[date]||[];
-  document.getElementById('notesFileList').innerHTML=files.map((f,i)=>`
-    <li class="file-item">
-      <i class="${fileIcon(f.type)} file-icon" style="color:${fileIconColor(f.type)}"></i>
-      <span class="file-name">${f.name}</span>
-      <span class="file-size">${fileSize(f.size)}</span>
-      <button class="file-view" onclick="previewFile(${i},'notes')">View</button>
-      <button class="file-del" onclick="deleteNotesFile(${i})"><i class="fas fa-times"></i></button>
-    </li>`).join('');
-}
-async function deleteNotesFile(i){ const date=new Date().toISOString().split('T')[0]; if(window._notesFiles[date]){window._notesFiles[date].splice(i,1);renderNotesFiles();await syncToSheets('notesfiles',window._notesFiles);} }
-
-function renderPaperFileList(){
-  document.getElementById('paperFileList').innerHTML=window._paperFiles.map((f,i)=>`
-    <li class="file-item">
-      <i class="${fileIcon(f.type)} file-icon" style="color:${fileIconColor(f.type)}"></i>
-      <span class="file-name">${f.name}</span>
-      <span class="file-size">${fileSize(f.size)}</span>
-      <button class="file-del" onclick="deletePendingFile(${i})"><i class="fas fa-times"></i></button>
-    </li>`).join('');
-}
-function deletePendingFile(i){ window._paperFiles.splice(i,1); renderPaperFileList(); }
-
-function previewFile(index,ctx,paperId){
-  let file;
-  if(ctx==='notes'){ const date=new Date().toISOString().split('T')[0]; file=(window._notesFiles[date]||[])[index]; }
-  else if(ctx==='paper'){ const p=window._papers.find(p=>p.id===paperId); file=p?p.files[index]:null; }
-  if(!file) return;
-  document.getElementById('previewTitle').textContent=file.name;
-  document.getElementById('previewContent').innerHTML=file.type==='application/pdf'
-    ?`<iframe src="${file.dataUrl}" width="100%" height="520px" style="border:none;border-radius:8px;"></iframe>`
-    :`<img src="${file.dataUrl}" style="max-width:100%;border-radius:8px;">`;
-  document.getElementById('previewModal').classList.add('active');
-}
-function closePreview(){ document.getElementById('previewModal').classList.remove('active'); document.getElementById('previewContent').innerHTML=''; }
-
-// ═══════════════════════════════════════════════════
-//  PAPER SUMMARIES
-// ═══════════════════════════════════════════════════
-async function addPaper(){
-  const title=document.getElementById('paperTitle').value.trim();
-  if(!title){ showMessage('papersMessage','Paper title is required','error'); return; }
-  const paper={
-    id:'paper_'+Date.now(),
-    title,
-    authors:document.getElementById('paperAuthors').value.trim(),
-    summary:document.getElementById('paperSummary').value.trim(),
-    tags:document.getElementById('paperTags').value.split(',').map(t=>t.trim()).filter(Boolean),
-    date:new Date().toISOString().split('T')[0],
-    files:[...window._paperFiles]
-  };
-  window._papers.unshift(paper);
-  const ok=await syncToSheets('papers',window._papers);
-  showMessage('papersMessage',ok?'✅ Paper added and saved!':'⚠️ Save failed',ok?'success':'error');
-  ['paperTitle','paperAuthors','paperSummary','paperTags'].forEach(id=>document.getElementById(id).value='');
-  window._paperFiles=[]; renderPaperFileList(); renderPapers();
-}
-
-function renderPapers(){
-  const q=(document.getElementById('paperSearch')||{}).value||'';
-  const lower=q.toLowerCase();
-  const filtered=window._papers.filter(p=>!q||p.title.toLowerCase().includes(lower)||(p.authors||'').toLowerCase().includes(lower)||(p.summary||'').toLowerCase().includes(lower)||(p.tags||[]).some(t=>t.toLowerCase().includes(lower)));
-  const container=document.getElementById('papersList');
-  if(!filtered.length){
-    container.innerHTML=`<div style="text-align:center;padding:50px;color:#bbb;"><i class="fas fa-scroll" style="font-size:3em;margin-bottom:15px;display:block;"></i>${window._papers.length?'No papers match your search.':'No papers yet. Add your first paper above!'}</div>`;
-    return;
-  }
-  container.innerHTML=filtered.map(p=>`
-    <div class="paper-card">
-      <div class="paper-header">
-        <i class="fas fa-scroll"></i>
-        <div style="flex:1;">
-          <div class="paper-title">${p.title}</div>
-          ${p.authors?`<div class="paper-sub">${p.authors}</div>`:''}
-          <div class="paper-sub">${p.date}</div>
-        </div>
-      </div>
-      <div class="paper-body">
-        ${p.summary?`<div class="paper-summary">${p.summary}</div>`:'<p style="color:#ccc;font-size:.9em;margin-bottom:12px;">No summary added</p>'}
-        ${(p.tags&&p.tags.length)?`<div class="paper-tags">${p.tags.map(t=>`<span class="paper-tag">${t}</span>`).join('')}</div>`:''}
-        ${(p.files&&p.files.length)?`<div class="paper-chips">${p.files.map((f,i)=>`<div class="paper-chip" onclick="previewFile(${i},'paper','${p.id}')"><i class="${fileIcon(f.type)}" style="color:${fileIconColor(f.type)}"></i>${f.name}</div>`).join('')}</div>`:''}
-        <div class="paper-actions">
-          <button class="btn btn-danger btn-sm" onclick="deletePaper('${p.id}')"><i class="fas fa-trash"></i> Delete</button>
-        </div>
-      </div>
-    </div>`).join('');
-}
-
-async function deletePaper(id){
-  if(!confirm('Delete this paper entry?')) return;
-  window._papers=window._papers.filter(p=>p.id!==id);
-  await syncToSheets('papers',window._papers);
-  renderPapers();
-}
-
-// ═══════════════════════════════════════════════════
-//  TAB NAVIGATION — stops camera when leaving video
-// ═══════════════════════════════════════════════════
+// ════════════════════════════════════════════════
+//  TAB NAVIGATION
+// ════════════════════════════════════════════════
 function switchTab(tabName,el){
-  // Stop camera if we're leaving the video tab
-  const videoTabActive=document.getElementById('tab-video').classList.contains('active');
-  if(videoTabActive && tabName!=='video') stopCamera();
-
+  const wasVideo=document.getElementById('tab-video').classList.contains('active');
+  if(wasVideo&&tabName!=='video') stopCamera();
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
   document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
   document.getElementById('tab-'+tabName).classList.add('active');
-
-  if(tabName==='video')  { setupCamera(); renderVideoEntries(); }
-  if(tabName==='todo')   { document.getElementById('todoDate').value=new Date().toISOString().split('T')[0]; loadTodoList(); }
-  if(tabName==='notes')  renderNotesFiles();
+  if(tabName==='video'){setupCamera();renderVideoEntries();}
+  if(tabName==='todo'){renderCal();loadTaskPanel(calSelectedDate);}
+  if(tabName==='notes') renderNotesFiles();
   if(tabName==='papers') renderPapers();
 }
 
-// ═══════════════════════════════════════════════════
-//  START
-// ═══════════════════════════════════════════════════
 boot();
 </script>
 </body>
