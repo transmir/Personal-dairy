@@ -138,9 +138,9 @@ function defaultFor(type) {
 // ── Video → Google Drive ──────────────────────────────────────
 function saveVideoToDrive(data) {
   try {
-    const { userId, title, note, date, base64, mimeType } = data;
+    const { userId, title, note, date, base64, mimeType, ext } = data;
     const decoded = Utilities.base64Decode(base64);
-    const blob    = Utilities.newBlob(decoded, mimeType || 'video/webm', title + '.webm');
+    const blob    = Utilities.newBlob(decoded, mimeType || 'video/webm', title + '.' + (ext || 'webm'));
 
     let folder;
     const folders = DriveApp.getFoldersByName('My Diary Videos');

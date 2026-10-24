@@ -308,7 +308,25 @@ input:checked+.slider:before{transform:translateX(22px);}
 .fm-insp .row button:hover{background:#667eea;color:white;}
 .fm-insp .row button.danger:hover{background:#e74c3c;}
 .fm-hint{color:#999;font-size:.82em;margin-top:10px;line-height:1.5;}
-@media(max-width:768px){.fm-wrap{flex-direction:column;height:auto;}.fm-viewport{height:60vh;}.fm-insp{width:100%;}}
+/* flow map: zoom buttons + mobile layout */
+.fm-zoom{position:absolute;right:10px;bottom:10px;display:flex;flex-direction:column;gap:6px;z-index:3;}
+.fm-zoom button{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:1.15em;cursor:pointer;box-shadow:var(--shadow);}
+.fm-close{display:none;float:right;border:none;background:var(--surface2);color:var(--ink);width:30px;height:30px;border-radius:50%;cursor:pointer;}
+@media(max-width:768px){
+  #tab-flowmap .page-header{display:none;}
+  #tab-flowmap .fm-insp textarea{min-height:56px;}
+  .fm-toolbar{flex-wrap:nowrap;overflow-x:auto;gap:6px;padding-bottom:6px;margin:0 -4px 8px;scrollbar-width:none;}
+  .fm-toolbar::-webkit-scrollbar{display:none;}
+  .fm-toolbar button{flex-shrink:0;padding:10px 12px;font-size:1em;}
+  .fm-toolbar .lb,.fm-toolbar .fm-sp{display:none;}
+  .fm-wrap{display:block;height:auto;min-height:0;}
+  .fm-viewport{height:calc(100dvh - 150px);min-height:360px;}
+  .fm-node{font-size:.85em;padding:7px 10px;}
+  .fm-insp{position:fixed;left:0;right:0;bottom:0;width:100%;max-height:58vh;z-index:50;border-radius:18px 18px 0 0;transform:translateY(105%);transition:transform .25s ease;box-shadow:0 -10px 40px rgba(0,0,0,.25);padding-bottom:calc(16px + env(safe-area-inset-bottom));}
+  .fm-insp.open{transform:none;}
+  .fm-close{display:block;}
+  .fm-zoom{bottom:12px;}
+}
 @media(max-width:900px){.todo-layout{grid-template-columns:1fr;}}
 @media(max-width:768px){
   body{align-items:flex-start;}
@@ -445,7 +463,11 @@ input:checked+.slider{background:var(--accent);}
   .nav-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;flex:none;scrollbar-width:none;}
   .nav-tab{white-space:nowrap;flex-shrink:0;margin:0;}
   .sync-status,.idle-display{display:none;}
-  .sidebar .theme-toggle,.sidebar .btn-danger{display:inline-block;width:auto;padding:6px 12px;font-size:.8em;margin:4px 6px 0 0;}
+  .sidebar{position:relative;}
+  .sidebar .theme-toggle,.sidebar .btn-danger{position:absolute;top:14px;margin:0;width:auto;}
+  .sidebar .btn-danger{right:12px;padding:8px 12px;font-size:.78em;}
+  .sidebar .theme-toggle{right:112px;padding:8px 11px;font-size:0;}
+  .sidebar .theme-toggle i{font-size:15px;}
   .main-content{padding:16px;}
   .page-header{padding:18px 20px;}
 }
@@ -724,19 +746,20 @@ input:checked+.slider{background:var(--accent);}
     <div id="tab-flowmap" class="tab-content">
       <div class="page-header"><h1>🌳 Flow Map</h1><p>Plan ideas and workflows as a tree. Drag to move, scroll to zoom, drag empty space to pan.</p></div>
       <div class="fm-toolbar">
-        <button onclick="fmAddRoot()"><i class="fas fa-seedling"></i> New root idea</button>
-        <button onclick="fmAddChild()"><i class="fas fa-level-down-alt"></i> Add child</button>
-        <button onclick="fmAddSibling()"><i class="fas fa-grip-lines"></i> Add sibling</button>
-        <button id="fmLinkBtn" onclick="fmToggleLink()"><i class="fas fa-link"></i> Link nodes</button>
-        <button onclick="fmAutoLayout()"><i class="fas fa-sitemap"></i> Auto-layout</button>
-        <button onclick="fmFit()"><i class="fas fa-expand"></i> Fit</button>
+        <button onclick="fmAddRoot()"><i class="fas fa-seedling"></i><span class="lb"> New root idea</span></button>
+        <button onclick="fmAddChild()"><i class="fas fa-level-down-alt"></i><span class="lb"> Add child</span></button>
+        <button onclick="fmAddSibling()"><i class="fas fa-grip-lines"></i><span class="lb"> Add sibling</span></button>
+        <button id="fmLinkBtn" onclick="fmToggleLink()"><i class="fas fa-link"></i><span class="lb"> Link nodes</span></button>
+        <button onclick="fmAutoLayout()"><i class="fas fa-sitemap"></i><span class="lb"> Auto-layout</span></button>
+        <button onclick="fmFit()"><i class="fas fa-expand"></i><span class="lb"> Fit</span></button>
         <span class="fm-sp"></span>
-        <button onclick="fmExport()"><i class="fas fa-download"></i> Export</button>
-        <button onclick="fmSaveNow()"><i class="fas fa-save"></i> Save</button>
+        <button onclick="fmExport()"><i class="fas fa-download"></i><span class="lb"> Export</span></button>
+        <button onclick="fmSaveNow()"><i class="fas fa-save"></i><span class="lb"> Save</span></button>
       </div>
       <div class="fm-wrap">
         <div class="fm-viewport" id="fmViewport">
           <div class="fm-world" id="fmWorld"><svg class="fm-svg" id="fmSvg"></svg></div>
+          <div class="fm-zoom"><button onclick="fmZoom(1.25)" aria-label="Zoom in">+</button><button onclick="fmZoom(0.8)" aria-label="Zoom out">−</button><button onclick="fmFit()" aria-label="Fit"><i class="fas fa-expand"></i></button></div>
         </div>
         <aside class="fm-insp" id="fmInsp"></aside>
       </div>
@@ -904,6 +927,11 @@ function showLoading(on){ document.getElementById('loadingOverlay').classList.to
 function setSyncStatus(s,m){ const el=document.getElementById('syncStatus'); el.className='sync-status '+s; el.textContent=m; }
 function showMessage(id,text,type){ const el=document.getElementById(id); if(!el)return; el.textContent=text; el.className='message '+type; if(type!=='info')setTimeout(()=>{el.className='message';},4500); }
 function showGate(id){ document.querySelectorAll('.gate-screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+async function apiPost(payload){
+  // POST body (text/plain, no CORS preflight) — for big uploads that don't fit in a URL
+  const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});
+  return r.json();
+}
 async function api(payload){
   // Apps Script reliably reads GET query params via e.parameter
   // Sending raw JSON POST without Content-Type often fails silently
@@ -1247,16 +1275,18 @@ async function setupCamera(){
   document.getElementById('recordedVideo').style.display='none';
   document.getElementById('preview').style.display='block';
   try{
-    cameraStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+    cameraStream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:854},height:{ideal:480},frameRate:{ideal:24,max:30}},audio:{channelCount:1,echoCancellation:true,noiseSuppression:true}});
     document.getElementById('preview').srcObject=cameraStream;
-    mediaRecorder=new MediaRecorder(cameraStream);
+    const vMime=['video/webm;codecs=vp8,opus','video/webm','video/mp4'].find(t=>MediaRecorder.isTypeSupported(t))||'';
+    // ~0.7 Mbps video + 64 kbps audio at 480p is roughly 5 MB/min (browser default is ~15-20 MB/min)
+    mediaRecorder=new MediaRecorder(cameraStream,Object.assign({videoBitsPerSecond:700000,audioBitsPerSecond:64000},vMime?{mimeType:vMime}:{}));
     mediaRecorder.ondataavailable=e=>{if(e.data.size>0)recordedChunks.push(e.data);};
-    mediaRecorder.onstop=()=>{_videoBlob=new Blob(recordedChunks,{type:'video/webm'});document.getElementById('recordedVideo').src=URL.createObjectURL(_videoBlob);document.getElementById('recordedVideo').style.display='block';document.getElementById('preview').style.display='none';document.getElementById('videoSaveBox').style.display='block';};
+    mediaRecorder.onstop=()=>{_videoBlob=new Blob(recordedChunks,{type:(mediaRecorder&&mediaRecorder.mimeType)||'video/webm'});document.getElementById('recordedVideo').src=URL.createObjectURL(_videoBlob);document.getElementById('recordedVideo').style.display='block';document.getElementById('preview').style.display='none';document.getElementById('videoSaveBox').style.display='block';};
   }catch(e){alert('Camera access denied or unavailable.');}
 }
 function startRecording(){if(!mediaRecorder){alert('Camera not ready.');return;}recordedChunks=[];mediaRecorder.start();document.getElementById('startBtn').disabled=true;document.getElementById('stopBtn').disabled=false;document.getElementById('camDot').classList.add('on');}
 function stopRecording(){if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();document.getElementById('startBtn').disabled=false;document.getElementById('stopBtn').disabled=true;document.getElementById('camDot').classList.remove('on');}
-function downloadVideoLocally(){if(!_videoBlob){alert('No recording found.');return;}const a=document.createElement('a');const title=document.getElementById('videoTitle').value.trim()||'diary_video_'+new Date().toISOString().split('T')[0];a.href=URL.createObjectURL(_videoBlob);a.download=title+'.webm';a.click();}
+function downloadVideoLocally(){if(!_videoBlob){alert('No recording found.');return;}const a=document.createElement('a');const title=document.getElementById('videoTitle').value.trim()||'diary_video_'+new Date().toISOString().split('T')[0];a.href=URL.createObjectURL(_videoBlob);a.download=title+'.'+(/mp4/.test(_videoBlob.type)?'mp4':'webm');a.click();}
 async function uploadVideoToDrive(){
   if(!_videoBlob){showMessage('videoMessage','No recording to save.','error');return;}
   const title=document.getElementById('videoTitle').value.trim()||('Video '+new Date().toLocaleDateString());
@@ -1266,7 +1296,7 @@ async function uploadVideoToDrive(){
   showLoading(true);
   try{
     const base64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(_videoBlob);});
-    const r=await api({action:'saveVideoToDrive',userId:currentUser.id,title,note,date,base64,mimeType:_videoBlob.type});
+    const r=await apiPost({action:'saveVideoToDrive',userId:currentUser.id,title,note,date,base64,mimeType:_videoBlob.type,ext:/mp4/.test(_videoBlob.type)?'mp4':'webm'});
     if(r.success){
       showMessage('videoMessage','','info');
       document.getElementById('driveLinkBox').style.display='block';
@@ -1304,13 +1334,38 @@ function handleDragOver(e,z){e.preventDefault();document.getElementById(z).class
 function handleDragLeave(z){document.getElementById(z).classList.remove('dragover');}
 function handleDrop(e,ctx){e.preventDefault();const z=ctx==='notes'?'notesUploadZone':'paperUploadZone';document.getElementById(z).classList.remove('dragover');processFiles(e.dataTransfer.files,ctx);}
 function handleFileSelect(e,ctx){processFiles(e.target.files,ctx);e.target.value='';}
-function processFiles(files,ctx){Array.from(files).forEach(file=>{if(!file.type.startsWith('image/')&&file.type!=='application/pdf'){alert(file.name+': only images and PDFs');return;}const reader=new FileReader();reader.onload=ev=>{const obj={name:file.name,size:file.size,type:file.type,dataUrl:ev.target.result};if(ctx==='notes'){const date=new Date().toISOString().split('T')[0];if(!window._notesFiles[date])window._notesFiles[date]=[];window._notesFiles[date].push(obj);renderNotesFiles();syncToSheets('notesfiles',window._notesFiles);}else{window._paperFiles.push(obj);renderPaperFileList();}};reader.readAsDataURL(file);});}
+async function compressImage(file,maxDim,quality){
+  // Downscale + re-encode as JPEG. Keeps the original if that wouldn't actually be smaller.
+  if(!/^image\/(jpeg|png|webp)$/.test(file.type))return {blob:file,type:file.type,name:file.name};
+  const bmp=await createImageBitmap(file,{imageOrientation:'from-image'});
+  const k=Math.min(1,maxDim/Math.max(bmp.width,bmp.height)),c=document.createElement('canvas');
+  c.width=Math.round(bmp.width*k);c.height=Math.round(bmp.height*k);
+  const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(bmp,0,0,c.width,c.height);
+  if(bmp.close)bmp.close();
+  const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',quality));
+  if(!blob||blob.size>=file.size)return {blob:file,type:file.type,name:file.name};
+  return {blob,type:'image/jpeg',name:file.name.replace(/\.\w+$/,'')+'.jpg'};
+}
+function readAsDataURL(blob){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(blob);});}
+async function processFiles(files,ctx){
+  for(const file of Array.from(files)){
+    if(!file.type.startsWith('image/')&&file.type!=='application/pdf'){alert(file.name+': only images and PDFs');continue;}
+    let obj;
+    try{
+      const c=file.type==='application/pdf'?{blob:file,type:file.type,name:file.name}:await compressImage(file,1600,0.72);
+      obj={name:c.name,size:c.blob.size,origSize:file.size,type:c.type,dataUrl:await readAsDataURL(c.blob)};
+    }catch(e){alert(file.name+': could not process this file');continue;}
+    if(ctx==='notes'){const date=new Date().toISOString().split('T')[0];if(!window._notesFiles[date])window._notesFiles[date]=[];window._notesFiles[date].push(obj);renderNotesFiles();syncToSheets('notesfiles',window._notesFiles);}
+    else{window._paperFiles.push(obj);renderPaperFileList();}
+  }
+}
+function fileSizeLabel(f){return f.origSize&&f.origSize>f.size*1.15?fileSize(f.size)+' (was '+fileSize(f.origSize)+')':fileSize(f.size);}
 function fileIcon(t){return t==='application/pdf'?'fas fa-file-pdf':'fas fa-file-image';}
 function fileIconColor(t){return t==='application/pdf'?'#e74c3c':'#667eea';}
 function fileSize(b){return b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB';}
-function renderNotesFiles(){const date=new Date().toISOString().split('T')[0],files=window._notesFiles[date]||[];document.getElementById('notesFileList').innerHTML=files.map((f,i)=>`<li class="file-item"><i class="${fileIcon(f.type)} file-icon" style="color:${fileIconColor(f.type)}"></i><span class="file-name">${f.name}</span><span class="file-size">${fileSize(f.size)}</span><button class="file-view" onclick="previewFile(${i},'notes')">View</button><button class="file-del" onclick="deleteNotesFile(${i})"><i class="fas fa-times"></i></button></li>`).join('');}
+function renderNotesFiles(){const date=new Date().toISOString().split('T')[0],files=window._notesFiles[date]||[];document.getElementById('notesFileList').innerHTML=files.map((f,i)=>`<li class="file-item"><i class="${fileIcon(f.type)} file-icon" style="color:${fileIconColor(f.type)}"></i><span class="file-name">${f.name}</span><span class="file-size">${fileSizeLabel(f)}</span><button class="file-view" onclick="previewFile(${i},'notes')">View</button><button class="file-del" onclick="deleteNotesFile(${i})"><i class="fas fa-times"></i></button></li>`).join('');}
 async function deleteNotesFile(i){const date=new Date().toISOString().split('T')[0];if(window._notesFiles[date]){window._notesFiles[date].splice(i,1);renderNotesFiles();await syncToSheets('notesfiles',window._notesFiles);}}
-function renderPaperFileList(){document.getElementById('paperFileList').innerHTML=window._paperFiles.map((f,i)=>`<li class="file-item"><i class="${fileIcon(f.type)} file-icon" style="color:${fileIconColor(f.type)}"></i><span class="file-name">${f.name}</span><span class="file-size">${fileSize(f.size)}</span><button class="file-del" onclick="deletePendingFile(${i})"><i class="fas fa-times"></i></button></li>`).join('');}
+function renderPaperFileList(){document.getElementById('paperFileList').innerHTML=window._paperFiles.map((f,i)=>`<li class="file-item"><i class="${fileIcon(f.type)} file-icon" style="color:${fileIconColor(f.type)}"></i><span class="file-name">${f.name}</span><span class="file-size">${fileSizeLabel(f)}</span><button class="file-del" onclick="deletePendingFile(${i})"><i class="fas fa-times"></i></button></li>`).join('');}
 function deletePendingFile(i){window._paperFiles.splice(i,1);renderPaperFileList();}
 function previewFile(index,ctx,paperId){let file;if(ctx==='notes'){const date=new Date().toISOString().split('T')[0];file=(window._notesFiles[date]||[])[index];}else if(ctx==='paper'){const p=window._papers.find(p=>p.id===paperId);file=p?p.files[index]:null;}if(!file)return;document.getElementById('previewTitle').textContent=file.name;document.getElementById('previewContent').innerHTML=file.type==='application/pdf'?`<iframe src="${file.dataUrl}" width="100%" height="520px" style="border:none;border-radius:8px;"></iframe>`:`<img src="${file.dataUrl}" style="max-width:100%;border-radius:8px;">`;document.getElementById('previewModal').classList.add('active');}
 function closePreview(){document.getElementById('previewModal').classList.remove('active');document.getElementById('previewContent').innerHTML='';}
@@ -1339,7 +1394,7 @@ function switchTab(tabName,el){
   if(tabName==='fitness') ftRender();
   if(tabName==='notes') renderNotesFiles();
   if(tabName==='papers') renderPapers();
-  if(tabName==='flowmap'){fmRender();if(!window._fmFitted){window._fmFitted=true;fmFit();}}
+  if(tabName==='flowmap'){fmRender();if(!window._fmFitted||FM_MOBILE){window._fmFitted=true;fmFit();}}
 }
 
 // ════════════════════════════════════════════════
@@ -1370,11 +1425,12 @@ function stopAudioHard(){ // used on tab leave / lock: stop the mic; keep a fini
 }
 async function startAudio(){
   if(!window.MediaRecorder||!navigator.mediaDevices){alert('Audio recording is not supported in this browser.');return;}
-  try{auStream=await navigator.mediaDevices.getUserMedia({audio:true});}
+  try{auStream=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true}});}
   catch(e){alert('Microphone access denied or unavailable.');return;}
   const mime=auMime();
   auChunks=[];auElapsed=0;
-  auRec=new MediaRecorder(auStream,mime?{mimeType:mime}:undefined);
+  // 32 kbps mono Opus: clear speech at ~0.25 MB/min
+  auRec=new MediaRecorder(auStream,Object.assign({audioBitsPerSecond:32000},mime?{mimeType:mime}:{}));
   auRec.ondataavailable=e=>{if(e.data.size>0)auChunks.push(e.data);};
   auRec.onstop=()=>{
     auCleanup();
@@ -1425,8 +1481,7 @@ async function uploadAudioToDrive(){
   try{
     const base64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(auBlob);});
     // POST (text/plain body): audio is too big for the ?data= query string the other calls use
-    const resp=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'saveAudioToDrive',userId:currentUser.id,title,note,date,duration:dur,base64,mimeType:auBlob.type,ext:auExt(auBlob.type)})});
-    const r=await resp.json();
+    const r=await apiPost({action:'saveAudioToDrive',userId:currentUser.id,title,note,date,duration:dur,base64,mimeType:auBlob.type,ext:auExt(auBlob.type)});
     if(r.success){
       showMessage('auMessage','','info');
       document.getElementById('auDriveBox').style.display='block';
@@ -1733,7 +1788,8 @@ function ftProgress_(){
 //  FLOW MAP
 // ════════════════════════════════════════════════
 const FM_STATUS={idea:{l:'Idea',c:'#f39c12'},todo:{l:'To do',c:'#3498db'},doing:{l:'In progress',c:'#764ba2'},done:{l:'Done',c:'#27ae60'},blocked:{l:'Blocked',c:'#e74c3c'}};
-const FM_W=180, FM_H=56, FM_GX=70, FM_GY=18;
+const FM_MOBILE=matchMedia('(max-width:768px)').matches;
+const FM_W=FM_MOBILE?150:180, FM_H=56, FM_GX=FM_MOBILE?46:70, FM_GY=FM_MOBILE?14:18;
 window._flowmap={nodes:[],links:[],seq:1};
 let fmSel=null, fmView={x:40,y:40,k:1}, fmDrag=null, fmLinkMode=false, fmTimer=null, fmReady=false;
 
@@ -1805,6 +1861,15 @@ function fmFit(){
   fmView={k,x:(vp.clientWidth-(x1-x0)*k)/2-x0*k,y:(vp.clientHeight-(y1-y0)*k)/2-y0*k};
   fmApplyView();
 }
+function fmPanToSel(){ // on phones the details sheet covers the lower half — lift the selected idea into view
+  const n=fmById(fmSel),vp=document.getElementById('fmViewport');if(!n||!FM_MOBILE)return;
+  const cy=n.y*fmView.k+fmView.y+FM_H*fmView.k/2,want=Math.min(110,vp.clientHeight*0.22);
+  if(cy>want+60||cy<20){fmView.y+=want-cy;fmApplyView();}
+}
+function fmZoom(f){
+  const vp=document.getElementById('fmViewport'),mx=vp.clientWidth/2,my=vp.clientHeight/2,k=Math.min(2.5,Math.max(.2,fmView.k*f));
+  fmView.x=mx-(mx-fmView.x)*(k/fmView.k);fmView.y=my-(my-fmView.y)*(k/fmView.k);fmView.k=k;fmApplyView();
+}
 function fmApplyView(){document.getElementById('fmWorld').style.transform=`translate(${fmView.x}px,${fmView.y}px) scale(${fmView.k})`;}
 
 function fmRender(){
@@ -1814,7 +1879,7 @@ function fmRender(){
   vis.forEach(n=>{
     const s=FM_STATUS[n.status]||FM_STATUS.idea, el=document.createElement('div');
     el.className='fm-node'+(n.id===fmSel?' sel':'')+(n.status==='done'?' done':'');
-    el.dataset.id=n.id; el.style.cssText=`--c:${s.c};left:${n.x}px;top:${n.y}px`;
+    el.dataset.id=n.id; el.style.cssText=`--c:${s.c};left:${n.x}px;top:${n.y}px;width:${FM_W}px`;
     const kc=fmKids(n.id).length;
     el.innerHTML=`<div class="st">${s.l}</div><div class="t">${fmEsc(n.text)}</div>${n.note?`<div class="n">${fmEsc(n.note)}</div>`:''}${kc?`<div class="col" data-col="1" title="Collapse / expand">${n.collapsed?'+'+kc:'−'}</div>`:''}`;
     world.appendChild(el);
@@ -1830,8 +1895,9 @@ function fmRender(){
 
 function fmInspector(){
   const box=document.getElementById('fmInsp'), n=fmById(fmSel);
+  box.classList.toggle('open',!!n);
   if(!n){box.innerHTML=`<h3>Details</h3><div class="fm-hint">Select an idea to edit it.<br><br><b>Tips</b><br>• Double-click an idea to rename<br>• <b>Tab</b> = add child, <b>Enter</b> = add sibling<br>• <b>Delete</b> = remove<br>• "Link nodes" then click two ideas to connect them across branches</div>`;return;}
-  box.innerHTML=`<h3>Details</h3>
+  box.innerHTML=`<h3>Details <button class="fm-close" onclick="fmSel=null;fmRender()" aria-label="Close">✕</button></h3>
     <label>Title</label><input id="fmT" value="${fmEsc(n.text)}">
     <label>Status</label><select id="fmS">${Object.entries(FM_STATUS).map(([k,v])=>`<option value="${k}" ${k===n.status?'selected':''}>${v.l}</option>`).join('')}</select>
     <label>Notes</label><textarea id="fmN" placeholder="Details, next steps, links...">${fmEsc(n.note)}</textarea>
@@ -1856,7 +1922,15 @@ function fmExport(){
 (function fmInit(){
   const vp=document.getElementById('fmViewport'); if(!vp)return;
   const toWorld=(cx,cy)=>{const r=vp.getBoundingClientRect();return {x:(cx-r.left-fmView.x)/fmView.k,y:(cy-r.top-fmView.y)/fmView.k};};
+  const ptrs=new Map();let pinch=null;
   vp.addEventListener('pointerdown',e=>{
+    if(e.target.closest('.fm-zoom'))return;
+    ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(ptrs.size===2){ // two fingers: pinch-zoom + pan
+      const [a,b]=[...ptrs.values()],r=vp.getBoundingClientRect(),cx=(a.x+b.x)/2-r.left,cy=(a.y+b.y)/2-r.top;
+      pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,k0:fmView.k,wx:(cx-fmView.x)/fmView.k,wy:(cy-fmView.y)/fmView.k};
+      fmDrag=null;vp.classList.remove('panning');vp.setPointerCapture(e.pointerId);return;
+    }
     if(e.target.closest('.cross'))return;
     const nodeEl=e.target.closest('.fm-node');
     if(nodeEl){
@@ -1868,7 +1942,7 @@ function fmExport(){
         fmToggleLink();fmRender();fmSaveSoon();return;
       }
       fmSel=n.id;
-      document.querySelectorAll('.fm-node.sel').forEach(x=>x.classList.remove('sel'));nodeEl.classList.add('sel');fmInspector();
+      document.querySelectorAll('.fm-node.sel').forEach(x=>x.classList.remove('sel'));nodeEl.classList.add('sel');fmInspector();fmPanToSel();
       const w=toWorld(e.clientX,e.clientY);
       fmDrag={type:'node',n,dx:w.x-n.x,dy:w.y-n.y,moved:false,el:nodeEl,
         group:(function(){const s=[n],q=[n.id];while(q.length){const id=q.pop();fmKids(id).forEach(k=>{s.push(k);q.push(k.id);});}return s.map(m=>({m,ox:m.x-n.x,oy:m.y-n.y}));})()};
@@ -1879,6 +1953,12 @@ function fmExport(){
     vp.setPointerCapture(e.pointerId);
   });
   vp.addEventListener('pointermove',e=>{
+    if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pinch&&ptrs.size>=2){
+      const [a,b]=[...ptrs.values()],r=vp.getBoundingClientRect(),cx=(a.x+b.x)/2-r.left,cy=(a.y+b.y)/2-r.top;
+      const k=Math.min(2.5,Math.max(.2,pinch.k0*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d0));
+      fmView.k=k;fmView.x=cx-pinch.wx*k;fmView.y=cy-pinch.wy*k;fmApplyView();return;
+    }
     if(!fmDrag)return;
     if(fmDrag.type==='pan'){
       fmDrag.moved=true;fmView.x=fmDrag.ox+e.clientX-fmDrag.sx;fmView.y=fmDrag.oy+e.clientY-fmDrag.sy;fmApplyView();
@@ -1897,7 +1977,8 @@ function fmExport(){
     if(fmDrag.type==='node'&&fmDrag.moved)fmSaveSoon();
     fmDrag=null;
   };
-  vp.addEventListener('pointerup',end);vp.addEventListener('pointercancel',end);
+  const up=e=>{ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;end();};
+  vp.addEventListener('pointerup',up);vp.addEventListener('pointercancel',up);
   vp.addEventListener('wheel',e=>{
     e.preventDefault();
     const r=vp.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
