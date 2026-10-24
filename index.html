@@ -1501,23 +1501,41 @@ function ftDefaults(){
   };
 }
 
-function ftPreset(style){
+// Home calisthenics: single room, one 20 kg resistance band, a sturdy table + chair/bed edge. Three 4-week phases.
+function ftPreset(style,phase){
   if(style!=='cali')return ftDefaults().plan.workout;
-  return {
-    mon:{name:'Push — chest, shoulders, triceps',ex:[ftEx('Push-ups',4,'10-15'),ftEx('Pike Push-ups',3,'8-10'),ftEx('Dips (bars or chairs)',3,'8-12'),ftEx('Diamond Push-ups',3,'8-12'),ftEx('Wall Handstand Hold',3,'30 sec')]},
-    tue:{name:'Pull — back, biceps',ex:[ftEx('Pull-ups (negatives if needed)',4,'5-8'),ftEx('Inverted Rows (Australian)',4,'10-12'),ftEx('Chin-ups',3,'6-8'),ftEx('Scapular Pulls',3,'10'),ftEx('Hanging Leg Raise',3,'8-12')]},
-    wed:{name:'Legs',ex:[ftEx('Bulgarian Split Squat',4,'10 each'),ftEx('Pistol Squat Progression',3,'5 each'),ftEx('Single-leg Glute Bridge',3,'12 each'),ftEx('Single-leg Calf Raise',4,'15'),ftEx('Wall Sit',3,'45 sec')]},
-    thu:{name:'Rest — walk + mobility',rest:true,ex:[]},
-    fri:{name:'Full upper + skills',ex:[ftEx('Archer Push-ups',3,'6-8'),ftEx('Pull-ups',4,'max reps'),ftEx('Ring/Bar Dips',3,'8-12'),ftEx('L-sit Hold',4,'15 sec'),ftEx('Pseudo Planche Push-ups',3,'6-8')]},
-    sat:{name:'Legs + core',ex:[ftEx('Jump Squats',3,'12'),ftEx('Reverse Lunges',3,'12 each'),ftEx('Hollow Body Hold',3,'30 sec'),ftEx('Hanging Knee Raise',3,'12'),ftEx('Plank',3,'60 sec')]},
-    sun:{name:'Rest — full recovery',rest:true,ex:[]}
-  };
+  const E=ftEx, WU=()=>E('Warm-up: jumping jacks, high knees',1,'5-10 min'), CD=()=>E('Cool-down stretching',1,'5-10 min');
+  const rest=n=>({name:n,rest:true,ex:[]});
+  const HS=()=>E('Wall-assisted Handstand Hold',3,'20-30 sec'), LS=n=>E(n,3,'10-15 sec');
+  if(phase===2){
+    const upper=skills=>({name:'Upper body'+(skills?' + skills':''),ex:[WU(),E('Push-ups',4,'10-15'),E('Inverted Rows under table',4,'6-10'),E('Band Rows (20 kg band)',3,'12'),E('Chair/Bed Dips',4,'10-15'),E('Pike Push-ups',3,'8-12'),E('Plank to Push-up',3,'10-15'),E('Band Pull-aparts',3,'15')].concat(skills?[HS(),LS('Tuck L-sit (floor or chairs)')]:[]).concat([CD()])});
+    const lower=skills=>({name:'Lower body + core'+(skills?' + skills':''),ex:[WU(),E('Squats',4,'20-25'),E('Lunges',4,'15-20 each leg'),E('Glute Bridges',3,'20-25'),E('Calf Raises (on a step)',3,'20-25'),E('Lying Leg Raises',3,'8-12'),E('Russian Twists',3,'20 each side')].concat(skills?[HS(),LS('Tuck L-sit (floor or chairs)')]:[]).concat([CD()])});
+    return {mon:upper(true),tue:lower(true),wed:rest('Rest — walk + stretch'),thu:lower(false),fri:upper(true),sat:rest('Rest — optional light skill practice'),sun:rest('Rest — full recovery')};
+  }
+  if(phase===3){
+    const upper=skills=>({name:'Upper body'+(skills?' + skills':''),ex:[WU(),E('Decline Push-ups (feet on chair/bed)',4,'10-15'),E('Inverted Rows, feet elevated',4,'8-12'),E('Band Rows (20 kg band)',3,'12'),E('Chair/Bed Dips, feet elevated',4,'10-15'),E('Archer Push-ups',3,'6-10 each side'),E('Plank to Push-up',3,'15-20')].concat(skills?[E('Handstand Practice (wall, work toward free-standing)',3,'20-30 sec'),E('L-sit Hold',3,'10-20 sec')]:[]).concat([CD()])});
+    const lower=()=>({name:'Lower body + core',ex:[WU(),E('Assisted Pistol Squats (hold a door frame)',4,'6-10 each leg'),E('Bulgarian Split Squats (rear foot on chair/bed)',4,'10-15 each leg'),E('Banded Good Mornings (20 kg band)',3,'12'),E('Single-leg Glute Bridges',3,'15-20 each leg'),E('Calf Raises (single leg when easy)',3,'25-30'),E('Lying Leg Raises',3,'10-15'),E('Windshield Wipers (lying)',3,'10-15 each side'),CD()]});
+    return {mon:upper(true),tue:lower(),wed:rest('Rest — walk + stretch'),thu:lower(),fri:upper(true),
+      sat:{name:'Skill day',ex:[WU(),E('Handstand Practice (wall → free-standing)',3,'20-30 sec'),E('L-sit Hold',3,'10-20 sec'),E('Explosive Inverted Rows (muscle-up pull progression)',3,'3-5'),E('Band Pull-aparts',3,'15'),CD()]},sun:rest('Rest — full recovery')};
+  }
+  const full={name:'Full body',ex:[WU(),E('Push-ups',3,'8-12'),E('Inverted Rows under table (or band rows)',3,'5-8'),E('Band Rows (20 kg band)',3,'12'),E('Chair/Bed Dips',3,'8-12'),E('Squats',3,'15-20'),E('Lunges',3,'10-15 each leg'),E('Plank',3,'30-60 sec'),CD()]};
+  const copy=()=>({name:full.name,ex:full.ex.map(e=>Object.assign({},e,{id:ftId()}))});
+  return {mon:copy(),tue:rest('Rest — walk + stretch'),wed:copy(),thu:rest('Rest — walk + stretch'),fri:copy(),sat:rest('Rest — optional walk'),sun:rest('Rest — full recovery')};
+}
+function ftPlanKey(){const st=fit.plan.style||'gym';return st==='cali'?'cali'+(fit.plan.phase||1):st;}
+function ftWeekInfo(){
+  if(!fit.plan.start)return '';
+  const wk=Math.floor((new Date(ftToday()+'T00:00:00')-new Date(fit.plan.start+'T00:00:00'))/604800000)+1;
+  if(wk<1)return '';
+  const m=Math.min(3,Math.ceil(wk/4));
+  return wk>12?`You started ${fit.plan.start} — 12 weeks done! Keep Month 3 or add harder variations.`:`Started ${fit.plan.start} → week ${wk} of 12, so Month ${m} is the one to follow.`;
 }
 function ftKey(){return 'fitness_'+(currentUser?currentUser.id:'x');}
 function ftLoad(remote){
   let d=remote;
   if(!d||!d.plan){try{d=JSON.parse(localStorage.getItem(ftKey()));}catch(e){d=null;}}
   fit=(d&&d.plan)?d:ftDefaults();
+  if(fit.plan.style==='cali'&&!fit.plan.phase){fit.plan.phase=1;fit.plan.workout=ftPreset('cali',1);fit.plan.start=fit.plan.start||ftToday();}
   ftDate=ftToday();
   if(document.getElementById('tab-fitness')&&document.getElementById('tab-fitness').classList.contains('active'))ftRender();
 }
@@ -1617,8 +1635,9 @@ function ftPlan_(){
     <div class="ft-grid">${f('heightCm','Height (cm)')}${f('startWeight','Start weight (kg)',0.1)}${f('goalWeight','Goal weight (kg)',0.1)}${f('kcal','Calories / day')}${f('protein','Protein g / day')}${f('waterL','Water L / day',0.5)}</div>
     <p class="ft-sub" style="margin-top:10px">Defaults assume a small calorie surplus (~+400 kcal over maintenance) and ~2 g protein per kg. If your weight isn't rising after 2-3 weeks, add ~200 kcal; if it rises faster than 0.5 kg/week, trim a little.</p></div>
   <div class="ft-card"><h3>🏋️ Workout style</h3>
-    <div class="ft-pills" style="margin-bottom:8px"><button data-c="style" data-s="gym" class="${(fit.plan.style||'gym')==='gym'?'on':''}">🏋️ Gym (weights)</button><button data-c="style" data-s="cali" class="${fit.plan.style==='cali'?'on':''}">🤸 Calisthenics (bodyweight)</button></div>
-    <p class="ft-sub">${fit.plan.style==='cali'?'Needs a pull-up bar, parallel bars/dip station (or sturdy chairs) and floor space. Progress by adding reps, then moving to a harder variation (e.g. push-up → archer → pseudo planche), then adding weight with a loaded backpack. In the log, put 0 or leave kg blank for bodyweight, or the extra kg you carried.':'Barbell, dumbbell and machine split. Switching style keeps your edits — each style remembers its own plan.'}</p></div>
+    <div class="ft-pills" style="margin-bottom:8px"><button data-c="style" data-s="gym" class="${(fit.plan.style||'gym')==='gym'?'on':''}">🏋️ Gym (weights)</button><button data-c="style" data-s="cali" class="${fit.plan.style==='cali'?'on':''}">🏠 Home calisthenics + 20 kg band</button></div>
+    ${fit.plan.style==='cali'?`<div class="ft-pills" style="margin-bottom:8px">${[1,2,3].map(n=>`<button data-c="phase" data-p="${n}" class="${(fit.plan.phase||1)===n?'on':''}">Month ${n} · ${['Foundation','Intensity + skills','Skill focus'][n-1]}</button>`).join('')}</div><p class="ft-sub" style="margin-bottom:6px"><b>${fmEsc(ftWeekInfo())}</b></p>`:''}
+    <p class="ft-sub">${fit.plan.style==='cali'?'Built for one room: a sturdy table (for inverted rows), a chair or bed edge (dips, Bulgarian split squats, decline push-ups), the floor, and your 20 kg band (rows anchored on a door or under your feet, pull-aparts, good mornings). Month 1 = 3 full-body days · Month 2 = 4 days upper/lower + skills · Month 3 = 4-5 days + skill day. No pull-up bar, so pull-ups and muscle-ups become table rows and band work — if you add a bar later, swap them in. Progress by adding reps, then a harder variation, then more band tension.':'Barbell, dumbbell and machine split. Switching style keeps your edits — each style remembers its own plan.'}</p></div>
   <div class="ft-card"><h3>🏋️ Weekly workout split</h3>
     <div class="ft-pills">${FT_DAYS.slice(1).concat('sun').map(d=>`<button data-c="planday" data-d="${d}" class="${d===ftPlanDay?'on':''}">${FT_DN[d].slice(0,3)}</button>`).join('')}</div>
     <div class="ft-grid" style="margin-bottom:12px"><div style="grid-column:1/-1"><label>${FT_DN[ftPlanDay]} — session name</label><input data-a="wd-name" value="${fmEsc(wd.name)}"></div></div>
@@ -1695,9 +1714,16 @@ function ftProgress_(){
     else if(c==='today')ftDate=ftToday();
     else if(c==='water'){const L=ftLog(ftDate,true);L.water=Math.max(0,Math.round((ftNum(L.water)+ftNum(b.dataset.n))*100)/100);ftSaveSoon();}
     else if(c==='planday')ftPlanDay=b.dataset.d;
-    else if(c==='style'){
-      const cur=fit.plan.style||'gym',nx=b.dataset.s;
-      if(nx!==cur){fit.plan.saved=fit.plan.saved||{};fit.plan.saved[cur]=fit.plan.workout;fit.plan.workout=fit.plan.saved[nx]||ftPreset(nx);fit.plan.style=nx;ftSaveSoon();}
+    else if(c==='style'||c==='phase'){
+      const curKey=ftPlanKey(), st=c==='style'?b.dataset.s:(fit.plan.style||'gym'), ph=c==='phase'?+b.dataset.p:(fit.plan.phase||1);
+      const nextKey=st==='cali'?'cali'+ph:st;
+      if(nextKey!==curKey){
+        fit.plan.saved=fit.plan.saved||{};fit.plan.saved[curKey]=fit.plan.workout;
+        fit.plan.style=st;fit.plan.phase=ph;
+        fit.plan.workout=fit.plan.saved[nextKey]||ftPreset(st,ph);
+        if(st==='cali'&&!fit.plan.start)fit.plan.start=ftToday();
+        ftSaveSoon();
+      }
     }
     else if(c==='ex-add'){fit.plan.workout[ftPlanDay].ex.push(ftEx('New exercise',3,'10'));ftSaveSoon();}
     else if(c==='ex-del'){fit.plan.workout[ftPlanDay].ex.splice(i,1);ftSaveSoon();}
