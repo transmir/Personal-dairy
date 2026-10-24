@@ -1501,6 +1501,18 @@ function ftDefaults(){
   };
 }
 
+function ftPreset(style){
+  if(style!=='cali')return ftDefaults().plan.workout;
+  return {
+    mon:{name:'Push — chest, shoulders, triceps',ex:[ftEx('Push-ups',4,'10-15'),ftEx('Pike Push-ups',3,'8-10'),ftEx('Dips (bars or chairs)',3,'8-12'),ftEx('Diamond Push-ups',3,'8-12'),ftEx('Wall Handstand Hold',3,'30 sec')]},
+    tue:{name:'Pull — back, biceps',ex:[ftEx('Pull-ups (negatives if needed)',4,'5-8'),ftEx('Inverted Rows (Australian)',4,'10-12'),ftEx('Chin-ups',3,'6-8'),ftEx('Scapular Pulls',3,'10'),ftEx('Hanging Leg Raise',3,'8-12')]},
+    wed:{name:'Legs',ex:[ftEx('Bulgarian Split Squat',4,'10 each'),ftEx('Pistol Squat Progression',3,'5 each'),ftEx('Single-leg Glute Bridge',3,'12 each'),ftEx('Single-leg Calf Raise',4,'15'),ftEx('Wall Sit',3,'45 sec')]},
+    thu:{name:'Rest — walk + mobility',rest:true,ex:[]},
+    fri:{name:'Full upper + skills',ex:[ftEx('Archer Push-ups',3,'6-8'),ftEx('Pull-ups',4,'max reps'),ftEx('Ring/Bar Dips',3,'8-12'),ftEx('L-sit Hold',4,'15 sec'),ftEx('Pseudo Planche Push-ups',3,'6-8')]},
+    sat:{name:'Legs + core',ex:[ftEx('Jump Squats',3,'12'),ftEx('Reverse Lunges',3,'12 each'),ftEx('Hollow Body Hold',3,'30 sec'),ftEx('Hanging Knee Raise',3,'12'),ftEx('Plank',3,'60 sec')]},
+    sun:{name:'Rest — full recovery',rest:true,ex:[]}
+  };
+}
 function ftKey(){return 'fitness_'+(currentUser?currentUser.id:'x');}
 function ftLoad(remote){
   let d=remote;
@@ -1604,6 +1616,9 @@ function ftPlan_(){
   let h=`<div class="ft-card"><h3>🎯 Your targets <span class="ft-sub" style="font-weight:400">· height ${(S.heightCm/30.48).toFixed(1)} ft · BMI ${bmi} (lean) · aim for +0.25–0.5 kg per week</span></h3>
     <div class="ft-grid">${f('heightCm','Height (cm)')}${f('startWeight','Start weight (kg)',0.1)}${f('goalWeight','Goal weight (kg)',0.1)}${f('kcal','Calories / day')}${f('protein','Protein g / day')}${f('waterL','Water L / day',0.5)}</div>
     <p class="ft-sub" style="margin-top:10px">Defaults assume a small calorie surplus (~+400 kcal over maintenance) and ~2 g protein per kg. If your weight isn't rising after 2-3 weeks, add ~200 kcal; if it rises faster than 0.5 kg/week, trim a little.</p></div>
+  <div class="ft-card"><h3>🏋️ Workout style</h3>
+    <div class="ft-pills" style="margin-bottom:8px"><button data-c="style" data-s="gym" class="${(fit.plan.style||'gym')==='gym'?'on':''}">🏋️ Gym (weights)</button><button data-c="style" data-s="cali" class="${fit.plan.style==='cali'?'on':''}">🤸 Calisthenics (bodyweight)</button></div>
+    <p class="ft-sub">${fit.plan.style==='cali'?'Needs a pull-up bar, parallel bars/dip station (or sturdy chairs) and floor space. Progress by adding reps, then moving to a harder variation (e.g. push-up → archer → pseudo planche), then adding weight with a loaded backpack. In the log, put 0 or leave kg blank for bodyweight, or the extra kg you carried.':'Barbell, dumbbell and machine split. Switching style keeps your edits — each style remembers its own plan.'}</p></div>
   <div class="ft-card"><h3>🏋️ Weekly workout split</h3>
     <div class="ft-pills">${FT_DAYS.slice(1).concat('sun').map(d=>`<button data-c="planday" data-d="${d}" class="${d===ftPlanDay?'on':''}">${FT_DN[d].slice(0,3)}</button>`).join('')}</div>
     <div class="ft-grid" style="margin-bottom:12px"><div style="grid-column:1/-1"><label>${FT_DN[ftPlanDay]} — session name</label><input data-a="wd-name" value="${fmEsc(wd.name)}"></div></div>
@@ -1680,6 +1695,10 @@ function ftProgress_(){
     else if(c==='today')ftDate=ftToday();
     else if(c==='water'){const L=ftLog(ftDate,true);L.water=Math.max(0,Math.round((ftNum(L.water)+ftNum(b.dataset.n))*100)/100);ftSaveSoon();}
     else if(c==='planday')ftPlanDay=b.dataset.d;
+    else if(c==='style'){
+      const cur=fit.plan.style||'gym',nx=b.dataset.s;
+      if(nx!==cur){fit.plan.saved=fit.plan.saved||{};fit.plan.saved[cur]=fit.plan.workout;fit.plan.workout=fit.plan.saved[nx]||ftPreset(nx);fit.plan.style=nx;ftSaveSoon();}
+    }
     else if(c==='ex-add'){fit.plan.workout[ftPlanDay].ex.push(ftEx('New exercise',3,'10'));ftSaveSoon();}
     else if(c==='ex-del'){fit.plan.workout[ftPlanDay].ex.splice(i,1);ftSaveSoon();}
     else if(c==='sch-add'){fit.plan.schedule.push({id:ftId(),time:'12:00',type:'meal',label:'New meal',desc:'',kcal:300,protein:15});ftSaveSoon();}
