@@ -7,13 +7,24 @@
 function doGet(e) {
   try {
     // All requests come as GET with a 'data' query parameter
+    // POST with a JSON body (used for large uploads such as audio)
+    if (e && e.postData && e.postData.contents && !(e.parameter && e.parameter.data)) {
+      return dispatch(JSON.parse(e.postData.contents));
+    }
     if (!e || !e.parameter || !e.parameter.data) {
       // Direct browser visit — just confirm it's running
       return respond(true, 'Diary backend is running ✅ — ' + new Date().toISOString());
     }
 
-    const payload = JSON.parse(e.parameter.data);
-    const action  = payload.action;
+    return dispatch(JSON.parse(e.parameter.data));
+  } catch (err) {
+    return respond(false, 'Server error: ' + err.message);
+  }
+}
+
+function dispatch(payload) {
+  try {
+    const action = payload.action;
 
     if (action === 'getConfig')        return getConfig();
     if (action === 'setPassword')      return setPassword(payload);
@@ -22,6 +33,7 @@ function doGet(e) {
     if (action === 'save')             return saveData(payload);
     if (action === 'load')             return loadData(payload);
     if (action === 'saveVideoToDrive') return saveVideoToDrive(payload);
+    if (action === 'saveAudioToDrive') return saveAudioToDrive(payload);
 
     return respond(false, 'Unknown action: ' + action);
   } catch (err) {
@@ -100,7 +112,7 @@ function saveData(payload) {
 
 function loadData(payload) {
   if (!payload.userId) return respond(false, 'Missing userId');
-  const types  = ['habits', 'notes', 'todos', 'settings', 'papers', 'notesfiles'];
+  const types  = ['habits', 'notes', 'todos', 'settings', 'papers', 'notesfiles', 'flowmap'];
   const result = {};
   types.forEach(function(type) {
     const sheet = getOrCreateSheet(payload.userId + '_' + type);
@@ -117,6 +129,7 @@ function loadData(payload) {
 function defaultFor(type) {
   if (type === 'settings')   return null;
   if (type === 'papers')     return [];
+  if (type === 'flowmap')    return null;
   if (type === 'notesfiles') return {};
   return {};
 }
@@ -153,6 +166,39 @@ function saveVideoToDrive(data) {
     notesSheet.getRange(1, 1).setValue(JSON.stringify(notesData));
 
     return respond(true, 'Video saved to Google Drive', { driveUrl: fileUrl });
+  } catch(err) {
+    return respond(false, 'Drive save failed: ' + err.message);
+  }
+}
+
+// ── Audio → Google Drive ──────────────────────────────────────
+function saveAudioToDrive(data) {
+  try {
+    const { userId, title, note, date, duration, base64, mimeType, ext } = data;
+    const decoded = Utilities.base64Decode(base64);
+    const blob    = Utilities.newBlob(decoded, mimeType || 'audio/webm', title + '.' + (ext || 'webm'));
+
+    const folders = DriveApp.getFoldersByName('My Diary Audio');
+    const folder  = folders.hasNext() ? folders.next() : DriveApp.createFolder('My Diary Audio');
+    const uf      = folder.getFoldersByName(userId);
+    const userFolder = uf.hasNext() ? uf.next() : folder.createFolder(userId);
+
+    const file    = userFolder.createFile(blob);
+    const fileUrl = file.getUrl();
+
+    const notesSheet = getOrCreateSheet(userId + '_notes');
+    const raw        = notesSheet.getRange(1, 1).getValue();
+    let   notesData  = {};
+    try { notesData = raw ? JSON.parse(raw) : {}; } catch(e) {}
+    if (!notesData._audioEntries) notesData._audioEntries = [];
+    notesData._audioEntries.unshift({
+      title: title, note: note || '', date: date, duration: duration || 0,
+      driveUrl: fileUrl, savedAt: new Date().toISOString()
+    });
+    notesSheet.clearContents();
+    notesSheet.getRange(1, 1).setValue(JSON.stringify(notesData));
+
+    return respond(true, 'Audio saved to Google Drive', { driveUrl: fileUrl });
   } catch(err) {
     return respond(false, 'Drive save failed: ' + err.message);
   }
