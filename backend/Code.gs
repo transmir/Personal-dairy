@@ -112,7 +112,7 @@ function saveData(payload) {
 
 function loadData(payload) {
   if (!payload.userId) return respond(false, 'Missing userId');
-  const types  = ['habits', 'notes', 'todos', 'settings', 'papers', 'notesfiles', 'flowmap'];
+  const types  = ['habits', 'notes', 'todos', 'settings', 'papers', 'notesfiles', 'flowmap', 'fitness'];
   const result = {};
   types.forEach(function(type) {
     const sheet = getOrCreateSheet(payload.userId + '_' + type);
@@ -130,6 +130,7 @@ function defaultFor(type) {
   if (type === 'settings')   return null;
   if (type === 'papers')     return [];
   if (type === 'flowmap')    return null;
+  if (type === 'fitness')    return null;
   if (type === 'notesfiles') return {};
   return {};
 }

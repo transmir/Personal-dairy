@@ -217,6 +217,63 @@ input:checked+.slider:before{transform:translateX(22px);}
 .au-meter{height:10px;background:#eceef7;border-radius:6px;overflow:hidden;max-width:420px;margin:12px auto 0;}
 #auLevel{height:100%;width:0;background:linear-gradient(90deg,#27ae60,#f1c40f,#e74c3c);transition:width .08s;}
 .au-status{color:#888;font-size:.9em;margin-top:10px;}
+/* ── Fitness ── */
+.ft-pills{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.ft-pills button{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 18px;border-radius:999px;cursor:pointer;font:inherit;font-size:.92em;font-weight:500;transition:all .15s;}
+.ft-pills button:hover{border-color:var(--accent);}
+.ft-pills button.on{background:var(--grad);color:#fff;border-color:transparent;box-shadow:0 4px 12px color-mix(in srgb,var(--accent) 35%,transparent);}
+.ft-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;margin-bottom:16px;}
+.ft-card h3{color:var(--ink);margin-bottom:12px;font-size:1.02em;}
+.ft-datebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.ft-datebar button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:8px 12px;cursor:pointer;font:inherit;}
+.ft-datebar button:hover{border-color:var(--accent);}
+.ft-datebar input{padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;font:inherit;background:var(--surface);color:var(--ink);}
+.ft-tag{display:inline-block;background:var(--accent-soft);color:var(--accent);font-weight:600;font-size:.82em;padding:5px 12px;border-radius:999px;}
+.ft-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:16px;}
+.ft-stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;}
+.ft-stat .l{font-size:.78em;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
+.ft-stat .v{font-size:1.5em;font-weight:700;color:var(--ink);margin:2px 0 8px;}
+.ft-stat .v small{font-size:.55em;font-weight:500;color:var(--muted);}
+.ft-bar{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;}
+.ft-bar i{display:block;height:100%;background:var(--grad);border-radius:99px;transition:width .3s;}
+.ft-bar.ok i{background:linear-gradient(90deg,#10b981,#34d399);}
+.ft-slot{display:grid;grid-template-columns:64px 1fr;gap:14px;margin-bottom:14px;}
+.ft-time{font-weight:700;color:var(--accent);font-size:.95em;padding-top:16px;text-align:right;}
+.ft-item{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);}
+.ft-item.meal{border-left-color:#f59e0b;}.ft-item.workout{border-left-color:#ef4444;}.ft-item.sleep{border-left-color:#6366f1;}.ft-item.other{border-left-color:#10b981;}
+.ft-item.done{opacity:.8;}.ft-item.done .ft-title{text-decoration:line-through;color:var(--muted);}
+.ft-head{display:flex;align-items:flex-start;gap:12px;}
+.ft-head input[type=checkbox],.ft-ex input[type=checkbox]{width:20px;height:20px;accent-color:#10b981;margin-top:2px;flex-shrink:0;cursor:pointer;}
+.ft-title{font-weight:600;color:var(--ink);}
+.ft-sub{font-size:.84em;color:var(--muted);margin-top:2px;line-height:1.45;}
+.ft-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.ft-row input,.ft-grid input,.ft-grid select,.ft-grid textarea,.ft-field{padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;font:inherit;font-size:.9em;background:var(--surface2);color:var(--ink);}
+.ft-row input.grow{flex:1;min-width:140px;}.ft-row input.num{width:118px;}
+.ft-ex{border-top:1px dashed var(--line);margin-top:12px;padding-top:12px;}
+.ft-ex-h{display:flex;align-items:center;gap:10px;}
+.ft-sets{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 0 30px;}
+.ft-set{display:flex;align-items:center;gap:4px;background:var(--surface2);border-radius:9px;padding:4px 8px;font-size:.78em;color:var(--muted);}
+.ft-set input{width:52px;padding:5px 6px;border:1px solid var(--line);border-radius:6px;font:inherit;background:var(--surface);color:var(--ink);text-align:center;}
+.ft-last{font-size:.76em;color:var(--accent);margin-left:30px;margin-top:4px;}
+.ft-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
+.ft-grid label{display:block;font-size:.78em;color:var(--muted);margin-bottom:4px;font-weight:600;}
+.ft-grid input,.ft-grid select,.ft-grid textarea{width:100%;}
+.ft-edit-row{display:grid;grid-template-columns:90px 120px 1fr 80px 80px 36px;gap:8px;margin-bottom:8px;align-items:center;}
+.ft-edit-ex{display:grid;grid-template-columns:1fr 70px 90px 36px;gap:8px;margin-bottom:8px;align-items:center;}
+.ft-edit-row input,.ft-edit-row select,.ft-edit-ex input{padding:8px;border:1.5px solid var(--line);border-radius:9px;font:inherit;font-size:.88em;background:var(--surface2);color:var(--ink);width:100%;min-width:0;}
+.ft-x{border:none;background:none;color:#ef4444;cursor:pointer;font-size:1.05em;}
+.ft-btn{border:none;background:var(--grad);color:#fff;border-radius:10px;padding:9px 16px;cursor:pointer;font:inherit;font-weight:600;font-size:.88em;}
+.ft-btn.ghost{background:var(--surface2);color:var(--ink);border:1px solid var(--line);}
+.ft-btn.danger{background:#ef4444;}
+.ft-table{width:100%;border-collapse:collapse;font-size:.88em;}
+.ft-table th{color:var(--muted);font-weight:600;text-align:left;padding:8px;border-bottom:1px solid var(--line);font-size:.78em;text-transform:uppercase;letter-spacing:.05em;}
+.ft-table td{padding:9px 8px;border-bottom:1px solid var(--line);color:var(--ink);}
+.ft-good{color:#10b981;font-weight:600;}.ft-bad{color:#ef4444;font-weight:600;}
+.ft-tips{margin:0;padding-left:18px;color:var(--ink2);font-size:.9em;line-height:1.7;}
+@media(max-width:768px){
+  .ft-slot{grid-template-columns:1fr;gap:4px;}.ft-time{text-align:left;padding-top:0;}
+  .ft-edit-row{grid-template-columns:1fr 1fr;}.ft-edit-ex{grid-template-columns:1fr 60px 80px 32px;}
+}
 /* ── Flow Map ── */
 .fm-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;}
 .fm-toolbar button{border:none;background:white;padding:9px 14px;border-radius:8px;cursor:pointer;font-size:.9em;box-shadow:0 1px 4px rgba(0,0,0,.1);transition:all .2s;}
@@ -468,6 +525,7 @@ input:checked+.slider{background:var(--accent);}
     <ul class="nav-tabs">
       <li class="nav-sep">Track</li>
       <li class="nav-tab active" onclick="switchTab('daily',this)"> <i class="fas fa-calendar-day"></i> Daily Habits</li>
+      <li class="nav-tab" onclick="switchTab('fitness',this)"> <i class="fas fa-dumbbell"></i> Workout &amp; Diet</li>
       <li class="nav-tab" onclick="switchTab('todo',this)"> <i class="fas fa-tasks"></i> To-Do List</li>
       <li class="nav-sep">Journal</li>
       <li class="nav-tab" onclick="switchTab('video',this)"> <i class="fas fa-video"></i> Video Diary</li>
@@ -682,6 +740,20 @@ input:checked+.slider{background:var(--accent);}
         </div>
         <aside class="fm-insp" id="fmInsp"></aside>
       </div>
+    </div>
+
+    <!-- FITNESS -->
+    <div id="tab-fitness" class="tab-content">
+      <div class="page-header">
+        <h1>💪 Workout &amp; Diet Planner</h1>
+        <p>Lean bulk plan: eat in a small surplus, lift with progressive overload, sleep well. Log what you actually did against your timetable.</p>
+      </div>
+      <div class="ft-pills" id="ftPills">
+        <button data-t="today" class="on">📅 Today</button>
+        <button data-t="plan">🗂️ Plan</button>
+        <button data-t="progress">📈 Progress</button>
+      </div>
+      <div id="ftBody"></div>
     </div>
 
     <!-- PROFILE -->
@@ -932,7 +1004,7 @@ async function selectUser(userId){
       if(d.notes){window._notesCache=d.notes; applyTodayNotes(d.notes);}
       if(d.todos)  window._todos=d.todos||{};
       if(d.papers) window._papers=d.papers||[];
-      fmLoad(d.flowmap);
+      fmLoad(d.flowmap); ftLoad(d.fitness);
       if(d.notesfiles) window._notesFiles=d.notesfiles||{};
       renderNotesFiles(); renderPapers(); renderVideoEntries(); renderAudioEntries();
       setSyncStatus('synced','✅ Synced');
@@ -1264,6 +1336,7 @@ function switchTab(tabName,el){
   if(tabName==='video'){setupCamera();renderVideoEntries();}
   if(tabName==='todo'){renderCal();loadTaskPanel(calSelectedDate);}
   if(tabName==='audio') renderAudioEntries();
+  if(tabName==='fitness') ftRender();
   if(tabName==='notes') renderNotesFiles();
   if(tabName==='papers') renderPapers();
   if(tabName==='flowmap'){fmRender();if(!window._fmFitted){window._fmFitted=true;fmFit();}}
@@ -1382,6 +1455,260 @@ function renderAudioEntries(){
     </div>`).join('');
 }
 async function deleteAudioEntry(i){if(!confirm('Remove this entry from the list? (The file stays in Google Drive.)'))return;window._notesCache._audioEntries.splice(i,1);await syncToSheets('notes',window._notesCache);renderAudioEntries();}
+
+// ════════════════════════════════════════════════
+//  FITNESS — workout + diet planner and daily tracker
+// ════════════════════════════════════════════════
+const FT_DAYS=['sun','mon','tue','wed','thu','fri','sat'];
+const FT_DN={sun:'Sunday',mon:'Monday',tue:'Tuesday',wed:'Wednesday',thu:'Thursday',fri:'Friday',sat:'Saturday'};
+let fit=null, ftTab='today', ftPlanDay=FT_DAYS[new Date().getDay()], ftDate=null, ftTimer=null;
+
+function ftPad(n){return String(n).padStart(2,'0');}
+function ftFmt(d){return d.getFullYear()+'-'+ftPad(d.getMonth()+1)+'-'+ftPad(d.getDate());}
+function ftToday(){return ftFmt(new Date());}
+function ftShift(date,n){const d=new Date(date+'T00:00:00');d.setDate(d.getDate()+n);return ftFmt(d);}
+function ftDayKey(date){return FT_DAYS[new Date(date+'T00:00:00').getDay()];}
+function ftId(){return 'x'+Math.random().toString(36).slice(2,8);}
+function ftEx(n,s,r){return {id:ftId(),n,sets:s,reps:r};}
+
+function ftDefaults(){
+  return {
+    v:1,
+    settings:{heightCm:180,startWeight:65,goalWeight:72,kcal:2800,protein:130,waterL:3.5},
+    plan:{
+      workout:{
+        mon:{name:'Push — chest, shoulders, triceps',ex:[ftEx('Bench Press',4,'8'),ftEx('Overhead Press',3,'10'),ftEx('Incline Dumbbell Press',3,'10'),ftEx('Lateral Raise',3,'15'),ftEx('Triceps Pushdown',3,'12')]},
+        tue:{name:'Pull — back, biceps',ex:[ftEx('Lat Pulldown',4,'10'),ftEx('Barbell Row',4,'8'),ftEx('Seated Cable Row',3,'10'),ftEx('Face Pull',3,'15'),ftEx('Barbell Curl',3,'10'),ftEx('Hammer Curl',3,'12')]},
+        wed:{name:'Legs',ex:[ftEx('Squat',4,'8'),ftEx('Romanian Deadlift',3,'10'),ftEx('Leg Press',3,'12'),ftEx('Leg Curl',3,'12'),ftEx('Calf Raise',4,'15'),ftEx('Plank',3,'45 sec')]},
+        thu:{name:'Rest — walk + stretch',rest:true,ex:[]},
+        fri:{name:'Upper body',ex:[ftEx('Incline Bench Press',4,'8'),ftEx('Pull-ups (assisted if needed)',4,'6-10'),ftEx('Dumbbell Shoulder Press',3,'10'),ftEx('Cable Row',3,'10'),ftEx('Dips',3,'10'),ftEx('Hanging Knee Raise',3,'12')]},
+        sat:{name:'Lower body + core',ex:[ftEx('Deadlift',3,'5'),ftEx('Goblet Squat',3,'10'),ftEx('Walking Lunges',3,'12'),ftEx('Hip Thrust',3,'10'),ftEx('Cable Crunch',3,'15')]},
+        sun:{name:'Rest — full recovery',rest:true,ex:[]}
+      },
+      schedule:[
+        {id:ftId(),time:'07:00',type:'other',label:'Wake up + 500 ml water',desc:'Light stretching 5 min',kcal:0,protein:0},
+        {id:ftId(),time:'07:45',type:'meal',label:'Breakfast',desc:'Oats 60 g + 300 ml milk + banana + 3 boiled eggs',kcal:600,protein:30},
+        {id:ftId(),time:'11:00',type:'meal',label:'Mid-morning snack',desc:'Peanut-butter sandwich (2 slices) + glass of milk',kcal:300,protein:15},
+        {id:ftId(),time:'13:30',type:'meal',label:'Lunch',desc:'Rice 1.5 cups + dal + chicken/paneer 150 g + vegetables + curd',kcal:750,protein:40},
+        {id:ftId(),time:'17:00',type:'meal',label:'Pre-workout',desc:'Banana + handful of nuts',kcal:150,protein:5},
+        {id:ftId(),time:'18:00',type:'workout',label:'Workout',desc:'',kcal:0,protein:0},
+        {id:ftId(),time:'19:30',type:'meal',label:'Post-workout',desc:'Whey shake, or 3 eggs + a glass of milk',kcal:250,protein:28},
+        {id:ftId(),time:'21:00',type:'meal',label:'Dinner',desc:'3 rotis + paneer/chicken curry 150 g + salad',kcal:600,protein:35},
+        {id:ftId(),time:'22:30',type:'sleep',label:'Bedtime',desc:'Glass of milk + few peanuts · aim for 7-9 h sleep',kcal:200,protein:10}
+      ]
+    },
+    logs:{}
+  };
+}
+
+function ftKey(){return 'fitness_'+(currentUser?currentUser.id:'x');}
+function ftLoad(remote){
+  let d=remote;
+  if(!d||!d.plan){try{d=JSON.parse(localStorage.getItem(ftKey()));}catch(e){d=null;}}
+  fit=(d&&d.plan)?d:ftDefaults();
+  ftDate=ftToday();
+  if(document.getElementById('tab-fitness')&&document.getElementById('tab-fitness').classList.contains('active'))ftRender();
+}
+function ftSaveSoon(){
+  try{localStorage.setItem(ftKey(),JSON.stringify(fit));}catch(e){}
+  clearTimeout(ftTimer);ftTimer=setTimeout(()=>{if(currentUser)syncToSheets('fitness',fit);},1200);
+}
+function ftLog(date,create){
+  if(!fit.logs[date]){
+    if(!create)return {done:{},ex:{},meals:{},water:0,sleep:'',weight:'',notes:''};
+    fit.logs[date]={done:{},ex:{},meals:{},water:0,sleep:'',weight:'',notes:''};
+  }
+  return fit.logs[date];
+}
+function ftNum(v){const n=parseFloat(v);return isNaN(n)?0:n;}
+function ftSorted(){return fit.plan.schedule.slice().sort((a,b)=>a.time.localeCompare(b.time));}
+
+function ftTotals(date){
+  const L=ftLog(date,false);let kcal=0,prot=0;
+  fit.plan.schedule.forEach(it=>{
+    if(it.type!=='meal'&&!(it.kcal||it.protein))return;
+    if(!L.done[it.id])return;
+    const m=L.meals[it.id]||{};
+    kcal+=m.kcal!==undefined&&m.kcal!==''?ftNum(m.kcal):ftNum(it.kcal);
+    prot+=m.protein!==undefined&&m.protein!==''?ftNum(m.protein):ftNum(it.protein);
+  });
+  const wd=fit.plan.workout[ftDayKey(date)];
+  const exTotal=wd?wd.ex.length:0, exDone=wd?wd.ex.filter(e=>L.ex[e.id]&&L.ex[e.id].done).length:0;
+  return {kcal:Math.round(kcal),prot:Math.round(prot),exTotal,exDone};
+}
+function ftLast(exId,before){
+  const dates=Object.keys(fit.logs).filter(d=>d<before).sort().reverse();
+  for(const d of dates){const e=fit.logs[d].ex[exId];if(e&&e.sets){const s=e.sets.filter(x=>x&&(x.w||x.r));if(s.length){const best=s.reduce((a,b)=>ftNum(b.w)>=ftNum(a.w)?b:a);return {d,w:best.w,r:best.r};}}}
+  return null;
+}
+function ftBar(v,t,cls){const p=t>0?Math.min(100,Math.round(v/t*100)):0;return `<div class="ft-bar ${p>=100?'ok':''} ${cls||''}"><i style="width:${p}%"></i></div>`;}
+
+function ftRender(){
+  if(!fit){ftLoad(null);return;}
+  document.querySelectorAll('#ftPills button').forEach(b=>b.classList.toggle('on',b.dataset.t===ftTab));
+  const body=document.getElementById('ftBody');
+  body.innerHTML=ftTab==='today'?ftToday_():ftTab==='plan'?ftPlan_():ftProgress_();
+}
+
+function ftStats_(date){
+  const L=ftLog(date,false), wd=fit.plan.workout[ftDayKey(date)], T=ftTotals(date), S=fit.settings, water=ftNum(L.water);
+  return `<div class="ft-stats">
+    <div class="ft-stat"><div class="l">Calories</div><div class="v">${T.kcal} <small>/ ${S.kcal} kcal</small></div>${ftBar(T.kcal,S.kcal)}</div>
+    <div class="ft-stat"><div class="l">Protein</div><div class="v">${T.prot} <small>/ ${S.protein} g</small></div>${ftBar(T.prot,S.protein)}</div>
+    <div class="ft-stat"><div class="l">Water</div><div class="v">${water.toFixed(2).replace(/\.?0+$/,'')} <small>/ ${S.waterL} L</small></div>${ftBar(water,S.waterL)}
+      <div class="ft-row" style="margin-top:8px"><button class="ft-btn ghost" data-c="water" data-n="0.25">+250 ml</button><button class="ft-btn ghost" data-c="water" data-n="-0.25">−</button></div></div>
+    <div class="ft-stat"><div class="l">Workout</div><div class="v">${wd&&wd.rest?'Rest day':T.exDone+' <small>/ '+T.exTotal+' exercises</small>'}</div>${wd&&wd.rest?ftBar(L.done.restday?1:0,1):ftBar(T.exDone,T.exTotal)}</div>
+  </div>`;
+}
+
+function ftToday_(){
+  const date=ftDate, L=ftLog(date,false), dk=ftDayKey(date), wd=fit.plan.workout[dk], T=ftTotals(date), S=fit.settings;
+  const water=ftNum(L.water);
+  let h=`<div class="ft-datebar"><button data-c="prev">‹</button><input type="date" data-a="date" value="${date}"><button data-c="next">›</button><button data-c="today">Today</button>
+    <span class="ft-tag">${FT_DN[dk]} · ${fmEsc(wd?wd.name:'')}</span></div>`;
+  h+=ftStats_(date);
+  ftSorted().forEach(it=>{
+    const done=!!L.done[it.id], m=L.meals[it.id]||{};
+    let inner='';
+    if(it.type==='workout'){
+      if(wd&&wd.rest){
+        inner=`<div class="ft-sub">Recovery day — 20-30 min walk, light stretching/mobility. Muscle grows while you rest.</div>`;
+      }else if(wd){
+        inner=wd.ex.map(e=>{
+          const le=L.ex[e.id]||{}, last=ftLast(e.id,date), n=Math.max(1,parseInt(e.sets)||3);
+          const sets=Array.from({length:n},(_,i)=>{const s=(le.sets||[])[i]||{};return `<span class="ft-set">${i+1}<input type="number" step="0.5" min="0" placeholder="kg" data-a="set" data-id="${e.id}" data-i="${i}" data-f="w" value="${fmEsc(s.w||'')}">×<input type="number" min="0" placeholder="reps" data-a="set" data-id="${e.id}" data-i="${i}" data-f="r" value="${fmEsc(s.r||'')}"></span>`;}).join('');
+          return `<div class="ft-ex"><div class="ft-ex-h"><input type="checkbox" data-a="exdone" data-id="${e.id}" ${le.done?'checked':''}><div><div class="ft-title" style="${le.done?'text-decoration:line-through;color:var(--muted)':''}">${fmEsc(e.n)}</div><div class="ft-sub">${e.sets} sets × ${fmEsc(e.reps)}</div></div></div>
+            <div class="ft-sets">${sets}</div>${last?`<div class="ft-last">Last time: ${fmEsc(last.w||'?')} kg × ${fmEsc(last.r||'?')} — try to beat it</div>`:''}</div>`;
+        }).join('');
+      }
+    }else if(it.type==='meal'||it.kcal||it.protein){
+      inner=`<div class="ft-row"><input class="grow" placeholder="What I actually ate (optional)" data-a="meal" data-id="${it.id}" data-f="ate" value="${fmEsc(m.ate||'')}">
+        <input class="num" type="number" min="0" placeholder="${it.kcal||0} kcal" data-a="meal" data-id="${it.id}" data-f="kcal" value="${fmEsc(m.kcal===undefined?'':m.kcal)}">
+        <input class="num" type="number" min="0" placeholder="${it.protein||0} g prot" data-a="meal" data-id="${it.id}" data-f="protein" value="${fmEsc(m.protein===undefined?'':m.protein)}"></div>`;
+    }
+    const checkId=it.type==='workout'&&wd&&wd.rest?'restday':it.id;
+    const sub=it.type==='workout'?fmEsc(wd?wd.name:''):fmEsc(it.desc)+(it.kcal||it.protein?` <b>· ${it.kcal} kcal · ${it.protein} g protein</b>`:'');
+    h+=`<div class="ft-slot"><div class="ft-time">${fmEsc(it.time)}</div><div class="ft-item ${it.type} ${done?'done':''}">
+      <div class="ft-head"><input type="checkbox" data-a="done" data-id="${it.id}" ${done?'checked':''}><div style="flex:1"><div class="ft-title">${fmEsc(it.label)}</div><div class="ft-sub">${sub}</div></div></div>${inner}</div></div>`;
+  });
+  h+=`<div class="ft-card"><h3>📝 Daily check-in</h3><div class="ft-grid">
+    <div><label>Body weight (kg)</label><input type="number" step="0.1" min="0" data-a="day" data-f="weight" value="${fmEsc(L.weight)}"></div>
+    <div><label>Sleep (hours)</label><input type="number" step="0.5" min="0" max="24" data-a="day" data-f="sleep" value="${fmEsc(L.sleep)}"></div>
+    <div style="grid-column:1/-1"><label>Notes — how did the session feel, energy, soreness</label><textarea rows="3" data-a="day" data-f="notes">${fmEsc(L.notes)}</textarea></div></div></div>`;
+  return h;
+}
+
+function ftPlan_(){
+  const S=fit.settings, wd=fit.plan.workout[ftPlanDay], bmi=(S.startWeight/Math.pow(S.heightCm/100,2)).toFixed(1);
+  const f=(k,l,step)=>`<div><label>${l}</label><input type="number" step="${step||1}" min="0" data-a="set-s" data-f="${k}" value="${S[k]}"></div>`;
+  let h=`<div class="ft-card"><h3>🎯 Your targets <span class="ft-sub" style="font-weight:400">· height ${(S.heightCm/30.48).toFixed(1)} ft · BMI ${bmi} (lean) · aim for +0.25–0.5 kg per week</span></h3>
+    <div class="ft-grid">${f('heightCm','Height (cm)')}${f('startWeight','Start weight (kg)',0.1)}${f('goalWeight','Goal weight (kg)',0.1)}${f('kcal','Calories / day')}${f('protein','Protein g / day')}${f('waterL','Water L / day',0.5)}</div>
+    <p class="ft-sub" style="margin-top:10px">Defaults assume a small calorie surplus (~+400 kcal over maintenance) and ~2 g protein per kg. If your weight isn't rising after 2-3 weeks, add ~200 kcal; if it rises faster than 0.5 kg/week, trim a little.</p></div>
+  <div class="ft-card"><h3>🏋️ Weekly workout split</h3>
+    <div class="ft-pills">${FT_DAYS.slice(1).concat('sun').map(d=>`<button data-c="planday" data-d="${d}" class="${d===ftPlanDay?'on':''}">${FT_DN[d].slice(0,3)}</button>`).join('')}</div>
+    <div class="ft-grid" style="margin-bottom:12px"><div style="grid-column:1/-1"><label>${FT_DN[ftPlanDay]} — session name</label><input data-a="wd-name" value="${fmEsc(wd.name)}"></div></div>
+    <label style="display:flex;gap:8px;align-items:center;font-size:.88em;color:var(--ink2);margin-bottom:10px"><input type="checkbox" data-a="wd-rest" ${wd.rest?'checked':''}> Rest day</label>
+    ${wd.ex.map((e,i)=>`<div class="ft-edit-ex"><input data-a="ex-edit" data-i="${i}" data-f="n" value="${fmEsc(e.n)}" placeholder="Exercise"><input type="number" min="1" data-a="ex-edit" data-i="${i}" data-f="sets" value="${e.sets}" title="Sets"><input data-a="ex-edit" data-i="${i}" data-f="reps" value="${fmEsc(e.reps)}" title="Reps"><button class="ft-x" data-c="ex-del" data-i="${i}">✕</button></div>`).join('')}
+    ${wd.rest?'':`<button class="ft-btn ghost" data-c="ex-add">+ Add exercise</button>`}
+    <p class="ft-sub" style="margin-top:10px">Progressive overload: when you hit the top of the rep range on every set, add 2.5 kg next time. Log your weights in Today — it shows last session's numbers.</p></div>
+  <div class="ft-card"><h3>🍽️ Daily timetable &amp; meals</h3>
+    ${ftSorted().map(it=>{const i=fit.plan.schedule.indexOf(it);return `<div class="ft-edit-row">
+      <input type="time" data-a="sch" data-i="${i}" data-f="time" value="${it.time}">
+      <select data-a="sch" data-i="${i}" data-f="type">${[['meal','Meal'],['workout','Workout'],['other','Other'],['sleep','Sleep']].map(([v,l])=>`<option value="${v}" ${it.type===v?'selected':''}>${l}</option>`).join('')}</select>
+      <input data-a="sch" data-i="${i}" data-f="label" value="${fmEsc(it.label)}" placeholder="Label">
+      <input type="number" min="0" data-a="sch" data-i="${i}" data-f="kcal" value="${it.kcal||0}" title="kcal">
+      <input type="number" min="0" data-a="sch" data-i="${i}" data-f="protein" value="${it.protein||0}" title="protein g">
+      <button class="ft-x" data-c="sch-del" data-i="${i}">✕</button>
+      <input style="grid-column:1/-1" data-a="sch" data-i="${i}" data-f="desc" value="${fmEsc(it.desc)}" placeholder="What to eat / do">
+    </div>`;}).join('')}
+    <div class="ft-row"><button class="ft-btn ghost" data-c="sch-add">+ Add item</button><button class="ft-btn danger" data-c="reset">Reset plan to defaults</button></div>
+    <p class="ft-sub" style="margin-top:10px">Columns: time · type · label · kcal · protein (g). Swap in foods you actually like — keep the daily totals near your targets.</p></div>
+  <div class="ft-card"><h3>💡 Quick rules for building muscle</h3><ul class="ft-tips">
+    <li>Eat 3 main meals + 2-3 snacks; don't skip meals — a lean frame needs consistent surplus.</li>
+    <li>Protein: ~1.6-2.2 g per kg body weight daily, spread across meals (eggs, milk, curd, paneer, dal, chicken, whey).</li>
+    <li>Sleep 7-9 hours — growth hormone and recovery happen at night.</li>
+    <li>Prioritise compound lifts (squat, deadlift, bench, row, press) and add weight or reps every week.</li>
+    <li>Weigh yourself the same time each morning and watch the weekly trend, not single days.</li>
+    <li>This is general guidance, not medical advice — check with a doctor if you have any health condition.</li></ul></div>`;
+  return h;
+}
+
+function ftProgress_(){
+  const S=fit.settings, dates=Object.keys(fit.logs).sort();
+  const pts=dates.filter(d=>ftNum(fit.logs[d].weight)>0).map(d=>({d,w:ftNum(fit.logs[d].weight)}));
+  const cur=pts.length?pts[pts.length-1].w:S.startWeight, change=cur-S.startWeight;
+  let chart='<p class="ft-sub">Log your body weight in Today → Daily check-in to see the trend here.</p>';
+  if(pts.length){
+    const W=640,H=220,P=34, all=pts.map(p=>p.w).concat([S.goalWeight,S.startWeight]), mn=Math.floor(Math.min(...all)-1), mx=Math.ceil(Math.max(...all)+1);
+    const x=i=>P+(pts.length===1?(W-2*P)/2:i*(W-2*P)/(pts.length-1)), y=w=>H-P-(w-mn)/(mx-mn)*(H-2*P);
+    chart=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">
+      <line x1="${P}" x2="${W-P}" y1="${y(S.goalWeight)}" y2="${y(S.goalWeight)}" stroke="#10b981" stroke-dasharray="6 5"/><text x="${W-P}" y="${y(S.goalWeight)-6}" text-anchor="end" fill="#10b981" font-size="11">goal ${S.goalWeight} kg</text>
+      <line x1="${P}" x2="${W-P}" y1="${H-P}" y2="${H-P}" stroke="var(--line)"/>
+      ${pts.length>1?`<polyline fill="none" stroke="var(--accent)" stroke-width="3" stroke-linejoin="round" points="${pts.map((p,i)=>x(i)+','+y(p.w)).join(' ')}"/>`:''}
+      ${pts.map((p,i)=>`<circle cx="${x(i)}" cy="${y(p.w)}" r="4.5" fill="var(--accent)"><title>${p.d}: ${p.w} kg</title></circle>`).join('')}
+      <text x="${P}" y="14" fill="var(--muted)" font-size="11">${mx} kg</text><text x="${P}" y="${H-P+16}" fill="var(--muted)" font-size="11">${mn} kg</text></svg>`;
+  }
+  // last 7 days
+  const rows=[];let wDone=0,wTotal=0,kSum=0,pSum=0,tracked=0;
+  for(let i=0;i<7;i++){
+    const d=ftShift(ftToday(),-i), L=fit.logs[d], wd=fit.plan.workout[ftDayKey(d)], T=ftTotals(d);
+    const trained=!!(wd&&!wd.rest&&T.exTotal&&T.exDone>=Math.ceil(T.exTotal*0.8));
+    if(wd&&!wd.rest){wTotal++;if(trained)wDone++;}
+    if(L&&T.kcal){kSum+=T.kcal;pSum+=T.prot;tracked++;}
+    rows.push(`<tr><td>${d.slice(5)} ${FT_DN[ftDayKey(d)].slice(0,3)}</td><td>${wd&&wd.rest?'Rest':trained?'<span class="ft-good">✔ '+T.exDone+'/'+T.exTotal+'</span>':'<span class="ft-bad">'+T.exDone+'/'+T.exTotal+'</span>'}</td>
+      <td class="${T.kcal>=S.kcal*0.9?'ft-good':''}">${T.kcal||'–'}</td><td class="${T.prot>=S.protein*0.9?'ft-good':''}">${T.prot||'–'}</td><td>${L&&L.water?L.water+' L':'–'}</td><td>${L&&L.sleep?L.sleep+' h':'–'}</td><td>${L&&L.weight?L.weight+' kg':'–'}</td></tr>`);
+  }
+  let streak=0;for(let i=0;i<60;i++){const d=ftShift(ftToday(),-i),wd=fit.plan.workout[ftDayKey(d)],T=ftTotals(d);if(wd&&wd.rest)continue;if(T.exTotal&&T.exDone>=Math.ceil(T.exTotal*0.8))streak++;else if(i>0)break;}
+  return `<div class="ft-stats">
+    <div class="ft-stat"><div class="l">Current weight</div><div class="v">${cur} <small>kg</small></div><div class="ft-sub">${change>=0?'+':''}${change.toFixed(1)} kg since start · goal ${S.goalWeight} kg</div></div>
+    <div class="ft-stat"><div class="l">BMI</div><div class="v">${(cur/Math.pow(S.heightCm/100,2)).toFixed(1)}</div><div class="ft-sub">Healthy range 18.5–24.9</div></div>
+    <div class="ft-stat"><div class="l">Workouts (7 d)</div><div class="v">${wDone} <small>/ ${wTotal}</small></div>${ftBar(wDone,wTotal||1)}</div>
+    <div class="ft-stat"><div class="l">Training streak</div><div class="v">${streak} <small>sessions</small></div><div class="ft-sub">Rest days don't break it</div></div>
+    <div class="ft-stat"><div class="l">Avg intake (7 d)</div><div class="v">${tracked?Math.round(kSum/tracked):'–'} <small>kcal</small></div><div class="ft-sub">${tracked?Math.round(pSum/tracked)+' g protein':'no meals logged'}</div></div>
+  </div>
+  <div class="ft-card"><h3>⚖️ Weight trend</h3>${chart}</div>
+  <div class="ft-card"><h3>📆 Last 7 days</h3><div style="overflow-x:auto"><table class="ft-table"><tr><th>Day</th><th>Workout</th><th>kcal</th><th>Protein</th><th>Water</th><th>Sleep</th><th>Weight</th></tr>${rows.join('')}</table></div></div>`;
+}
+
+(function ftInit(){
+  const body=document.getElementById('ftBody');if(!body)return;
+  document.getElementById('ftPills').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;ftTab=b.dataset.t;ftRender();});
+  body.addEventListener('click',e=>{
+    const b=e.target.closest('[data-c]');if(!b)return;const c=b.dataset.c,i=+b.dataset.i;
+    if(c==='prev')ftDate=ftShift(ftDate,-1);
+    else if(c==='next')ftDate=ftShift(ftDate,1);
+    else if(c==='today')ftDate=ftToday();
+    else if(c==='water'){const L=ftLog(ftDate,true);L.water=Math.max(0,Math.round((ftNum(L.water)+ftNum(b.dataset.n))*100)/100);ftSaveSoon();}
+    else if(c==='planday')ftPlanDay=b.dataset.d;
+    else if(c==='ex-add'){fit.plan.workout[ftPlanDay].ex.push(ftEx('New exercise',3,'10'));ftSaveSoon();}
+    else if(c==='ex-del'){fit.plan.workout[ftPlanDay].ex.splice(i,1);ftSaveSoon();}
+    else if(c==='sch-add'){fit.plan.schedule.push({id:ftId(),time:'12:00',type:'meal',label:'New meal',desc:'',kcal:300,protein:15});ftSaveSoon();}
+    else if(c==='sch-del'){if(!confirm('Remove this item?'))return;fit.plan.schedule.splice(i,1);ftSaveSoon();}
+    else if(c==='reset'){if(!confirm('Reset targets, workout split and timetable to defaults? Your daily logs are kept.'))return;const d=ftDefaults();fit.settings=d.settings;fit.plan=d.plan;ftSaveSoon();}
+    ftRender();
+  });
+  body.addEventListener('change',e=>{
+    const t=e.target.closest('[data-a]');if(!t)return;const a=t.dataset.a,f=t.dataset.f,id=t.dataset.id,i=+t.dataset.i,v=t.type==='checkbox'?t.checked:t.value;
+    if(a==='date'){if(v)ftDate=v;}
+    else if(a==='done'){
+      const L=ftLog(ftDate,true),it=fit.plan.schedule.find(x=>x.id===id),wd=fit.plan.workout[ftDayKey(ftDate)];
+      L.done[id]=v; if(it&&it.type==='workout'&&wd&&wd.rest)L.done.restday=v;
+    }
+    else if(a==='exdone'){const L=ftLog(ftDate,true);(L.ex[id]=L.ex[id]||{sets:[]}).done=v;}
+    else if(a==='set'){const L=ftLog(ftDate,true),e2=(L.ex[id]=L.ex[id]||{sets:[]});e2.sets[i]=e2.sets[i]||{};e2.sets[i][f]=v;if(v&&!e2.done&&f==='r'){}}
+    else if(a==='meal'){const L=ftLog(ftDate,true);(L.meals[id]=L.meals[id]||{})[f]=v;if(v&&!L.done[id])L.done[id]=true;}
+    else if(a==='day'){ftLog(ftDate,true)[f]=v;}
+    else if(a==='set-s'){fit.settings[f]=ftNum(v);}
+    else if(a==='wd-name'){fit.plan.workout[ftPlanDay].name=v;}
+    else if(a==='wd-rest'){fit.plan.workout[ftPlanDay].rest=v;}
+    else if(a==='ex-edit'){const e2=fit.plan.workout[ftPlanDay].ex[i];e2[f]=f==='sets'?Math.max(1,parseInt(v)||1):v;}
+    else if(a==='sch'){const it=fit.plan.schedule[i];it[f]=(f==='kcal'||f==='protein')?ftNum(v):v;}
+    ftSaveSoon();
+    const soft=(a==='set'||a==='day'||a==='meal'||a==='set-s'||a==='wd-name'||a==='ex-edit'||(a==='sch'&&f!=='time'&&f!=='type'));
+    if(!soft)ftRender();
+    else if(a==='meal'){const st=body.querySelector('.ft-stats');if(st)st.outerHTML=ftStats_(ftDate);const cb=t.closest('.ft-item').querySelector('[data-a=done]');if(cb)cb.checked=true;}
+  });
+})();
 
 // ════════════════════════════════════════════════
 //  FLOW MAP
