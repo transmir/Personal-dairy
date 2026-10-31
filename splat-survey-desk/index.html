@@ -244,6 +244,8 @@ body.has-tray .layout{padding-bottom:110px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:8px;font-size:14px;z-index:20}
 textarea#bib{width:100%;min-height:160px;font:12px var(--f-mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px;color:var(--ink)}
 .railtoggle{display:none}
+.embedded #mark,.embedded .brand{display:none}
+.embedded header.top{padding-block:14px 6px}
 @media (max-width:860px){
   .layout{grid-template-columns:minmax(0,1fr)}
   aside.rail{position:static}
@@ -298,10 +300,14 @@ textarea#bib{width:100%;min-height:160px;font:12px var(--f-mono);background:var(
 (function(){
 const ORIGINAL_HTML = '<!doctype html>\n' + document.documentElement.outerHTML;
 const SNAPSHOT = '31 Oct 2026';
+const DESK = window.DESK || {};
+try{ if(window.self!==window.top) document.body.classList.add('embedded'); }catch(e){ document.body.classList.add('embedded'); }
+const SP = DESK.storePrefix || 'ssd-';
+const DSUB = DESK.surveyDesc || 'a survey on 3D Gaussian splatting (feed-forward 3DGS, scene-specific 3DGS, surface reconstruction, 4D/dynamic reconstruction, sparse-view 3DGS, real-time / fast-training 3DGS, Gaussian compaction, meshes + Gaussians)';
 const P = JSON.parse(document.getElementById('papers').textContent);
 const BYID = new Map(P.map(p=>[p.i,p]));
 
-const TOPICS = [
+const TOPICS = DESK.topics || [
   {k:'ff',     n:'Feed-forward 3DGS',          q:'"gaussian splatting" AND (feed-forward OR generalizable OR "pose-free")'},
   {k:'scene',  n:'Scene-specific 3DGS',         q:'"gaussian splatting" AND ("novel view synthesis" OR densification OR "per-scene")'},
   {k:'surf',   n:'Surface reconstruction',      q:'"gaussian splatting" AND ("surface reconstruction" OR SDF OR geometry)'},
@@ -312,7 +318,7 @@ const TOPICS = [
   {k:'mesh',   n:'Meshes + Gaussians',          q:'"gaussian splatting" AND (mesh OR meshes)'}
 ];
 const TN = Object.fromEntries(TOPICS.map(t=>[t.k,t.n]));
-const arxivQ = {
+const arxivQ = DESK.arxivQ || {
   all:'abs:"gaussian splatting"',
   ff:'abs:"gaussian splatting" AND (abs:"feed-forward" OR abs:generalizable OR abs:"pose-free")',
   scene:'abs:"gaussian splatting" AND (abs:"novel view synthesis" OR abs:densification)',
@@ -323,15 +329,15 @@ const arxivQ = {
   compact:'abs:"gaussian splatting" AND (abs:compact OR abs:compression OR abs:pruning)',
   mesh:'abs:"gaussian splatting" AND (abs:mesh OR abs:meshes)'
 };
-const plainQ = {all:'gaussian splatting', ff:'feed-forward gaussian splatting', scene:'3D gaussian splatting novel view synthesis', surf:'gaussian splatting surface reconstruction', dyn:'4D gaussian splatting dynamic', sparse:'sparse view gaussian splatting', fast:'fast training gaussian splatting', compact:'compact gaussian splatting compression', mesh:'mesh gaussian splatting'};
+const plainQ = DESK.plainQ || {all:'gaussian splatting', ff:'feed-forward gaussian splatting', scene:'3D gaussian splatting novel view synthesis', surf:'gaussian splatting surface reconstruction', dyn:'4D gaussian splatting dynamic', sparse:'sparse view gaussian splatting', fast:'fast training gaussian splatting', compact:'compact gaussian splatting compression', mesh:'mesh gaussian splatting'};
 
 // ---------- state
 const st = {view:'latest', topic:'all', q:'', year:'all', sort:'new', code:false, acc:false, venue:'all', shown:40, live:null};
 let reading = new Set();
-try{ reading = new Set(JSON.parse(localStorage.getItem('ssd-reading')||'[]')); }catch(e){}
-try{ const s = JSON.parse(localStorage.getItem('ssd-ui')||'{}'); if(s.topic) st.topic=s.topic; }catch(e){}
-function saveRL(){ try{localStorage.setItem('ssd-reading', JSON.stringify([...reading]));}catch(e){} document.getElementById('rn').textContent=reading.size; }
-function saveUI(){ try{localStorage.setItem('ssd-ui', JSON.stringify({topic:st.topic}));}catch(e){} }
+try{ reading = new Set(JSON.parse(localStorage.getItem(SP+'reading')||'[]')); }catch(e){}
+try{ const s = JSON.parse(localStorage.getItem(SP+'ui')||'{}'); if(s.topic) st.topic=s.topic; }catch(e){}
+function saveRL(){ try{localStorage.setItem(SP+'reading', JSON.stringify([...reading]));}catch(e){} document.getElementById('rn').textContent=reading.size; }
+function saveUI(){ try{localStorage.setItem(SP+'ui', JSON.stringify({topic:st.topic}));}catch(e){} }
 
 const $ = s=>document.querySelector(s);
 const esc = s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -367,7 +373,7 @@ function base(list){
 function renderTopics(){
   const pool = P.filter(p=>(st.view!=='venues'||p.v.length));
   const cnt = k=>k==='all'?pool.length:pool.filter(p=>p.k.includes(k)).length;
-  $('#topics').innerHTML = [{k:'all',n:'All Gaussian splatting'}].concat(TOPICS).map(t=>
+  $('#topics').innerHTML = [{k:'all',n:DESK.allLabel||'All Gaussian splatting'}].concat(TOPICS).map(t=>
     `<button class="topic" data-k="${t.k}" aria-pressed="${st.topic===t.k}"><span class="dot" style="background:${t.k==='all'?'var(--ink)':'var(--c-'+t.k+')'}"></span><span>${esc(t.n)}</span><span class="ct">${cnt(t.k)}</span></button>`).join('');
 }
 $('#topics').addEventListener('click',e=>{ const b=e.target.closest('.topic'); if(!b) return; st.topic=b.dataset.k; st.shown=40; st.live=null; saveUI(); render(); });
@@ -376,9 +382,9 @@ $('#f-code').addEventListener('change',e=>{st.code=e.target.checked; st.shown=40
 $('#f-acc').addEventListener('change',e=>{st.acc=e.target.checked; st.shown=40; render();});
 
 // ---------- paper card
-let latestD = P[0].d;
+let latestD = P.length?P[0].d:'—';
 function card(p, opts={}){
-  const isNew = p.d >= addDays(latestD,-45);
+  const isNew = latestD!=='—' && p.d >= addDays(latestD,-45);
   const tchips = p.k.map(k=>`<span class="chip" style="color:var(--c-${k})">${esc(TN[k])}</span>`).join('');
   const v = p.v.map(x=>`<span class="chip venue">${esc(x)}</span>`).join('');
   const id = p.i;
@@ -387,7 +393,7 @@ function card(p, opts={}){
     <div class="p-head"><h3 class="p-title"><button data-open="${esc(id)}" title="Open summary and method diagram">${esc(p.t)}</button></h3>
       ${opts.nostar?'':`<button class="star" data-star="${esc(id)}" aria-pressed="${reading.has(id)}" title="Add to reading list" aria-label="Add to reading list">${reading.has(id)?'★':'☆'}</button>`}</div>
     <div class="p-auth">${esc(p.a)}${p.org?` · <span>${esc(p.org)}</span>`:''}</div>
-    <div class="chips">${v}<span class="chip date">${esc(p.d)} · arXiv ${esc(id)}</span>${p.fresh?'<span class="chip new">Live</span>':isNew&&!opts.live?'<span class="chip new">New</span>':''}${tchips}</div>
+    <div class="chips">${v}<span class="chip date">${esc(p.d)} · arXiv ${esc(id)}</span>${p.fresh&&!DESK.noLiveChip?'<span class="chip new">Live</span>':isNew&&!opts.live?'<span class="chip new">New</span>':''}${tchips}</div>
     ${abs}
     <div class="links">
       ${p.ab?'<button data-expand>Abstract</button>':''}
@@ -442,7 +448,7 @@ function topicKey(){ return st.topic; }
 function arxivSiteURL(k){ return 'https://arxiv.org/search/?query='+encodeURIComponent(plainQ[k])+'&searchtype=all&abstracts=show&order=-announced_date_first&size=50'; }
 // ---------- optional Apps Script backend (set window.SSD_BACKEND_URL); proxies the arXiv API
 const BACKEND_URL=(window.SSD_BACKEND_URL||'').trim();
-const TOPRX={
+const TOPRX=DESK.topicRx?Object.fromEntries(Object.entries(DESK.topicRx).map(([k,s])=>[k,new RegExp(s,'gi')])):{
  ff:/feed[- ]?forward|generali[sz]able|pixelsplat|mvsplat|pose[- ]free|unposed|single[- ]image to 3d|image-to-3d|large reconstruction model|\bLRM\b|one forward pass|single forward|zero-shot (3d|reconstruction)|amortized/gi,
  scene:/per-scene|scene[- ]specific|novel view synthesis|densification|anti-?alias|view-dependent|reflect|specular|unbounded|large-scale|in the wild|city|aerial|rendering quality|floaters/gi,
  surf:/surface reconstruction|\bsdf\b|signed distance|2dgs|2d gaussian|geometr(y|ic) (accura|reconstruct|fidelity)|normal (prior|estimation|consisten)|planar|surfel|depth[- ]normal|watertight|neus|chamfer/gi,
@@ -453,9 +459,9 @@ const TOPRX={
  mesh:/\bmesh|meshes|meshing|marching cubes|tetrahedr|triangle|mesh extraction|mesh-based|polygon|texture[d ]? mesh/gi
 };
 function classify(title,ab){ const txt=title+' '+ab; return Object.keys(TOPRX).filter(k=>{ const r=TOPRX[k]; r.lastIndex=0; const inTitle=new RegExp(r.source,'i').test(title); const hits=(txt.match(r)||[]).length; return inTitle||hits>=2; }); }
-const VENRX=/\b(CVPR|ICCV|ECCV|NeurIPS|ICLR|ICML|SIGGRAPH Asia|SIGGRAPH|3DV|AAAI|TPAMI|WACV|BMVC|ICRA|IROS|TVCG|TOG|Eurographics|CoRL|RSS)\s*'?(20\d\d)\b/g;
-async function backendArxiv(query,max){
-  const url=BACKEND_URL+'?data='+encodeURIComponent(JSON.stringify({action:'arxiv',query,max}));
+const VENRX=/\b(CVPR|ICCV|ECCV|NeurIPS|ICLR|ICML|SIGGRAPH Asia|SIGGRAPH|3DV|AAAI|TPAMI|WACV|BMVC|ICRA|IROS|TVCG|TOG|Eurographics|CoRL|RSS|ICASSP|INTERSPEECH|Interspeech|DCASE|WASPAA|EUSIPCO|ISMIR|TASLP|IEEE SPL|ACM MM|IJCAI|ACL|EMNLP)\s*'?(20\d\d)\b/g;
+async function backendArxiv(query,max,start){
+  const url=BACKEND_URL+'?data='+encodeURIComponent(JSON.stringify({action:'arxiv',query,max,start:start||0}));
   const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(),30000);
   const r=await fetch(url,{signal:ctl.signal}); clearTimeout(to);
   const j=await r.json(); if(!j.success) throw new Error(j.message||'backend error');
@@ -465,19 +471,20 @@ let FRESH=null;
 async function loadFresh(){
   if(!BACKEND_URL) return;
   let items=null;
-  try{ const c=JSON.parse(localStorage.getItem('ssd-fresh')||'null'); if(c&&Date.now()-c.at<6*3600e3) items=c.items; }catch(e){}
-  if(!items){ try{ items=await backendArxiv(arxivQ.all,200); try{localStorage.setItem('ssd-fresh',JSON.stringify({at:Date.now(),items}));}catch(e){} }catch(e){ FRESH={err:true}; renderFreshNote(); return; } }
+  try{ const c=JSON.parse(localStorage.getItem(SP+'fresh')||'null'); if(c&&Date.now()-c.at<6*3600e3) items=c.items; }catch(e){}
+  if(!items){ try{ items=[]; const pages=DESK.freshPages||1; for(let pg=0;pg<pages;pg++){ const el=$('#freshnote'); if(el&&pages>1){ el.hidden=false; el.textContent=`Loading papers from arXiv through your backend… ${items.length} so far`; } const got=await backendArxiv(arxivQ.all,200,pg*200); items.push(...got); if(got.length<200) break; if(pg<pages-1) await new Promise(r=>setTimeout(r,3200)); } try{localStorage.setItem(SP+'fresh',JSON.stringify({at:Date.now(),items}));}catch(e){} }catch(e){ FRESH={err:true}; renderFreshNote(); return; } }
   const add=items.filter(p=>p.i&&!BYID.has(p.i));
   add.forEach(p=>BYID.set(p.i,p));
   P.unshift(...add); P.sort((a,b)=>(b.d.slice(0,10)).localeCompare(a.d.slice(0,10))||b.i.localeCompare(a.i));
-  latestD=P[0].d; FRESH={n:add.length};
+  latestD=P.length?P[0].d:'—'; FRESH={n:add.length};
+  const ys=[...new Set(P.map(p=>p.d.slice(0,4)))].sort().reverse(); $('#f-year').innerHTML='<option value="all">All years</option>'+ys.map(y=>`<option${y===st.year?' selected':''}>${y}</option>`).join('');
   document.querySelector('#stats b').textContent=P.length.toLocaleString();
   document.querySelectorAll('#stats b')[2].textContent=latestD;
   document.querySelectorAll('#stats b')[1].textContent=P.filter(p=>p.v.length).length.toLocaleString();
   if(['latest','venues','reading'].includes(st.view)) render(); else renderFreshNote();
 }
 function renderFreshNote(){ const el=$('#freshnote'); if(!el||!FRESH) return; el.hidden=false;
-  el.textContent=FRESH.err?'Could not reach your backend for newer arXiv papers; showing the snapshot only.':(FRESH.n?`Added ${FRESH.n} newer paper${FRESH.n>1?'s':''} from arXiv through your backend. They are marked “Live”.`:'Checked arXiv through your backend: the snapshot is up to date.'); }
+  el.textContent=FRESH.err?(P.length?'Could not reach your backend for newer arXiv papers; showing the snapshot only.':'Could not reach your backend, so no papers could be loaded. Check that the diary backend has the arxiv action deployed.'):(FRESH.n?(DESK.noLiveChip?`Loaded ${FRESH.n} paper${FRESH.n>1?'s':''} from arXiv through your backend.`:`Added ${FRESH.n} newer paper${FRESH.n>1?'s':''} from arXiv through your backend. They are marked “Live”.`):'Checked arXiv through your backend: the snapshot is up to date.'); }
 async function fetchLive(){
   const k=topicKey(); const s=$('#livestatus'); s.className='status'; s.textContent='Asking arXiv for the 50 newest papers…';
   if(BACKEND_URL){ try{ const items=await backendArxiv(arxivQ[k],50); return finishLive(items,'arXiv (through your backend)'); }catch(e){} }
@@ -517,7 +524,7 @@ function finishLive(items, src){
 }
 
 // ---------- views
-function renderList(){ const el=$('#results'); if(!el) return; const l=currentList(); $('#count').textContent=`${l.length.toLocaleString()} papers`; el.innerHTML=listHTML(l); }
+function renderList(){ const el=$('#results'); if(!el) return; const l=currentList(); $('#count').textContent=`${l.length.toLocaleString()} paper${l.length===1?'':'s'}`; el.innerHTML=listHTML(l); }
 function currentList(){
   if(st.view==='venues'){ let l=base(P.filter(p=>p.v.length)); if(st.venue!=='all') l=l.filter(p=>p.v.some(v=>v.startsWith(st.venue+' ')||v===st.venue)); return l; }
   if(st.view==='reading') return base(P.filter(p=>reading.has(p.i)));
@@ -528,16 +535,15 @@ function viewLatest(){
   return `<section class="panel live">
     <h2>Newest on arXiv${k!=='all'?' · '+esc(TN[k]):''}</h2>
     <p class="status" id="freshnote" hidden></p>
-    <p>The ledger below is a snapshot taken ${esc(SNAPSHOT)}. Fetch live to pull the 50 newest submissions for this topic straight from arXiv, or open arXiv’s own listing sorted by announcement date.</p>
+    <p>${DESK.latestNote?esc(DESK.latestNote)+' Fetch live pulls':`The ledger below is a snapshot taken ${esc(SNAPSHOT)}. Fetch live to pull`} the 50 newest submissions for this topic straight from arXiv, or open arXiv’s own listing sorted by announcement date.</p>
     <div class="row"><button class="btn primary" id="golive">Fetch live from arXiv</button>
       <a class="btn" href="${arxivSiteURL(k)}" target="_blank" rel="noopener">Open arXiv newest ↗</a>
-      <a class="btn" href="https://arxiv.org/list/cs.CV/new" target="_blank" rel="noopener">Today’s cs.CV listing ↗</a>
-      <a class="btn" href="https://arxiv.org/list/cs.GR/recent" target="_blank" rel="noopener">cs.GR recent ↗</a>
+      ${(DESK.listings||[['cs.CV','new','Today’s cs.CV listing'],['cs.GR','recent','cs.GR recent']]).map(l=>`<a class="btn" href="https://arxiv.org/list/${l[0]}/${l[1]}" target="_blank" rel="noopener">${esc(l[2])} ↗</a>`).join('')}
       <button class="btn" id="savecopy" hidden>Save offline copy</button></div>
     <div class="status" id="livestatus"></div><div id="livelist"></div>
   </section>
-  ${searchBar('Search title, abstract, authors, venue… e.g. “2DGS normal”, “pruning”, “Kerbl”')}
-  <div class="meta-line"><span id="count"></span><span>Snapshot of arXiv papers, newest first</span></div>
+  ${searchBar(esc(DESK.searchEg||'Search title, abstract, authors, venue… e.g. “2DGS normal”, “pruning”, “Kerbl”'))}
+  <div class="meta-line"><span id="count"></span><span>${esc(DESK.listLabel||'Snapshot of arXiv papers, newest first')}</span></div>
   <div id="results"></div>`;
 }
 function viewVenues(){
@@ -560,7 +566,7 @@ function viewReading(){
 }
 
 // classic / foundational papers (pre-dating or defining each line of work)
-const F = [
+const F = DESK.classics || [
  ['scene','EWA Volume Splatting','Zwicker, Pfister, van Baar, Gross','IEEE Visualization',2001],
  ['scene','Surfels: Surface Elements as Rendering Primitives','Pfister, Zwicker, van Baar, Gross','SIGGRAPH',2000],
  ['scene','Structure-from-Motion Revisited','Schönberger, Frahm','CVPR',2016],
@@ -632,7 +638,7 @@ function viewFoundations(){
   </tbody></table></div>
   <p class="note">Titles link to Google Scholar for citation counts and “cited by” chains. Use the Search conferences tab to look further back in a specific venue.</p>`;
 }
-const VEN = [
+const VEN = DESK.venues || [
   ['CVPR','Computer Vision and Pattern Recognition','conf/cvpr'],['ICCV','International Conference on Computer Vision','conf/iccv'],
   ['ECCV','European Conference on Computer Vision','conf/eccv'],['NeurIPS','Neural Information Processing Systems','conf/nips'],
   ['ICLR','International Conference on Learning Representations','conf/iclr'],['SIGGRAPH / TOG','ACM Transactions on Graphics','journals/tog'],
@@ -648,28 +654,29 @@ function viewSearchOut(){
   const gen=[
     ['arXiv, newest first','https://arxiv.org/search/?query='+enc(qd)+'&searchtype=all&order=-announced_date_first&size=100','All preprints'],
     ['Google Scholar, since 2023','https://scholar.google.com/scholar?q='+enc(qd)+'&as_ylo=2023','Citations and venues'],
-    ['Google Scholar, before 2020','https://scholar.google.com/scholar?q='+enc(qd.replace(/gaussian splatting/i,'point-based rendering'))+'&as_yhi=2019','Pre-NeRF roots'],
+    ['Google Scholar, before 2020','https://scholar.google.com/scholar?q='+enc(DESK.oldQuery?DESK.oldQuery(qd):qd.replace(/gaussian splatting/i,'point-based rendering'))+'&as_yhi=2019',DESK.oldLabel||'Pre-NeRF roots'],
     ['Semantic Scholar','https://www.semanticscholar.org/search?q='+enc(qd)+'&sort=relevance','Citation graph'],
     ['OpenReview','https://openreview.net/search?term='+enc(qd)+'&content=all&group=all&source=all','ICLR / NeurIPS reviews'],
+    ...(DESK.extraSearch?DESK.extraSearch(qd,enc):[
     ['CVF Open Access','https://www.google.com/search?q='+enc('site:openaccess.thecvf.com '+qd),'CVPR, ICCV, WACV PDFs'],
     ['ECVA (ECCV papers)','https://www.google.com/search?q='+enc('site:ecva.net '+qd),'ECCV PDFs'],
-    ['ACM Digital Library','https://dl.acm.org/action/doSearch?AllField='+enc(qd),'SIGGRAPH and TOG'],
+    ['ACM Digital Library','https://dl.acm.org/action/doSearch?AllField='+enc(qd),'SIGGRAPH and TOG']]),
     ['Papers with code on GitHub','https://github.com/search?q='+enc(qd)+'&type=repositories&s=updated&o=desc','Recently updated repos']
   ];
   return `${searchBar('Your query (blank uses the selected topic)')}
   <section class="sec"><h2>Search everywhere</h2><p class="note">Query: <b>${esc(qd)}</b>. Change it above or pick a topic on the left. Every link opens the source site in a new tab.</p>
   <div class="extgrid">${gen.map(g=>`<a class="ext" href="${g[1]}" target="_blank" rel="noopener"><b>${esc(g[0])} ↗</b><small>${esc(g[2])}</small></a>`).join('')}</div></section>
-  <section class="sec"><h2>Search one venue, all years (DBLP)</h2><p class="note">DBLP indexes every edition of these conferences and journals back to their first year. Good for finding older geometry and vision work on the same idea.</p>
+  <section class="sec"><h2>Search one venue, all years (DBLP)</h2><p class="note">DBLP indexes every edition of these conferences and journals back to their first year. ${esc(DESK.dblpNote||'Good for finding older geometry and vision work on the same idea.')}</p>
   <div class="extgrid">${VEN.map(v=>`<a class="ext" href="https://dblp.org/search?q=${enc(qd+' streamid:'+v[2]+':')}" target="_blank" rel="noopener"><b>${esc(v[0])} ↗</b><small>${esc(v[1])}</small></a>`).join('')}</div></section>
-  <section class="sec"><h2>Older geometry keywords to try</h2><p class="note">Pre-splatting terms for the same problems. Click one to load it into the query.</p>
-  <div class="row">${['point-based rendering','surfel splatting','EWA splatting','multi-view stereo','structure from motion','Poisson surface reconstruction','volumetric fusion','non-rigid reconstruction','image-based rendering','light field rendering','mesh simplification','level of detail point cloud','neural radiance field compression','generalizable radiance field'].map(t=>`<button class="vbtn" data-term="${esc(t)}">${esc(t)}</button>`).join('')}</div></section>`;
+  <section class="sec"><h2>${esc(DESK.oldKwTitle||'Older geometry keywords to try')}</h2><p class="note">${esc(DESK.oldKwNote||'Pre-splatting terms for the same problems.')} Click one to load it into the query.</p>
+  <div class="row">${(DESK.oldKeywords||['point-based rendering','surfel splatting','EWA splatting','multi-view stereo','structure from motion','Poisson surface reconstruction','volumetric fusion','non-rigid reconstruction','image-based rendering','light field rendering','mesh simplification','level of detail point cloud','neural radiance field compression','generalizable radiance field']).map(t=>`<button class="vbtn" data-term="${esc(t)}">${esc(t)}</button>`).join('')}</div></section>`;
 }
 
 // ---------- learning path (courses & tutorials from scratch)
 const YT = q=>'https://www.youtube.com/results?search_query='+encodeURIComponent(q);
 const GH = q=>'https://github.com/search?q='+encodeURIComponent(q)+'&type=repositories&s=stars&o=desc';
 // [title, provider, kind, level, url, why, topic(optional)]
-const LEARN = [
+const LEARN = DESK.learn || [
  {s:'Math you will use every day', d:'Linear algebra, calculus and probability. Gaussians are covariance matrices, rotations and projections, so this part pays off everywhere.', items:[
   ['Essence of Linear Algebra','3Blue1Brown','Video series','Beginner','https://www.3blue1brown.com/topics/linear-algebra','Visual intuition for matrices, eigenvectors and change of basis.'],
   ['Essence of Calculus','3Blue1Brown','Video series','Beginner','https://www.3blue1brown.com/topics/calculus','Derivatives and the chain rule, which backpropagation and splat gradients rely on.'],
@@ -734,7 +741,7 @@ const LEARN = [
  ]},
 ];
 let done = new Set();
-try{ done = new Set(JSON.parse(localStorage.getItem('ssd-learn')||'[]')); }catch(e){}
+try{ done = new Set(JSON.parse(localStorage.getItem(SP+'learn')||'[]')); }catch(e){}
 function viewLearn(){
   const k=st.topic, q=st.q.trim().toLowerCase();
   let total=0, fin=0;
@@ -755,7 +762,7 @@ function viewLearn(){
   }).join('');
   const pct = total?Math.round(100*fin/total):0;
   return `<section class="panel live"><h2>Learning path, from scratch</h2>
-    <p>Free courses, books, tutorials and code in the order to take them: math, then vision and graphics, then NeRF, then Gaussian splatting, then one deep dive per survey topic. Tick items as you finish them; progress stays in this browser.${k!=='all'?' Showing general material plus the deep dive for <b>'+esc(TN[k])+'</b>.':''}</p>
+    <p>${esc(DESK.learnIntro||'Free courses, books, tutorials and code in the order to take them: math, then vision and graphics, then NeRF, then Gaussian splatting, then one deep dive per survey topic.')} Tick items as you finish them; progress stays in this browser.${k!=='all'?' Showing general material plus the deep dive for <b>'+esc(TN[k])+'</b>.':''}</p>
     <div class="lprog"><div class="lbar"><span style="width:${pct}%"></span></div><span class="status">${fin} of ${total} done</span></div></section>
     ${searchBar('Filter courses and tutorials, e.g. “PyTorch”, “mesh”, “video”')}
     ${secs||'<div class="empty">Nothing matches that filter.</div>'}`;
@@ -763,7 +770,7 @@ function viewLearn(){
 document.getElementById('main').addEventListener('change',e=>{
   const c=e.target.closest('[data-learn]'); if(!c) return;
   c.checked?done.add(c.dataset.learn):done.delete(c.dataset.learn);
-  try{localStorage.setItem('ssd-learn',JSON.stringify([...done]));}catch(_){}
+  try{localStorage.setItem(SP+'learn',JSON.stringify([...done]));}catch(_){}
   const y=window.scrollY; render(); window.scrollTo(0,y);
 });
 
@@ -771,8 +778,8 @@ document.getElementById('main').addEventListener('change',e=>{
 const XVER='v2';
 const xmem=new Map();
 let xctl=null, curPaper=null;
-function xget(id){ if(xmem.has(id)) return xmem.get(id); try{ const v=localStorage.getItem('ssd-x-'+XVER+'-'+id); if(v){ const o=JSON.parse(v); xmem.set(id,o); return o; } }catch(e){} return null; }
-function xput(id,o){ xmem.set(id,o); try{ localStorage.setItem('ssd-x-'+XVER+'-'+id, JSON.stringify(o)); }catch(e){} }
+function xget(id){ if(xmem.has(id)) return xmem.get(id); try{ const v=localStorage.getItem(SP+'x-'+XVER+'-'+id); if(v){ const o=JSON.parse(v); xmem.set(id,o); return o; } }catch(e){} return null; }
+function xput(id,o){ xmem.set(id,o); try{ localStorage.setItem(SP+'x-'+XVER+'-'+id, JSON.stringify(o)); }catch(e){} }
 function findPaper(id){ return BYID.get(id) || (st.live||[]).find(p=>p.i===id); }
 
 const panel=document.createElement('div');
@@ -813,7 +820,7 @@ function openPaper(id){
 }
 
 function xprompt(p, full){
-  return `You are helping a PhD student write a survey on 3D Gaussian splatting (feed-forward 3DGS, scene-specific 3DGS, surface reconstruction, 4D/dynamic reconstruction, sparse-view 3DGS, real-time / fast-training 3DGS, Gaussian compaction, meshes + Gaussians).
+  return `You are helping a PhD student write ${DSUB}.
 
 Explain the method of this paper in detail and describe its workflow as a block diagram.
 
@@ -824,10 +831,10 @@ arXiv: ${p.i}   Date: ${p.d}   Venue: ${p.v.join(', ')||'preprint'}
 Abstract: ${p.ab||'(no abstract available; rely on the title and on what you know about this paper)'}
 ${full?`\nFULL PAPER TEXT (extracted from the PDF; may be truncated):\n<<<\n${full}\n>>>\n`:''}
 RULES
-- Use the abstract as the primary source. If you clearly know this specific paper, you may add details from it; otherwise infer the standard building blocks a method like this needs (e.g. SfM/COLMAP initialization, differentiable tile rasterization, alpha compositing, densification/pruning, photometric L1 + D-SSIM losses) and mark those stages "basis":"inferred".
+- Use the abstract as the primary source. If you clearly know this specific paper, you may add details from it; otherwise infer the standard building blocks a method like this needs (${DESK.blockHints||'e.g. SfM/COLMAP initialization, differentiable tile rasterization, alpha compositing, densification/pruning, photometric L1 + D-SSIM losses'}) and mark those stages "basis":"inferred".
 - ${full?'Use the full paper text as the main source: read the method, experiments and implementation-details sections. Quote numbers exactly as the paper states them.':'Never invent numbers (PSNR, FPS, sizes, speedups). Only quote numbers that appear in the abstract.'}
 - For "experiments", fill each field and set its "basis": "paper" (found in the full text), "abstract" (stated in the abstract), "recalled" (you clearly remember it from this specific paper; use sparingly), or "not stated" (value must then be "not stated" or []). Never guess hardware, training time or view counts.
-- The diagram must be a directed graph of 8 to 16 blocks showing data flow from inputs to outputs, including the main modules, intermediate representations, losses / supervision, and training-only loops (e.g. densification or optimization feedback). Use concise block labels (2-6 words). Edge labels name what flows (e.g. "camera poses", "Gaussian params", "rendered image"), 1-4 words, or "" if obvious.
+- The diagram must be a directed graph of 8 to 16 blocks showing data flow from inputs to outputs, including the main modules, intermediate representations, losses / supervision, and training-only loops (${DESK.loopHint||'e.g. densification or optimization feedback'}). Use concise block labels (2-6 words). Edge labels name what flows (${DESK.edgeHint||'e.g. "camera poses", "Gaussian params", "rendered image"'}), 1-4 words, or "" if obvious.
 - "kind" is one of: "input", "module", "representation", "loss", "output".
 - "phase" is one of: "train", "infer", "both".
 - "basis" is "abstract" if the abstract states or directly implies the block, else "inferred".
@@ -843,14 +850,14 @@ Reply with ONLY one JSON object, no prose, in exactly this shape:
  "training": "2-4 sentences: objectives, losses, supervision, optimization or training data",
  "results": "1-3 sentences on reported results, only numbers from the abstract",
  "limitations": ["2-3 likely limitations or open questions"],
- "survey_fit": "1-2 sentences: which survey topic(s) this belongs to and how it relates to baseline 3DGS",
+ "survey_fit": "1-2 sentences: which survey topic(s) this belongs to and how it relates to ${DESK.baseline||'baseline 3DGS'}",
  "experiments": {
-   "datasets": {"value": ["datasets used for training and evaluation, e.g. Mip-NeRF 360, Tanks and Temples, DTU, RealEstate10K"], "basis": "paper"},
+   "datasets": {"value": ["datasets used for training and evaluation, e.g. ${DESK.datasetEg||'Mip-NeRF 360, Tanks and Temples, DTU, RealEstate10K'}"], "basis": "paper"},
    "baselines": {"value": ["methods it is compared against"], "basis": "paper"},
-   "metrics": {"value": ["e.g. PSNR, SSIM, LPIPS, Chamfer distance, FPS, storage MB"], "basis": "paper"},
+   "metrics": {"value": ["e.g. ${DESK.metricEg||'PSNR, SSIM, LPIPS, Chamfer distance, FPS, storage MB'}"], "basis": "paper"},
    "train_time": {"value": "training time as stated, e.g. '~30 min per scene' or '3 days on the full dataset'", "basis": "paper"},
    "hardware": {"value": "GPU model and count, e.g. '8x NVIDIA A100 80GB' or '1x RTX 4090'", "basis": "paper"},
-   "num_views": {"value": "number of input / training views, e.g. '2 context views', '3, 6, 9 views', 'all available views (dense)'", "basis": "paper"},
+   "num_views": {"value": "${DESK.viewsDesc||"number of input / training views, e.g. '2 context views', '3, 6, 9 views', 'all available views (dense)'"}", "basis": "paper"},
    "generalization": {"value": "is it evaluated across datasets / zero-shot on unseen datasets or scenes? say which, or 'per-scene optimization, no cross-dataset generalization'", "basis": "paper"},
    "inference_speed": {"value": "rendering FPS or reconstruction time if stated", "basis": "paper"}
  },
@@ -925,7 +932,7 @@ function layout(o){
 }
 const KSHORT={input:'Input',module:'Module',representation:'Repr.',loss:'Loss',output:'Output'};
 const KIND={input:'Input',module:'Module',representation:'Representation',loss:'Loss / supervision',output:'Output'};
-const EXL={datasets:'Datasets',baselines:'Compared against',metrics:'Metrics',train_time:'Training time',hardware:'GPUs / hardware',num_views:'Number of views',generalization:'Generalization across datasets',inference_speed:'Inference / render speed'};
+const EXL={datasets:'Datasets',baselines:'Compared against',metrics:'Metrics',train_time:'Training time',hardware:'GPUs / hardware',num_views:(DESK.viewsLabel||'Number of views'),generalization:'Generalization across datasets',inference_speed:'Inference / render speed'};
 const BSL={paper:'from paper',abstract:'from abstract',recalled:'recalled, verify','not stated':'not stated'};
 function exVal(f){ if(!f) return '<span class="ns">regenerate to add</span>'; const v=Array.isArray(f.v)?(f.v.length?f.v.join(', '):'not stated'):f.v; return (f.b==='not stated'?`<span class="ns">${esc(v)}</span>`:esc(v))+`<span class="bs bs-${f.b==='not stated'?'ns':f.b}">${BSL[f.b]}</span>`; }
 function exText(f){ if(!f) return '—'; const v=Array.isArray(f.v)?(f.v.length?f.v.join(', '):'not stated'):f.v; return v+(f.b==='recalled'?' (recalled)':''); }
@@ -1018,9 +1025,9 @@ function renderX(p,o,fromCache){
 // ---------- compare papers side by side
 const CMAX=4;
 let cmp=[];
-try{ cmp=JSON.parse(localStorage.getItem('ssd-cmp')||'[]').filter(id=>BYID.has(id)).slice(0,CMAX); }catch(e){}
+try{ cmp=JSON.parse(localStorage.getItem(SP+'cmp')||'[]').filter(id=>BYID.has(id)).slice(0,CMAX); }catch(e){}
 const cmpState={busy:false, ctl:null, msg:'', prog:''};
-function saveCmp(){ try{localStorage.setItem('ssd-cmp',JSON.stringify(cmp));}catch(e){} updateTray(); document.body.classList.toggle('has-tray',!tray.hidden); const n=$('#cn'); if(n) n.textContent=cmp.length; }
+function saveCmp(){ try{localStorage.setItem(SP+'cmp',JSON.stringify(cmp));}catch(e){} updateTray(); document.body.classList.toggle('has-tray',!tray.hidden); const n=$('#cn'); if(n) n.textContent=cmp.length; }
 function toggleCmp(id){
   const i=cmp.indexOf(id);
   if(i>=0){ cmp.splice(i,1); toast('Removed from comparison'); }
@@ -1041,7 +1048,7 @@ function updateTray(){
   tray.querySelector('a').classList.toggle('disabled', cmp.length<2);
 }
 
-function cmpKey(){ return 'ssd-cmpx-'+XVER+'-'+cmp.slice().sort().join('|'); }
+function cmpKey(){ return SP+'cmpx-'+XVER+'-'+cmp.slice().sort().join('|'); }
 function cmpGet(){ try{ const v=localStorage.getItem(cmpKey()); return v?JSON.parse(v):null; }catch(e){ return null; } }
 function cmpPut(o){ try{ localStorage.setItem(cmpKey(),JSON.stringify(o)); }catch(e){} }
 const XERR={cancelled:'Stopped.',not_granted:'Claude was not allowed for this page. You can allow it from the page’s permissions menu and try again.',rate_limited:'Too many requests at once. Wait a minute and try again.',sampling_disabled:'Claude is not available for this account.',invalid_json:'The answer came back in an unexpected format. Try again.',refused:'Claude declined this request.'};
@@ -1064,7 +1071,7 @@ async function explainMissing(){
 }
 
 function cmpPrompt(ps){
-  return `You are helping a PhD student write a survey on 3D Gaussian splatting (topics: feed-forward 3DGS, scene-specific 3DGS, surface reconstruction, 4D/dynamic reconstruction, sparse-view 3DGS, real-time / fast-training 3DGS, Gaussian compaction, meshes + Gaussians).
+  return `You are helping a PhD student write ${DSUB}.
 
 Compare these ${ps.length} papers side by side.
 
@@ -1076,7 +1083,7 @@ Abstract: ${p.ab||'(none)'}${x?`\nMethod notes: ${x.key_idea} Pipeline: ${x.stag
 RULES
 - Base everything on the abstracts and method notes above, plus your knowledge only if you clearly recognise a paper.
 - Never invent numbers. Quote numbers only if they appear above; otherwise describe qualitatively, or write "not stated".
-- Choose 8 to 12 comparison dimensions that actually separate these papers. Always include: "Input / setting", "3D representation", "Core technical idea", "Supervision and losses", "Optimization: per-scene or feed-forward", "Speed / efficiency", "Output and quality focus". Add others that fit (e.g. "Camera poses required", "Handles dynamics", "Geometry / mesh quality", "Memory / storage"). Datasets, baselines, GPUs, training time and view counts are already shown in separate rows, so do not repeat them as dimensions; but do use them in key_differences.
+- Choose 8 to 12 comparison dimensions that actually separate these papers. Always include: "Input / setting", ${DESK.compareDims||'"3D representation", "Core technical idea", "Supervision and losses", "Optimization: per-scene or feed-forward", "Speed / efficiency", "Output and quality focus"'}. Add others that fit (${DESK.compareExtra||'e.g. "Camera poses required", "Handles dynamics", "Geometry / mesh quality", "Memory / storage"'}). Datasets, baselines, GPUs, training time and ${DESK.viewsLabel?esc(DESK.viewsLabel).toLowerCase():'view counts'} are already shown in separate rows, so do not repeat them as dimensions; but do use them in key_differences.
 - Each value is a short phrase (max ~18 words).
 
 Reply with ONLY one JSON object in exactly this shape:
@@ -1146,7 +1153,7 @@ function viewCompare(){
   body+=row('Contributions',xs.map(x=>x?list(x.contributions):none));
   body+=row('Method diagram',xs.map(x=>x?`<div class="cdiag">${diagramSVG(x)}</div>`:none));
   body+=row('Pipeline steps',xs.map(x=>x?`<ol class="csteps">${x.stages.map(s=>`<li>${esc(s.label)}</li>`).join('')}</ol>`:none));
-  [['datasets','Datasets'],['baselines','Compared against'],['metrics','Metrics'],['train_time','Training time'],['hardware','GPUs / hardware'],['num_views','Number of views'],['generalization','Generalization across datasets'],['inference_speed','Inference / render speed']]
+  [['datasets','Datasets'],['baselines','Compared against'],['metrics','Metrics'],['train_time','Training time'],['hardware','GPUs / hardware'],['num_views',(DESK.viewsLabel||'Number of views')],['generalization','Generalization across datasets'],['inference_speed','Inference / render speed']]
     .forEach(([k,l])=>{ body+=row(l, xs.map(x=>x?exVal(x.ex&&x.ex[k]):none), 'cexp'); });
   body+=row('Explained from',xs.map(x=>x?(x.src==='pdf'?'<span class="bs bs-paper" style="margin:0">full paper</span>':'<span class="bs bs-abstract" style="margin:0">abstract only</span> <button class="linkbtn" data-open="'+esc(ps[xs.indexOf(x)].i)+'">add PDF</button>'):none));
   body+=row('Training',xs.map(x=>x?esc(x.training):none));
@@ -1326,9 +1333,9 @@ const BW=[
 ];
 const BDAYS=[]; BW.forEach((w,wi)=>w.d.forEach(d=>BDAYS.push({w:wi,m:w.m,d})));
 let bdone=new Set(), bstart='';
-try{ bdone=new Set(JSON.parse(localStorage.getItem('ssd-blender')||'[]')); bstart=localStorage.getItem('ssd-blender-start')||''; }catch(e){}
+try{ bdone=new Set(JSON.parse(localStorage.getItem(SP+'blender')||'[]')); bstart=localStorage.getItem(SP+'blender-start')||''; }catch(e){}
 const bst={hide:false};
-function bsave(){ try{ localStorage.setItem('ssd-blender',JSON.stringify([...bdone])); localStorage.setItem('ssd-blender-start',bstart); }catch(e){} }
+function bsave(){ try{ localStorage.setItem(SP+'blender',JSON.stringify([...bdone])); localStorage.setItem(SP+'blender-start',bstart); }catch(e){} }
 function todayIndex(){ if(!bstart) return -1; const s=new Date(bstart+'T00:00:00'), n=new Date(); n.setHours(0,0,0,0); return Math.floor((n-s)/86400000); }
 const MONTHS={1:['Month 1','Blender foundations: interface, modeling, materials, lighting, rendering'],2:['Month 2','Intermediate skills: sculpting, UVs, Geometry Nodes, animation, compositing'],3:['Month 3','Blender for 3D vision research: Python, camera poses, synthetic datasets, splats and meshes, survey figures']};
 function viewBlender(){
@@ -1377,7 +1384,7 @@ document.getElementById('main').addEventListener('change',e=>{
   const y=window.scrollY; render(); window.scrollTo(0,y);
 });
 
-const SUBNAV=v=>`<nav class="subnav"><a class="vbtn" href="#learn" aria-current="${v==='learn'?'page':'false'}">3DGS learning path</a><a class="vbtn" href="#blender" aria-current="${v==='blender'?'page':'false'}">Blender 90-day plan</a></nav>`;
+const SUBNAV=v=>`<nav class="subnav"><a class="vbtn" href="#learn" aria-current="${v==='learn'?'page':'false'}">${esc(DESK.learnLabel||'3DGS learning path')}</a><a class="vbtn" href="#blender" aria-current="${v==='blender'?'page':'false'}">Blender 90-day plan</a></nav>`;
 function render(){
   document.querySelectorAll('#tabs a').forEach(a=>a.setAttribute('aria-current', (a.dataset.v===st.view||(st.view==='blender'&&a.dataset.v==='learn'))?'page':'false'));
   renderTopics();
@@ -1386,7 +1393,7 @@ function render(){
   else if(st.view==='venues') m.innerHTML=viewVenues();
   else if(st.view==='reading') m.innerHTML=viewReading();
   else if(st.view==='foundations') m.innerHTML=viewFoundations();
-  else if(st.view==='learn') m.innerHTML=SUBNAV('learn')+viewLearn();
+  else if(st.view==='learn') m.innerHTML=(DESK.noBlender?'':SUBNAV('learn'))+viewLearn();
   else if(st.view==='blender'){ m.innerHTML=SUBNAV('blender')+viewBlender(); bindBlender(); }
   else if(st.view==='compare'){ m.innerHTML=viewCompare(); bindCompare(); }
   else m.innerHTML=viewSearchOut();
@@ -1407,17 +1414,17 @@ function setupSave(){
   const b=$('#savecopy'); if(!b||!window.claude) return;
   window.claude.use('downloads').then(dl=>{
     if(!dl) return; b.hidden=false;
-    b.onclick=async()=>{ try{ await dl.save({filename:'splat-survey-desk.html', data:ORIGINAL_HTML}); toast('Saved. Open it in Chrome or Firefox for live arXiv fetches.'); }
+    b.onclick=async()=>{ try{ await dl.save({filename:(DESK.fileName||'splat-survey-desk.html'), data:ORIGINAL_HTML}); toast('Saved. Open it in Chrome or Firefox for live arXiv fetches.'); }
       catch(e){ if(e&&e.code==='declined') return; toast('Saving is not available here'); b.hidden=true; } };
   }).catch(()=>{});
 }
-function route(){ const h=location.hash.slice(1); st.view=['latest','venues','foundations','search-out','compare','learn','blender','reading'].includes(h)?h:'latest'; st.shown=40; if(st.view!=='latest') st.live=null; render(); }
+function route(){ const h=location.hash.slice(1); st.view=['latest','venues','foundations','search-out','compare','learn','blender','reading'].includes(h)&&!(h==='blender'&&DESK.noBlender)?h:'latest'; st.shown=40; if(st.view!=='latest') st.live=null; render(); }
 window.addEventListener('hashchange',route);
 
 // stats
 const acc=P.filter(p=>p.v.length).length;
 $('#stats').innerHTML=`<span><b>${P.length.toLocaleString()}</b>arXiv papers</span><span><b>${acc.toLocaleString()}</b>accepted</span><span><b>${esc(latestD)}</b>newest</span>`;
-$('#srcnote').innerHTML=`Snapshot ${esc(SNAPSHOT)}. Merged from community-maintained Gaussian splatting paper lists and a daily arXiv tracker. Topic tags are assigned by keyword rules, so check borderline papers.`;
+$('#srcnote').innerHTML=DESK.srcNote?esc(DESK.srcNote):`Snapshot ${esc(SNAPSHOT)}. Merged from community-maintained Gaussian splatting paper lists and a daily arXiv tracker. Topic tags are assigned by keyword rules, so check borderline papers.`;
 saveRL(); route(); loadFresh();
 })();
 </script>

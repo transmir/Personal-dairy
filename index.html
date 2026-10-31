@@ -607,6 +607,18 @@ button:active:not(:disabled){transform:scale(.97);}
   .cmdk-bg{padding-top:6vh;}
 }
 @media(min-width:769px){.sheet-bg{display:none!important;}}
+
+/* Research Desk tab: embeds splat-survey-desk/ or audio-survey-desk/ */
+.rs-bar{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.rs-head h1{margin:0}
+.rs-head p{margin:4px 0 0;color:var(--muted)}
+.rs-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.rs-lab{font-size:.85em;color:var(--muted);font-weight:600}
+#rsPick{padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit}
+.rs-open{display:inline-flex;gap:6px;align-items:center;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);text-decoration:none;font-weight:600;font-size:.9em}
+.rs-open:hover{border-color:var(--accent);color:var(--accent)}
+.rs-frame{display:block;width:100%;height:calc(100vh - 170px);min-height:520px;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
+@media (max-width:768px){.rs-frame{height:calc(100dvh - 230px);border-radius:12px}}
 </style>
 </head>
 <body>
@@ -721,6 +733,8 @@ button:active:not(:disabled){transform:scale(.97);}
       <li class="nav-tab" onclick="switchTab('papers',this)"> <i class="fas fa-scroll"></i> Paper Summaries</li>
       <li class="nav-sep">Plan</li>
       <li class="nav-tab" onclick="switchTab('flowmap',this)"> <i class="fas fa-sitemap"></i> Flow Map</li>
+      <li class="nav-sep">Research</li>
+      <li class="nav-tab" onclick="switchTab('research',this)"><i class="fas fa-flask"></i> Research Desk</li>
       <li class="nav-sep">Account</li>
       <li class="nav-tab" onclick="switchTab('profile',this)"> <i class="fas fa-user-cog"></i> Profile</li>
       <li class="nav-tab" onclick="switchTab('settings',this)"><i class="fas fa-cogs"></i> Customize Habits</li>
@@ -861,6 +875,22 @@ button:active:not(:disabled){transform:scale(.97);}
       </div>
       <div style="margin-bottom:18px;"><input type="text" id="paperSearch" placeholder="🔍 Search by title, authors, tags..." style="width:100%;padding:11px 15px;border:1px solid #ddd;border-radius:10px;font-size:.95em;" oninput="renderPapers()"></div>
       <div class="papers-grid" id="papersList"></div>
+    </div>
+
+    <!-- RESEARCH DESK (splat-survey-desk/ and audio-survey-desk/) -->
+    <div id="tab-research" class="tab-content">
+      <div class="rs-bar">
+        <div class="rs-head"><h1 id="rsTitle">🔬 Research Desk</h1><p id="rsSub">Your literature survey workspace</p></div>
+        <div class="rs-actions">
+          <label for="rsPick" class="rs-lab">Desk</label>
+          <select id="rsPick" onchange="rsSet(this.value)">
+            <option value="splat">Gaussian Splatting</option>
+            <option value="audio">Audio Classification</option>
+          </select>
+          <a id="rsOpen" class="rs-open" href="splat-survey-desk/index.html" target="_blank" rel="noopener"><i class="fas fa-up-right-from-square"></i> Full screen</a>
+        </div>
+      </div>
+      <iframe id="rsFrame" class="rs-frame" title="Research desk"></iframe>
     </div>
 
     <!-- TO-DO CALENDAR -->
@@ -1571,7 +1601,30 @@ function switchTab(tabName,el){
   if(tabName==='fitness') ftRender();
   if(tabName==='notes') renderNotesFiles();
   if(tabName==='papers') renderPapers();
+  if(tabName==='research') rsLoad();
   if(tabName==='flowmap'){fmRender();if(!window._fmFitted||FM_MOBILE){window._fmFitted=true;fmFit();}}
+}
+
+// ════════════════════════════════════════════════
+//  RESEARCH DESK
+// ════════════════════════════════════════════════
+// Each person gets their own survey desk; Person 1 defaults to Gaussian
+// Splatting and Person 2 to Audio Classification. The choice is remembered per person.
+const RS_DESKS={
+  splat:{url:'splat-survey-desk/index.html',title:'🔬 Gaussian Splatting Desk',sub:'3D Gaussian splatting survey: newest arXiv papers, venues, comparisons and learning plans'},
+  audio:{url:'audio-survey-desk/index.html',title:'🎧 Audio Classification Desk',sub:'Audio classification survey: newest arXiv papers, venues, comparisons and a learning path'}
+};
+function rsKey(){return 'research_desk_'+(currentUser?currentUser.id:'x');}
+function rsCurrent(){let k=null;try{k=localStorage.getItem(rsKey());}catch(e){}return RS_DESKS[k]?k:(currentUser&&currentUser.id==='user2'?'audio':'splat');}
+function rsSet(k){try{localStorage.setItem(rsKey(),k);}catch(e){}rsLoad();}
+function rsTheme(){const f=document.getElementById('rsFrame');try{const th=document.documentElement.getAttribute('data-theme');const d=f.contentDocument&&f.contentDocument.documentElement;if(d){if(th)d.setAttribute('data-theme',th);else d.removeAttribute('data-theme');}}catch(e){}}
+function rsLoad(){
+  const k=rsCurrent(),d=RS_DESKS[k],f=document.getElementById('rsFrame');
+  document.getElementById('rsPick').value=k;
+  document.getElementById('rsTitle').textContent=d.title;
+  document.getElementById('rsSub').textContent=d.sub;
+  document.getElementById('rsOpen').href=d.url;
+  if(f.dataset.desk!==k){f.dataset.desk=k;f.onload=rsTheme;f.src=d.url;} else rsTheme();
 }
 
 // ════════════════════════════════════════════════
@@ -2384,7 +2437,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){window.add
 
 // ── Theme ──
 function updateThemeBtn(){const d=document.documentElement.dataset.theme==='dark',b=document.getElementById('themeBtn');if(b)b.innerHTML=d?'<i class="fas fa-sun"></i> Light mode':'<i class="fas fa-moon"></i> Dark mode';}
-function toggleTheme(){const t=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=t;try{localStorage.setItem('diaryTheme',t);}catch(e){}updateThemeBtn();}
+function toggleTheme(){const t=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=t;try{localStorage.setItem('diaryTheme',t);}catch(e){}updateThemeBtn();rsTheme();}
 updateThemeBtn();
 
 boot();

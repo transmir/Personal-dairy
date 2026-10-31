@@ -1,0 +1,1609 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Audio Classification Desk</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script>window.SSD_BACKEND_URL='https://script.google.com/macros/s/AKfycbw_vYwTxspKnmQYkt9wy7fvIoWDMVbQiR_0CHzxtaT-pQuZS8lW8Tx-z1g4MsAr8XFOOg/exec';</script>
+<script>
+// Configuration for the Audio Classification Desk.
+// The page template is shared with splat-survey-desk; this file swaps in the
+// audio topics, arXiv queries, venues, classic papers and learning path.
+// Topic keys (ff, scene, ...) are the template's 8 colour slots; only the names matter to readers.
+(function () {
+  const YT = q => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
+  const GH = q => 'https://github.com/search?q=' + encodeURIComponent(q) + '&type=repositories&s=stars&o=desc';
+  const AX = id => 'https://arxiv.org/abs/' + id;
+  const BASE = '(cat:eess.AS OR cat:cs.SD) AND (abs:"audio classification" OR abs:"sound classification" OR abs:"audio tagging" OR abs:"sound event" OR abs:"acoustic scene" OR abs:"audio event")';
+  const B = '(cat:eess.AS OR cat:cs.SD)';
+  window.DESK = {
+    allLabel: 'All audio classification',
+    surveyDesc: 'a survey on audio classification (audio tagging and environmental sound classification, acoustic scene classification, sound event detection, audio transformers and pretrained models, zero/few-shot and audio-language models, efficient on-device models, self-supervised audio representations, and bioacoustics / music / speech classification)',
+    baseline: 'standard CNN / transformer audio classifiers such as PANNs and AST',
+    blockHints: 'e.g. resampling, STFT / log-mel spectrogram, SpecAugment or mixup augmentation, CNN or transformer backbone, temporal pooling, classification head, BCE / cross-entropy loss, pretraining on AudioSet',
+    loopHint: 'e.g. teacher-student distillation, pseudo-labelling or self-training loops',
+    edgeHint: 'e.g. "waveform", "log-mel spectrogram", "patch embeddings", "class logits"',
+    datasetEg: 'AudioSet, ESC-50, UrbanSound8K, FSD50K, DCASE TAU Urban Acoustic Scenes, Speech Commands',
+    metricEg: 'mAP, accuracy, macro F1, PSDS, d-prime, parameters, MACs, latency',
+    viewsLabel: 'Input setting',
+    viewsDesc: "input setting: clip length, sample rate and features, e.g. '10 s clips at 32 kHz, 128 log-mel bins' or 'raw waveform, 16 kHz'",
+    compareDims: '"Input features", "Model architecture", "Pretraining / training data", "Supervision and losses", "Label setting (supervised, weak, zero-shot)", "Efficiency", "Task and output"',
+    compareExtra: 'e.g. "Temporal resolution", "Handles polyphony", "Robustness to domain shift", "On-device suitability"',
+    searchEg: 'Search title, abstract, authors, venue… e.g. “sound event detection”, “CLAP”, “ICASSP 2026”',
+    latestNote: 'Papers on this desk come live from arXiv through your diary backend: up to 1,000 of the newest audio classification papers in eess.AS and cs.SD, refreshed every 6 hours.',
+    listLabel: 'Live from arXiv, newest first',
+    noLiveChip: true,
+    storePrefix: 'acd-',
+    listings: [['eess.AS','new','Today’s eess.AS listing'],['cs.SD','recent','cs.SD recent']],
+    srcNote: 'Papers load live from arXiv (eess.AS and cs.SD) through the diary backend. Topic tags are assigned by keyword rules, so check borderline papers.',
+    freshPages: 5,
+    noBlender: true,
+    fileName: 'audio-classification-desk.html',
+    learnLabel: 'Audio learning path',
+    learnIntro: 'Free courses, books, tutorials and code in the order to take them: signal processing, then audio features, then deep learning, then audio models and pretraining, then one deep dive per survey topic.',
+    oldLabel: 'Pre-deep-learning roots',
+    oldQuery: q => q,
+    oldKwTitle: 'Older audio keywords to try',
+    oldKwNote: 'Pre-deep-learning terms for the same problems.',
+    oldKeywords: ['MFCC','Gaussian mixture model','hidden Markov model sound event','i-vector','bag of audio words','non-negative matrix factorization sound','acoustic event detection','audio fingerprinting','timbre features','zero-crossing rate','onset detection','spectrogram image features','computational auditory scene analysis','auditory scene analysis'],
+    dblpNote: 'DBLP indexes every edition of these venues back to their first year. Good for finding older signal-processing work on the same idea.',
+    extraSearch: (qd, enc) => [
+      ['ISCA Archive (Interspeech)', 'https://www.google.com/search?q=' + enc('site:isca-archive.org ' + qd), 'Interspeech papers'],
+      ['DCASE workshop and challenge', 'https://www.google.com/search?q=' + enc('site:dcase.community ' + qd), 'Challenge reports and workshop papers'],
+      ['IEEE Xplore', 'https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=' + enc(qd), 'ICASSP, TASLP, SPL']
+    ],
+    topics: [
+      {k:'ff',      n:'Audio tagging & sound classification'},
+      {k:'scene',   n:'Acoustic scene classification'},
+      {k:'surf',    n:'Sound event detection'},
+      {k:'dyn',     n:'Audio transformers & pretrained models'},
+      {k:'sparse',  n:'Zero/few-shot & audio-language'},
+      {k:'fast',    n:'Efficient & on-device models'},
+      {k:'compact', n:'Self-supervised representations'},
+      {k:'mesh',    n:'Bioacoustics, music & speech'}
+    ],
+    arxivQ: {
+      all: BASE,
+      ff: B + ' AND (abs:"audio tagging" OR abs:"environmental sound" OR abs:"sound classification" OR abs:AudioSet OR abs:"ESC-50")',
+      scene: B + ' AND (abs:"acoustic scene" OR abs:"scene classification")',
+      surf: B + ' AND (abs:"sound event detection" OR abs:"event detection" OR abs:"polyphonic")',
+      dyn: B + ' AND (abs:transformer OR abs:"pretrained" OR abs:"pre-trained") AND (abs:"audio classification" OR abs:"audio tagging")',
+      sparse: B + ' AND (abs:"zero-shot" OR abs:"few-shot" OR abs:CLAP OR abs:"audio-language" OR abs:"language model")',
+      fast: B + ' AND (abs:efficient OR abs:"on-device" OR abs:"low-complexity" OR abs:"knowledge distillation" OR abs:edge) AND (abs:classification OR abs:tagging)',
+      compact: B + ' AND (abs:"self-supervised" OR abs:"representation learning" OR abs:"masked") AND (abs:audio)',
+      mesh: B + ' AND (abs:bioacoustic OR abs:"bird" OR abs:"music genre" OR abs:"instrument recognition" OR abs:"speech emotion" OR abs:"speaker")'
+    },
+    plainQ: {all:'audio classification', ff:'audio tagging environmental sound classification', scene:'acoustic scene classification', surf:'sound event detection', dyn:'audio spectrogram transformer pretrained', sparse:'zero-shot audio classification CLAP', fast:'efficient audio classification on-device', compact:'self-supervised audio representation learning', mesh:'bioacoustics music speech classification'},
+    topicRx: {
+      ff: 'audio tagging|environmental sound|sound classification|audio classification|audioset|esc-50|urbansound|fsd50k|general-purpose audio',
+      scene: 'acoustic scene|scene classification|\\bASC\\b|tau urban|device mismatch',
+      surf: 'sound event detection|\\bSED\\b|event detection|polyphonic|onset|offset|temporal localization|frame-level|strong label|weak label|psds',
+      dyn: 'transformer|\\bAST\\b|pretrain|pre-train|foundation model|\\bBEATs\\b|\\bPANNs?\\b|htsat|hts-at|passt|large-scale',
+      sparse: 'zero-shot|few-shot|\\bCLAP\\b|audio-language|language model|text-audio|prompt|open-vocabulary|captioning|\\bLLM',
+      fast: 'efficient|on-device|low-complexity|lightweight|knowledge distillation|mobile|edge|latency|quantiz|prun|tiny|real-time|\\bMACs?\\b',
+      compact: 'self-supervised|self supervised|representation learning|contrastive|masked|\\bSSL\\b|byol|wav2vec|hubert|data2vec',
+      mesh: 'bioacoustic|bird|animal|whale|bat|insect|music|genre|instrument|speech emotion|emotion recognition|speaker|keyword spotting|medical|cough|heart sound|respiratory'
+    },
+    venues: [
+      ['ICASSP','IEEE Intl. Conf. on Acoustics, Speech and Signal Processing','conf/icassp'],
+      ['Interspeech','Annual Conference of the ISCA','conf/interspeech'],
+      ['DCASE','Detection and Classification of Acoustic Scenes and Events workshop','conf/dcase'],
+      ['WASPAA','IEEE Workshop on Applications of Signal Processing to Audio and Acoustics','conf/waspaa'],
+      ['TASLP','IEEE/ACM Trans. Audio, Speech and Language Processing','journals/taslp'],
+      ['IEEE SPL','IEEE Signal Processing Letters','journals/spl'],
+      ['EUSIPCO','European Signal Processing Conference','conf/eusipco'],
+      ['ISMIR','Intl. Society for Music Information Retrieval','conf/ismir'],
+      ['NeurIPS','Neural Information Processing Systems','conf/nips'],
+      ['ICLR','International Conference on Learning Representations','conf/iclr'],
+      ['ICML','International Conference on Machine Learning','conf/icml'],
+      ['AAAI','AAAI Conference on Artificial Intelligence','conf/aaai'],
+      ['ACM MM','ACM Multimedia','conf/mm'],
+      ['JASA','Journal of the Acoustical Society of America','journals/jasa']
+    ],
+    classics: [
+      ['ff','Comparison of Parametric Representations for Monosyllabic Word Recognition (MFCCs)','Davis, Mermelstein','IEEE TASSP',1980],
+      ['mesh','Musical Genre Classification of Audio Signals','Tzanetakis, Cook','IEEE TSAP',2002],
+      ['ff','Environmental Sound Recognition With Time–Frequency Audio Features','Chu, Narayanan, Kuo','IEEE TASLP',2009],
+      ['ff','A Dataset and Taxonomy for Urban Sound Research (UrbanSound8K)','Salamon, Jacoby, Bello','ACM MM',2014],
+      ['ff','ESC: Dataset for Environmental Sound Classification','Piczak','ACM MM',2015],
+      ['ff','Environmental Sound Classification with Convolutional Neural Networks','Piczak','IEEE MLSP',2015],
+      ['compact','SoundNet: Learning Sound Representations from Unlabeled Video','Aytar, Vondrick, Torralba','NeurIPS',2016],
+      ['ff','Audio Set: An Ontology and Human-Labeled Dataset for Audio Events','Gemmeke et al.','ICASSP',2017],
+      ['ff','CNN Architectures for Large-Scale Audio Classification','Hershey et al.','ICASSP',2017],
+      ['ff','Deep Convolutional Neural Networks and Data Augmentation for Environmental Sound Classification','Salamon, Bello','IEEE SPL',2017],
+      ['surf','Convolutional Recurrent Neural Networks for Polyphonic Sound Event Detection','Çakır, Parascandolo, Heittola, Huttunen, Virtanen','IEEE TASLP',2017],
+      ['scene','Detection and Classification of Acoustic Scenes and Events: Outcome of the DCASE 2016 Challenge','Mesaros et al.','IEEE TASLP',2018],
+      ['ff','mixup: Beyond Empirical Risk Minimization','Zhang, Cisse, Dauphin, Lopez-Paz','ICLR',2018],
+      ['ff','SpecAugment: A Simple Data Augmentation Method for Automatic Speech Recognition','Park et al.','Interspeech',2019],
+      ['sparse','Prototypical Networks for Few-shot Learning','Snell, Swersky, Zemel','NeurIPS',2017],
+      ['dyn','PANNs: Large-Scale Pretrained Audio Neural Networks for Audio Pattern Recognition','Kong et al.','IEEE TASLP',2020],
+      ['compact','wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations','Baevski, Zhou, Mohamed, Auli','NeurIPS',2020],
+      ['dyn','AST: Audio Spectrogram Transformer','Gong, Chung, Glass','Interspeech',2021],
+      ['mesh','BirdNET: A Deep Learning Solution for Avian Diversity Monitoring','Kahl, Wood, Eibl, Klinck','Ecological Informatics',2021],
+      ['ff','FSD50K: An Open Dataset of Human-Labeled Sound Events','Fonseca, Favory, Pons, Font, Serra','IEEE TASLP',2022],
+      ['dyn','HTS-AT: A Hierarchical Token-Semantic Audio Transformer for Sound Classification and Detection','Chen et al.','ICASSP',2022],
+      ['fast','Efficient Training of Audio Transformers with Patchout (PaSST)','Koutini, Schlüter, Eghbal-zadeh, Widmer','Interspeech',2022],
+      ['compact','SSAST: Self-Supervised Audio Spectrogram Transformer','Gong, Lai, Chung, Glass','AAAI',2022],
+      ['compact','Masked Autoencoders that Listen (Audio-MAE)','Huang et al.','NeurIPS',2022],
+      ['sparse','Wav2CLIP: Learning Robust Audio Representations from CLIP','Wu, Seetharaman, Kumar, Bello','ICASSP',2022],
+      ['sparse','CLAP: Learning Audio Concepts from Natural Language Supervision','Elizalde, Deshmukh, Al Ismail, Wang','ICASSP',2023],
+      ['sparse','Large-Scale Contrastive Language-Audio Pretraining with Feature Fusion and Keyword-to-Caption Augmentation (LAION-CLAP)','Wu et al.','ICASSP',2023],
+      ['fast','Efficient Large-Scale Audio Tagging via Transformer-to-CNN Knowledge Distillation','Schmid, Koutini, Widmer','ICASSP',2023],
+      ['dyn','BEATs: Audio Pre-Training with Acoustic Tokenizers','Chen et al.','ICML',2023]
+    ],
+    learn: [
+      {s:'Math and signal processing', d:'Sampling, Fourier transforms and filters. Every audio model starts from a waveform and usually a spectrogram.', items:[
+        ['Essence of Linear Algebra','3Blue1Brown','Video series','Beginner','https://www.3blue1brown.com/topics/linear-algebra','Vectors, matrices and change of basis.'],
+        ['But what is the Fourier Transform?','3Blue1Brown','Video','Beginner',YT('3Blue1Brown Fourier transform visual introduction'),'The clearest visual introduction to frequency. Opens a YouTube search.'],
+        ['Think DSP','Allen B. Downey','Free book + code','Beginner','https://greenteapress.com/wp/think-dsp/','Digital signal processing in Python: spectra, filters, the DFT.'],
+        ['Mathematics for Machine Learning','Deisenroth, Faisal, Ong','Free book','Beginner','https://mml-book.github.io/','Probability, optimisation and matrix calculus for ML.']
+      ]},
+      {s:'Audio features and tools', d:'Turning sound into features: STFT, mel scale, MFCCs, and the libraries that compute them.', items:[
+        ['Audio Signal Processing for Machine Learning (Valerio Velardo)','The Sound of AI','Video course','Beginner',YT('Valerio Velardo audio signal processing for machine learning'),'Spectrograms, MFCCs and audio features step by step. Opens a YouTube search.'],
+        ['librosa documentation and examples','librosa','Library docs','Beginner','https://librosa.org/doc/latest/index.html','Load audio, compute mel spectrograms and MFCCs in Python.'],
+        ['torchaudio documentation','PyTorch','Library docs','Beginner','https://pytorch.org/audio/stable/index.html','Audio I/O, transforms and datasets inside PyTorch.'],
+        ['Fundamentals of Music Processing (notebooks)','Meinard Müller','Book + notebooks','Intermediate',GH('FMP notebooks Meinard Muller'),'Fourier analysis, chroma and onsets with runnable notebooks. Opens a GitHub search.']
+      ]},
+      {s:'Deep learning foundations', d:'Enough deep learning to train and read audio models.', items:[
+        ['Dive into Deep Learning','d2l.ai','Free book + code','Beginner','https://d2l.ai/','CNNs, RNNs, attention and transformers with PyTorch code.'],
+        ['CS231n: Deep Learning for Computer Vision','Stanford University','Course','Beginner','https://cs231n.stanford.edu/','CNN fundamentals that transfer directly to spectrograms.'],
+        ['PyTorch tutorials','PyTorch','Tutorials','Beginner','https://pytorch.org/tutorials/','Datasets, training loops and custom models.'],
+        ['Neural Networks: Zero to Hero (Andrej Karpathy)','Andrej Karpathy','Video series','Beginner',YT('Andrej Karpathy neural networks zero to hero micrograd'),'Backpropagation and transformers built by hand. Opens a YouTube search.']
+      ]},
+      {s:'Audio classification core', d:'Datasets, baselines and the models every audio classification paper compares against.', items:[
+        ['Hugging Face Audio Course','Hugging Face','Course','Beginner','https://huggingface.co/learn/audio-course','Audio data, pretrained models and fine-tuning an audio classifier end to end.'],
+        ['ESC-50 dataset','Karol Piczak','Dataset','Beginner','https://github.com/karolpiczak/ESC-50','The standard small benchmark: 2,000 clips, 50 classes, 5 folds.'],
+        ['AudioSet','Google Research','Dataset','Intermediate','https://research.google.com/audioset/','The large-scale ontology and dataset most models pretrain on.'],
+        ['PANNs paper','Kong et al.','Paper','Intermediate',AX('1912.10211'),'Large-scale pretrained CNNs for audio tagging; a standard baseline.'],
+        ['PANNs code','Qiuqiang Kong','Code','Intermediate','https://github.com/qiuqiangkong/audioset_tagging_cnn','Training and inference code for PANNs.'],
+        ['AST paper','Gong, Chung, Glass','Paper','Intermediate',AX('2104.01778'),'The Audio Spectrogram Transformer.'],
+        ['AST code','Yuan Gong','Code','Intermediate','https://github.com/YuanGongND/ast','Fine-tune AST on ESC-50, Speech Commands and AudioSet.'],
+        ['SpecAugment paper','Park et al.','Paper','Beginner',AX('1904.08779'),'The augmentation used by almost every spectrogram model.']
+      ]},
+      {s:'Deep dives for your survey topics', d:'One starting point per topic.', items:[
+        ['DCASE challenge','DCASE community','Challenge + workshop','Intermediate','https://dcase.community/','Tasks, baselines and results for scene classification, event detection and more.','scene'],
+        ['Polyphonic sound event detection with CRNNs','Çakır et al.','Paper','Advanced','https://scholar.google.com/scholar?q=%22Convolutional+Recurrent+Neural+Networks+for+Polyphonic+Sound+Event+Detection%22','The classic SED architecture.','surf'],
+        ['HTS-AT paper','Chen et al.','Paper','Advanced',AX('2202.00874'),'Hierarchical token-semantic audio transformer for tagging and detection.','dyn'],
+        ['BEATs paper','Chen et al.','Paper','Advanced',AX('2212.09058'),'Audio pretraining with acoustic tokenizers.','dyn'],
+        ['LAION-CLAP code','LAION','Code','Advanced','https://github.com/LAION-AI/CLAP','Contrastive language-audio pretraining for zero-shot classification.','sparse'],
+        ['PaSST paper','Koutini et al.','Paper','Advanced',AX('2110.05069'),'Efficient audio transformer training with patchout.','fast'],
+        ['Audio-MAE paper','Huang et al.','Paper','Advanced',AX('2207.06405'),'Masked autoencoders for self-supervised audio representations.','compact'],
+        ['SSAST paper','Gong et al.','Paper','Advanced',AX('2110.09784'),'Self-supervised audio spectrogram transformer.','compact'],
+        ['BirdNET','Cornell Lab of Ornithology','Code','Intermediate',GH('BirdNET-Analyzer'),'Bird sound identification used in real ecology work. Opens a GitHub search.','mesh']
+      ]},
+      {s:'Hands-on tools', d:'Listen, label and inspect audio yourself.', items:[
+        ['Audacity','Audacity','Desktop app','Beginner','https://www.audacityteam.org/','Record, cut and view spectrograms of audio.'],
+        ['Sonic Visualiser','Queen Mary University of London','Desktop app','Beginner','https://www.sonicvisualiser.org/','Inspect spectrograms and annotate audio.'],
+        ['Hugging Face audio classification models','Hugging Face','Model hub','Beginner','https://huggingface.co/models?pipeline_tag=audio-classification','Try pretrained audio classifiers in the browser.']
+      ]}
+    ]
+  };
+})();
+
+</script>
+<style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<style>
+/* Layout: research workbench. Sticky topic rail on the left, paper ledger on the right; one column on phones. */
+:root{
+  --bg:#f3f5f8; --panel:#ffffff; --ink:#141a24; --muted:#5b6678; --line:#dde2ea; --soft:#e9edf3;
+  --accent:#2453c9; --accent-ink:#ffffff; --accent-soft:#e3eaff; --good:#1d7a4e; --warn:#a2560b;
+  --c-ff:#2453c9; --c-scene:#7a4fc1; --c-surf:#0f7c78; --c-dyn:#c2410c; --c-sparse:#b4237a; --c-fast:#3f7d1c; --c-compact:#a16207; --c-mesh:#475569;
+  --f-display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1218; --panel:#161b23; --ink:#e6ebf2; --muted:#98a3b5; --line:#2a313d; --soft:#1e2530;
+  --accent:#7ea2ff; --accent-ink:#0b1020; --accent-soft:#1d2a4d; --good:#5fd39a; --warn:#f0a95a;
+  --c-ff:#7ea2ff; --c-scene:#b99af0; --c-surf:#4fd1c5; --c-dyn:#fb8c5a; --c-sparse:#f27bbd; --c-fast:#8fd36a; --c-compact:#e8b53c; --c-mesh:#a8b4c6;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1218; --panel:#161b23; --ink:#e6ebf2; --muted:#98a3b5; --line:#2a313d; --soft:#1e2530;
+  --accent:#7ea2ff; --accent-ink:#0b1020; --accent-soft:#1d2a4d; --good:#5fd39a; --warn:#f0a95a;
+  --c-ff:#7ea2ff; --c-scene:#b99af0; --c-surf:#4fd1c5; --c-dyn:#fb8c5a; --c-sparse:#f27bbd; --c-fast:#8fd36a; --c-compact:#e8b53c; --c-mesh:#a8b4c6;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body)}
+a{color:var(--accent)}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{padding-block:22px 14px;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+#mark{width:64px;height:44px;flex:none}
+.brand h1{font:700 clamp(22px,3.2vw,30px)/1.1 var(--f-display);margin:0;letter-spacing:-.01em;text-wrap:balance}
+.brand p{margin:3px 0 0;color:var(--muted);font-size:13.5px}
+.stats{margin-left:auto;display:flex;gap:18px;font:12px var(--f-mono);color:var(--muted);flex-wrap:wrap}
+.stats b{display:block;font:500 18px var(--f-mono);color:var(--ink);font-variant-numeric:tabular-nums}
+nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+nav.tabs a{padding:10px 14px;text-decoration:none;color:var(--muted);font-weight:500;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-1px}
+nav.tabs a[aria-current="page"]{color:var(--ink);border-color:var(--accent)}
+nav.tabs a .n{font:12px var(--f-mono);margin-left:6px;color:var(--muted)}
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:28px;padding-block:20px 60px}
+aside.rail{position:sticky;top:12px;align-self:start;display:flex;flex-direction:column;gap:18px}
+.lab{font:600 11px var(--f-body);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.topics{display:flex;flex-direction:column;gap:2px}
+.topic{display:grid;grid-template-columns:10px 1fr auto;gap:10px;align-items:center;padding:7px 9px;border-radius:7px;border:0;background:none;text-align:left;cursor:pointer;color:var(--ink)}
+.topic:hover{background:var(--soft)}
+.topic[aria-pressed="true"]{background:var(--panel);box-shadow:inset 0 0 0 1px var(--line)}
+.topic .dot{width:10px;height:10px;border-radius:50%}
+.topic .ct{font:12px var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.filters{display:flex;flex-direction:column;gap:10px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:12.5px;color:var(--muted)}
+select,input[type=search],input[type=text]{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px 10px;width:100%}
+.check{display:flex;gap:8px;align-items:center;font-size:14px}
+.searchbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.searchbar input{flex:1 1 260px;font-size:15px;padding:10px 12px}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:8px 12px;cursor:pointer;font-weight:500;white-space:nowrap}
+a.btn{text-decoration:none;color:var(--ink);display:inline-block}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.meta-line{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:13px;margin:4px 0 10px}
+.paper{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.list{display:flex;flex-direction:column;gap:10px}
+.p-head{display:flex;gap:12px;align-items:flex-start}
+.p-title{font:600 16px/1.35 var(--f-body);margin:0;flex:1;min-width:0;text-wrap:pretty}
+.p-title a{color:var(--ink);text-decoration:none}
+.p-title a:hover{color:var(--accent);text-decoration:underline}
+.star{border:0;background:none;cursor:pointer;font-size:20px;line-height:1;color:var(--muted);padding:0 2px}
+.star[aria-pressed="true"]{color:var(--warn)}
+.p-auth{color:var(--muted);font-size:13.5px;overflow-wrap:anywhere}
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chip{font:500 11.5px var(--f-body);padding:2px 8px;border-radius:99px;border:1px solid currentColor;white-space:nowrap}
+.chip.venue{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600}
+.chip.date{font-family:var(--f-mono);border-color:var(--line);color:var(--muted)}
+.chip.new{background:var(--good);border-color:var(--good);color:var(--panel)}
+.p-ab{font-size:14px;color:var(--ink);margin:2px 0 0}
+.p-ab.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--muted)}
+.links{display:flex;gap:14px;flex-wrap:wrap;font-size:13px}
+.links a,.links button{color:var(--accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:none;font-weight:500}
+.links a:hover,.links button:hover{text-decoration:underline}
+.more{display:flex;justify-content:center;padding:14px}
+.empty{padding:40px 20px;text-align:center;color:var(--muted);background:var(--panel);border:1px dashed var(--line);border-radius:10px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.live{margin-bottom:16px;display:flex;flex-direction:column;gap:10px}
+.live h2,.sec h2{font:700 18px/1.2 var(--f-display);margin:0}
+.live p{margin:0;color:var(--muted);font-size:14px;max-width:75ch}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.status{font:12.5px var(--f-mono);color:var(--muted)}
+.status.err{color:var(--warn)}
+.venuebar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.vbtn{border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:5px 11px;cursor:pointer;font-size:13px}
+.vbtn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.vbtn .ct{font:11.5px var(--f-mono);opacity:.7;margin-left:4px}
+.sec{display:flex;flex-direction:column;gap:12px;margin-bottom:26px}
+.extgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.ext{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);text-decoration:none;color:var(--ink)}
+.ext:hover{border-color:var(--accent)}
+.ext small{color:var(--muted);font-size:12px}
+table.found{width:100%;border-collapse:collapse;font-size:14px}
+.tablebox{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+table.found th,table.found td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.found th{font:600 11px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--soft)}
+table.found td.yr{font-family:var(--f-mono);font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+table.found td.vn{white-space:nowrap;font-weight:500}
+.note{font-size:13px;color:var(--muted);max-width:80ch}
+.lhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.lnum{font:500 12px var(--f-mono);color:var(--accent);letter-spacing:.04em}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.litem{display:flex;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.litem.isdone{opacity:.62}
+.litem.isdone .ltitle{text-decoration:line-through}
+.ldone input{width:18px;height:18px;margin-top:3px;accent-color:var(--accent)}
+.ltitle{font-weight:600;text-decoration:none}
+.ltitle:hover{text-decoration:underline}
+.lwhy{margin:6px 0 0;font-size:13.5px;color:var(--muted)}
+.chip.lvl-beginner{color:var(--good)}
+.chip.lvl-intermediate{color:var(--accent)}
+.chip.lvl-advanced{color:var(--warn)}
+.lprog{display:flex;gap:12px;align-items:center}
+.lbar{flex:1;max-width:320px;height:8px;border-radius:99px;background:var(--soft);overflow:hidden}
+.lbar span{display:block;height:100%;background:var(--accent)}
+@media (max-width:860px){.lgrid{grid-template-columns:minmax(0,1fr)}}
+.p-title button{all:unset;cursor:pointer;color:var(--ink)}
+.p-title button:hover{color:var(--accent);text-decoration:underline}
+.p-title button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.paper{cursor:pointer}
+.paper:hover{border-color:var(--accent)}
+.dv-scrim{position:fixed;inset:0;background:rgba(10,14,20,.45);z-index:30}
+.dv{position:fixed;top:0;right:0;bottom:0;width:min(880px,100%);background:var(--bg);z-index:31;overflow-y:auto;border-left:1px solid var(--line);box-shadow:-12px 0 40px rgba(0,0,0,.18);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.dv-bar{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;padding-block:10px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));background:var(--bg);border-bottom:1px solid var(--line);z-index:2}
+.dv-body{display:flex;flex-direction:column;gap:12px;padding-block:18px 40px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.dv-title{font:700 clamp(19px,2.6vw,24px)/1.25 var(--f-display);margin:0;text-wrap:balance}
+.dv-abs summary{cursor:pointer;font-weight:600;color:var(--accent)}
+.dv-abs p{font-size:14px;max-width:80ch}
+.x-wait{display:flex;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.x-wait>div:nth-child(2){flex:1;min-width:0}
+.x-spin{width:22px;height:22px;border-radius:50%;border:3px solid var(--soft);border-top-color:var(--accent);animation:spin 0.9s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.x-note{font-size:13px;color:var(--muted);background:var(--soft);border-radius:8px;padding:10px 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.x-sec{display:flex;flex-direction:column;gap:6px;min-width:0}
+.x-sec h3{font:600 11.5px var(--f-body);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:6px 0 0}
+.x-sec p,.x-sec li{font-size:14.5px;max-width:78ch;margin:0}
+.x-sec ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.x-tldr{font:500 17px/1.45 var(--f-body)!important;border-left:3px solid var(--accent);padding-left:12px}
+.x-two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.x-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;gap:5px;align-items:center}
+.lg{display:inline-block;width:14px;height:10px;border-radius:3px;border:1.5px solid var(--line);background:var(--panel)}
+.lg.k-input{border-color:var(--c-surf)} .lg.k-module{border-color:var(--accent)} .lg.k-representation{border-color:var(--c-scene)} .lg.k-loss{border-color:var(--c-dyn)} .lg.k-output{border-color:var(--good)}
+.lg.dash{border-style:dashed;border-color:var(--muted)} .lg.fb{border:0;border-top:2px dashed var(--c-dyn);border-radius:0;height:0} .lg.infr{background:var(--soft);border-color:var(--muted);opacity:.7}
+.flowbox{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px}
+.flow{display:block;margin:0 auto;max-width:none}
+.flow .fe{fill:none;stroke:var(--muted);stroke-width:1.6}
+.flow .be{fill:none;stroke:var(--c-dyn);stroke-width:1.6;stroke-dasharray:5 4}
+.flow .ahp{fill:var(--muted)} .flow .ahb{fill:var(--c-dyn)}
+.flow .el rect{fill:var(--panel);stroke:var(--line)} .flow .el text{fill:var(--muted);font:11px var(--f-mono)}
+.flow .nd{cursor:pointer}
+.flow .nd rect{fill:var(--bg);stroke:var(--line);stroke-width:1.5}
+.flow .nd .band{stroke:none}
+.flow .nd.k-input .band{fill:var(--c-surf)} .flow .nd.k-module .band{fill:var(--accent)} .flow .nd.k-representation .band{fill:var(--c-scene)} .flow .nd.k-loss .band{fill:var(--c-dyn)} .flow .nd.k-output .band{fill:var(--good)}
+.flow .nd.k-input rect:first-child{stroke:var(--c-surf)} .flow .nd.k-module rect:first-child{stroke:var(--accent)} .flow .nd.k-representation rect:first-child{stroke:var(--c-scene)} .flow .nd.k-loss rect:first-child{stroke:var(--c-dyn)} .flow .nd.k-output rect:first-child{stroke:var(--good)}
+.flow .nd.ph-train rect:first-child{stroke-dasharray:6 4}
+.flow .nd.inf rect:first-child{fill:var(--soft)}
+.flow .nd.sel rect:first-child,.flow .nd:hover rect:first-child,.flow .nd:focus rect:first-child{stroke-width:3}
+.flow .nd:focus{outline:none}
+.flow .nk{fill:var(--muted);font:10.5px var(--f-mono)}
+.flow .nl{fill:var(--ink);font:600 13.5px var(--f-body)}
+.x-nodeinfo{background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:14px}
+.x-nodeinfo p{margin:4px 0 0}
+.x-steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px}
+.x-steps p{margin:2px 0 0;color:var(--muted)}
+@media (max-width:640px){.x-two{grid-template-columns:minmax(0,1fr)}}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);cursor:pointer;font-weight:500;font-size:13px}
+.linkbtn:hover{text-decoration:underline}
+.links button[data-cmp][aria-pressed="true"]{color:var(--good)}
+.ctray{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:25;display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:center;background:var(--panel);border:1px solid var(--line);box-shadow:0 8px 30px rgba(0,0,0,.18);border-radius:12px;padding:10px 12px 10px 16px;max-width:calc(100% - 32px)}
+.ctray .btn.disabled{opacity:.5;pointer-events:none}
+body.has-tray .layout{padding-bottom:110px}
+.cmp-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel);margin-top:16px}
+.cmp{min-width:max-content}
+.cr{display:grid;border-bottom:1px solid var(--line)}
+.cr:last-child{border-bottom:0}
+.ch{position:sticky;left:0;background:var(--soft);font:600 11px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:12px;z-index:1}
+.cc{padding:12px 14px;font-size:14px;border-left:1px solid var(--line);min-width:0;max-width:360px}
+.cc ul,.cc ol{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.cr.chead{position:sticky;top:0;z-index:2;background:var(--panel)}
+.cr.chead .cc{background:var(--panel)}
+.cr.cdim .cc{background:var(--accent-soft)}
+.cr.cdim .ch{color:var(--accent)}
+.cr.cexp .ch{color:var(--good)}
+.cp-num{font:500 12px var(--f-mono);color:var(--accent)}
+.cp-t{all:unset;cursor:pointer;font-weight:600;font-size:15px;line-height:1.35;color:var(--ink)}
+.cp-t:hover{color:var(--accent);text-decoration:underline}
+.cp-t:focus-visible{outline:2px solid var(--accent)}
+.cnone{color:var(--muted);font-style:italic;font-size:13px}
+.cdiag .flow{width:100%;height:auto}
+.cdiag .flow .nd{pointer-events:none}
+.csteps{font-size:13px;color:var(--muted)}
+.cab{font-size:13px;color:var(--muted)}
+.cmp-sum{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+@media (max-width:640px){.cr{grid-template-columns:96px repeat(var(--n,2),minmax(220px,1fr))!important}.ctray{width:calc(100% - 32px)}}
+[hidden]{display:none!important}
+.pdfbox{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1.5px dashed var(--line);border-radius:10px;padding:12px 14px;background:var(--panel)}
+.pdfbox.drag{border-color:var(--accent);background:var(--accent-soft)}
+.pdfbox>div{flex:1 1 300px;min-width:0}
+.pdfbox p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.pdfbox.has{border-style:solid;border-color:var(--good)}
+.expgrid{display:grid;grid-template-columns:170px minmax(0,1fr);border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+.expgrid>div{padding:9px 12px;border-bottom:1px solid var(--line);font-size:14px}
+.expgrid>div:nth-last-child(-n+2){border-bottom:0}
+.expgrid .ek{background:var(--soft);font:600 11px var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.bs{font:500 10.5px var(--f-mono);padding:1px 6px;border-radius:99px;border:1px solid currentColor;margin-left:6px;white-space:nowrap}
+.bs-paper{color:var(--good)} .bs-abstract{color:var(--accent)} .bs-recalled{color:var(--warn)} .bs-ns{color:var(--muted)}
+.ns{color:var(--muted);font-style:italic}
+@media (max-width:560px){.expgrid{grid-template-columns:minmax(0,1fr)}.expgrid .ek{border-bottom:0;padding-bottom:2px}}
+.subnav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.subnav a{text-decoration:none;color:var(--ink)}
+.subnav a[aria-current="page"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.bweek{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.bwh{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--soft);border-bottom:1px solid var(--line)}
+.bday{display:grid;grid-template-columns:22px 70px minmax(0,1fr);gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);align-items:start}
+.bday:last-child{border-bottom:0}
+.bday p{margin:2px 0 4px;font-size:14px;color:var(--ink)}
+.bday.isdone{opacity:.55}
+.bday.isdone b{text-decoration:line-through}
+.bday.today{background:var(--accent-soft)}
+.bdn{font:500 12.5px var(--f-mono);color:var(--muted);display:flex;flex-direction:column;gap:4px;align-items:flex-start;padding-top:2px}
+.bmeta{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.bmeta a{text-decoration:none;font-weight:500}
+.bk{font:600 10.5px var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--good);margin-right:4px}
+.bres{display:flex;gap:6px;flex-wrap:wrap}
+.bres a{text-decoration:none;color:var(--ink)}
+@media (max-width:560px){.bday{grid-template-columns:22px minmax(0,1fr)}.bdn{grid-column:2;flex-direction:row}.bday>div:last-child{grid-column:2}}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:8px;font-size:14px;z-index:20}
+textarea#bib{width:100%;min-height:160px;font:12px var(--f-mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px;color:var(--ink)}
+.railtoggle{display:none}
+.embedded #mark,.embedded .brand{display:none}
+.embedded header.top{padding-block:14px 6px}
+@media (max-width:860px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  aside.rail{position:static}
+  .topics{flex-direction:row;flex-wrap:wrap}
+  .topic{grid-template-columns:10px auto auto;border:1px solid var(--line)}
+  .stats{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <canvas id="mark" width="128" height="88" aria-hidden="true"></canvas>
+    <div class="brand">
+      <h1>Audio Classification Desk</h1>
+      <p>Audio classification literature for your survey: newest arXiv preprints, accepted papers at ICASSP, Interspeech, DCASE and beyond, and the signal-processing classics behind them.</p>
+    </div>
+    <div class="stats" id="stats"></div>
+  </header>
+  <nav class="tabs" id="tabs">
+    <a href="#latest" data-v="latest">Latest arXiv</a>
+    <a href="#venues" data-v="venues">Accepted at venues</a>
+    <a href="#foundations" data-v="foundations">Classic papers</a>
+    <a href="#search-out" data-v="search-out">Search conferences</a>
+    <a href="#compare" data-v="compare">Compare<span class="n" id="cn">0</span></a>
+    <a href="#learn" data-v="learn">Learn</a>
+    <a href="#reading" data-v="reading">Reading list<span class="n" id="rn">0</span></a>
+  </nav>
+  <div class="layout">
+    <aside class="rail">
+      <div>
+        <p class="lab">Survey topics</p>
+        <div class="topics" id="topics"></div>
+      </div>
+      <div class="filters">
+        <p class="lab">Filters</p>
+        <div class="field"><label for="f-year">Year</label><select id="f-year"></select></div>
+        <div class="field"><label for="f-sort">Sort</label>
+          <select id="f-sort"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="title">Title A–Z</option></select></div>
+        <label class="check"><input type="checkbox" id="f-code"> Has code</label>
+        <label class="check"><input type="checkbox" id="f-acc"> Accepted papers only</label>
+      </div>
+      <p class="note" id="srcnote"></p>
+    </aside>
+    <main id="main" style="min-width:0"></main>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script type="application/json" id="papers">[]</script>
+<script>
+(function(){
+const ORIGINAL_HTML = '<!doctype html>\n' + document.documentElement.outerHTML;
+const SNAPSHOT = '31 Oct 2026';
+const DESK = window.DESK || {};
+try{ if(window.self!==window.top) document.body.classList.add('embedded'); }catch(e){ document.body.classList.add('embedded'); }
+const SP = DESK.storePrefix || 'ssd-';
+const DSUB = DESK.surveyDesc || 'a survey on 3D Gaussian splatting (feed-forward 3DGS, scene-specific 3DGS, surface reconstruction, 4D/dynamic reconstruction, sparse-view 3DGS, real-time / fast-training 3DGS, Gaussian compaction, meshes + Gaussians)';
+const P = JSON.parse(document.getElementById('papers').textContent);
+const BYID = new Map(P.map(p=>[p.i,p]));
+
+const TOPICS = DESK.topics || [
+  {k:'ff',     n:'Feed-forward 3DGS',          q:'"gaussian splatting" AND (feed-forward OR generalizable OR "pose-free")'},
+  {k:'scene',  n:'Scene-specific 3DGS',         q:'"gaussian splatting" AND ("novel view synthesis" OR densification OR "per-scene")'},
+  {k:'surf',   n:'Surface reconstruction',      q:'"gaussian splatting" AND ("surface reconstruction" OR SDF OR geometry)'},
+  {k:'dyn',    n:'4D / dynamic reconstruction', q:'"gaussian splatting" AND (4D OR dynamic OR deformable)'},
+  {k:'sparse', n:'Sparse-view 3DGS',            q:'"gaussian splatting" AND ("sparse view" OR "few-shot" OR "sparse-view")'},
+  {k:'fast',   n:'Real-time / fast training',   q:'"gaussian splatting" AND ("fast training" OR accelerat* OR "training time")'},
+  {k:'compact',n:'Gaussian compaction',         q:'"gaussian splatting" AND (compact OR compression OR pruning)'},
+  {k:'mesh',   n:'Meshes + Gaussians',          q:'"gaussian splatting" AND (mesh OR meshes)'}
+];
+const TN = Object.fromEntries(TOPICS.map(t=>[t.k,t.n]));
+const arxivQ = DESK.arxivQ || {
+  all:'abs:"gaussian splatting"',
+  ff:'abs:"gaussian splatting" AND (abs:"feed-forward" OR abs:generalizable OR abs:"pose-free")',
+  scene:'abs:"gaussian splatting" AND (abs:"novel view synthesis" OR abs:densification)',
+  surf:'abs:"gaussian splatting" AND (abs:"surface reconstruction" OR abs:SDF OR abs:"geometric")',
+  dyn:'abs:"gaussian splatting" AND (abs:4D OR abs:dynamic OR abs:deformable)',
+  sparse:'abs:"gaussian splatting" AND (abs:"sparse view" OR abs:"sparse-view" OR abs:"few-shot")',
+  fast:'abs:"gaussian splatting" AND (abs:"fast training" OR abs:"training time" OR abs:accelerate)',
+  compact:'abs:"gaussian splatting" AND (abs:compact OR abs:compression OR abs:pruning)',
+  mesh:'abs:"gaussian splatting" AND (abs:mesh OR abs:meshes)'
+};
+const plainQ = DESK.plainQ || {all:'gaussian splatting', ff:'feed-forward gaussian splatting', scene:'3D gaussian splatting novel view synthesis', surf:'gaussian splatting surface reconstruction', dyn:'4D gaussian splatting dynamic', sparse:'sparse view gaussian splatting', fast:'fast training gaussian splatting', compact:'compact gaussian splatting compression', mesh:'mesh gaussian splatting'};
+
+// ---------- state
+const st = {view:'latest', topic:'all', q:'', year:'all', sort:'new', code:false, acc:false, venue:'all', shown:40, live:null};
+let reading = new Set();
+try{ reading = new Set(JSON.parse(localStorage.getItem(SP+'reading')||'[]')); }catch(e){}
+try{ const s = JSON.parse(localStorage.getItem(SP+'ui')||'{}'); if(s.topic) st.topic=s.topic; }catch(e){}
+function saveRL(){ try{localStorage.setItem(SP+'reading', JSON.stringify([...reading]));}catch(e){} document.getElementById('rn').textContent=reading.size; }
+function saveUI(){ try{localStorage.setItem(SP+'ui', JSON.stringify({topic:st.topic}));}catch(e){} }
+
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toast(m){ const t=$('#toast'); t.textContent=m; t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true,2200); }
+
+// ---------- brand mark: anisotropic gaussians
+(function(){ const c=$('#mark'), g=c.getContext('2d'); const cs=getComputedStyle(document.documentElement);
+  const cols=['--c-ff','--c-dyn','--c-surf','--c-scene','--c-compact'].map(v=>cs.getPropertyValue(v).trim());
+  const bl=[[40,46,30,12,.5],[70,36,22,9,-.6],[88,58,26,10,.3],[58,62,16,7,1.2],[30,28,12,6,-.3]];
+  bl.forEach((b,i)=>{ g.save(); g.translate(b[0],b[1]); g.rotate(b[4]); g.scale(b[2],b[3]);
+    const r=g.createRadialGradient(0,0,0,0,0,1); r.addColorStop(0,cols[i]); r.addColorStop(1,'transparent');
+    g.globalAlpha=.85; g.fillStyle=r; g.beginPath(); g.arc(0,0,1,0,7); g.fill(); g.restore(); });
+})();
+
+// ---------- filters
+const years = [...new Set(P.map(p=>p.d.slice(0,4)))].sort().reverse();
+$('#f-year').innerHTML = '<option value="all">All years</option>'+years.map(y=>`<option>${y}</option>`).join('');
+function base(list){
+  const q = st.q.trim().toLowerCase();
+  const terms = q ? q.split(/\s+/) : [];
+  let r = list.filter(p=>{
+    if(st.topic!=='all' && !p.k.includes(st.topic)) return false;
+    if(st.year!=='all' && p.d.slice(0,4)!==st.year) return false;
+    if(st.code && !p.c) return false;
+    if(st.acc && !p.v.length) return false;
+    if(terms.length){ const h=(p.t+' '+p.a+' '+p.ab+' '+p.v.join(' ')+' '+p.i).toLowerCase(); if(!terms.every(t=>h.includes(t))) return false; }
+    return true;
+  });
+  if(st.sort==='old') r = r.slice().reverse();
+  if(st.sort==='title') r = r.slice().sort((a,b)=>a.t.localeCompare(b.t));
+  return r;
+}
+function renderTopics(){
+  const pool = P.filter(p=>(st.view!=='venues'||p.v.length));
+  const cnt = k=>k==='all'?pool.length:pool.filter(p=>p.k.includes(k)).length;
+  $('#topics').innerHTML = [{k:'all',n:DESK.allLabel||'All Gaussian splatting'}].concat(TOPICS).map(t=>
+    `<button class="topic" data-k="${t.k}" aria-pressed="${st.topic===t.k}"><span class="dot" style="background:${t.k==='all'?'var(--ink)':'var(--c-'+t.k+')'}"></span><span>${esc(t.n)}</span><span class="ct">${cnt(t.k)}</span></button>`).join('');
+}
+$('#topics').addEventListener('click',e=>{ const b=e.target.closest('.topic'); if(!b) return; st.topic=b.dataset.k; st.shown=40; st.live=null; saveUI(); render(); });
+['f-year','f-sort'].forEach(id=>$('#'+id).addEventListener('change',e=>{ st[id.slice(2)]=e.target.value; st.shown=40; render(); }));
+$('#f-code').addEventListener('change',e=>{st.code=e.target.checked; st.shown=40; render();});
+$('#f-acc').addEventListener('change',e=>{st.acc=e.target.checked; st.shown=40; render();});
+
+// ---------- paper card
+let latestD = P.length?P[0].d:'—';
+function card(p, opts={}){
+  const isNew = latestD!=='—' && p.d >= addDays(latestD,-45);
+  const tchips = p.k.map(k=>`<span class="chip" style="color:var(--c-${k})">${esc(TN[k])}</span>`).join('');
+  const v = p.v.map(x=>`<span class="chip venue">${esc(x)}</span>`).join('');
+  const id = p.i;
+  const abs = p.ab ? `<p class="p-ab clamp">${esc(p.ab)}</p>` : '';
+  return `<article class="paper" data-id="${esc(id)}">
+    <div class="p-head"><h3 class="p-title"><button data-open="${esc(id)}" title="Open summary and method diagram">${esc(p.t)}</button></h3>
+      ${opts.nostar?'':`<button class="star" data-star="${esc(id)}" aria-pressed="${reading.has(id)}" title="Add to reading list" aria-label="Add to reading list">${reading.has(id)?'★':'☆'}</button>`}</div>
+    <div class="p-auth">${esc(p.a)}${p.org?` · <span>${esc(p.org)}</span>`:''}</div>
+    <div class="chips">${v}<span class="chip date">${esc(p.d)} · arXiv ${esc(id)}</span>${p.fresh&&!DESK.noLiveChip?'<span class="chip new">Live</span>':isNew&&!opts.live?'<span class="chip new">New</span>':''}${tchips}</div>
+    ${abs}
+    <div class="links">
+      ${p.ab?'<button data-expand>Abstract</button>':''}
+      <button data-open="${esc(id)}">Summary + diagram</button>
+      <button data-cmp="${esc(id)}" aria-pressed="${cmp.includes(id)}">${cmp.includes(id)?'✓ Comparing':'+ Compare'}</button>
+      <a href="https://arxiv.org/abs/${esc(id)}" target="_blank" rel="noopener">arXiv</a>
+      <a href="https://arxiv.org/pdf/${esc(id)}" target="_blank" rel="noopener">PDF</a>
+      ${p.c?`<a href="${esc(p.c)}" target="_blank" rel="noopener">Code</a>`:''}
+      ${p.pp?`<a href="${esc(p.pp)}" target="_blank" rel="noopener">Project page</a>`:''}
+      <a href="https://www.semanticscholar.org/arxiv/${esc(id)}" target="_blank" rel="noopener">Citations</a>
+      <a href="https://scholar.google.com/scholar?q=${encodeURIComponent('"'+p.t+'"')}" target="_blank" rel="noopener">Scholar</a>
+      <button data-bib="${esc(id)}">Copy BibTeX</button>
+    </div></article>`;
+}
+function addDays(d,n){ const x=new Date((d.length===7?d+'-01':d)+'T00:00:00Z'); x.setUTCDate(x.getUTCDate()+n); return x.toISOString().slice(0,10); }
+function bib(p){
+  const first=(p.a||'anon').split(',')[0].trim().split(/\s+/).pop().replace(/[^A-Za-z]/g,'').toLowerCase()||'anon';
+  const w=(p.t.match(/[A-Za-z]{4,}/)||['paper'])[0].toLowerCase();
+  const authors=(p.a||'').replace(/ et\.? ?al\.?/,' and others').split(/,\s*/).join(' and ');
+  const venue=p.v[0]?`,\n  note = {${p.v.join('; ')}}`:'';
+  return `@article{${first}${p.d.slice(0,4)}${w},\n  title = {${p.t}},\n  author = {${authors}},\n  journal = {arXiv preprint arXiv:${p.i}},\n  year = {${p.d.slice(0,4)}}${venue}\n}`;
+}
+async function copy(text, msg){
+  try{ await navigator.clipboard.writeText(text); toast(msg||'Copied'); }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy'); toast(msg||'Copied');}catch(_){toast('Select the text and copy it manually');} ta.remove(); }
+}
+$('#main').addEventListener('click',e=>{
+  const op=e.target.closest('[data-open]'); if(op){ openPaper(op.dataset.open); return; }
+  const cb=e.target.closest('[data-cmp]'); if(cb){ toggleCmp(cb.dataset.cmp); return; }
+  const s=e.target.closest('[data-star]');
+  if(s){ const id=s.dataset.star; reading.has(id)?reading.delete(id):reading.add(id); saveRL(); s.setAttribute('aria-pressed',reading.has(id)); s.textContent=reading.has(id)?'★':'☆'; toast(reading.has(id)?'Added to reading list':'Removed from reading list'); if(st.view==='reading') render(); return; }
+  const x=e.target.closest('[data-expand]');
+  if(x){ const ab=x.closest('.paper').querySelector('.p-ab'); const c=ab.classList.toggle('clamp'); x.textContent=c?'Abstract':'Hide abstract'; return; }
+  const b=e.target.closest('[data-bib]');
+  if(b){ const p=BYID.get(b.dataset.bib)||(st.live||[]).find(q=>q.i===b.dataset.bib); if(p) copy(bib(p),'BibTeX copied'); return; }
+  const m=e.target.closest('[data-more]'); if(m){ st.shown+=60; render(); return; }
+  const v=e.target.closest('.vbtn'); if(v){ st.venue=v.dataset.v; st.shown=40; render(); return; }
+  const art=e.target.closest('.paper'); if(art && !e.target.closest('a,button,input,label,summary') && !getSelection().toString()) openPaper(art.dataset.id);
+});
+function listHTML(list){
+  if(!list.length) return `<div class="empty">No papers match these filters. Clear the search box or pick another topic.</div>`;
+  return `<div class="list">${list.slice(0,st.shown).map(p=>card(p)).join('')}</div>`+
+    (list.length>st.shown?`<div class="more"><button class="btn" data-more>Show ${Math.min(60,list.length-st.shown)} more of ${list.length-st.shown} remaining</button></div>`:'');
+}
+function searchBar(ph){
+  return `<div class="searchbar"><input type="search" id="q" placeholder="${ph}" value="${esc(st.q)}" aria-label="Search papers"></div>`;
+}
+function bindSearch(){ const q=$('#q'); if(!q) return; q.addEventListener('input',()=>{ st.q=q.value; st.shown=40; clearTimeout(bindSearch.t); bindSearch.t=setTimeout(()=>renderList(),120); }); }
+
+// ---------- live arXiv
+function topicKey(){ return st.topic; }
+function arxivSiteURL(k){ return 'https://arxiv.org/search/?query='+encodeURIComponent(plainQ[k])+'&searchtype=all&abstracts=show&order=-announced_date_first&size=50'; }
+// ---------- optional Apps Script backend (set window.SSD_BACKEND_URL); proxies the arXiv API
+const BACKEND_URL=(window.SSD_BACKEND_URL||'').trim();
+const TOPRX=DESK.topicRx?Object.fromEntries(Object.entries(DESK.topicRx).map(([k,s])=>[k,new RegExp(s,'gi')])):{
+ ff:/feed[- ]?forward|generali[sz]able|pixelsplat|mvsplat|pose[- ]free|unposed|single[- ]image to 3d|image-to-3d|large reconstruction model|\bLRM\b|one forward pass|single forward|zero-shot (3d|reconstruction)|amortized/gi,
+ scene:/per-scene|scene[- ]specific|novel view synthesis|densification|anti-?alias|view-dependent|reflect|specular|unbounded|large-scale|in the wild|city|aerial|rendering quality|floaters/gi,
+ surf:/surface reconstruction|\bsdf\b|signed distance|2dgs|2d gaussian|geometr(y|ic) (accura|reconstruct|fidelity)|normal (prior|estimation|consisten)|planar|surfel|depth[- ]normal|watertight|neus|chamfer/gi,
+ dyn:/\b4d\b|4dgs|dynamic|deformable|deformation field|temporal|monocular video|motion|time-varying|non-rigid|free[- ]viewpoint video|volumetric video/gi,
+ sparse:/sparse[- ]view|few[- ]shot|few[- ]view|sparse input|limited views|two views|three views|\b3 views|sparse images|sparse observations/gi,
+ fast:/real[- ]time|fast training|training time|accelerat|speed[- ]?up|faster|in (seconds|minutes)|\d+ ?(seconds|minutes)|efficient training|rapid|instant|\bfps\b|lightweight/gi,
+ compact:/compact|compress|prun|storage|memory (footprint|efficient|consumption)|quantiz|codebook|\bmb\b|bitrate|rate-distortion|lightweight|fewer gaussians|number of gaussians|entropy|distill/gi,
+ mesh:/\bmesh|meshes|meshing|marching cubes|tetrahedr|triangle|mesh extraction|mesh-based|polygon|texture[d ]? mesh/gi
+};
+function classify(title,ab){ const txt=title+' '+ab; return Object.keys(TOPRX).filter(k=>{ const r=TOPRX[k]; r.lastIndex=0; const inTitle=new RegExp(r.source,'i').test(title); const hits=(txt.match(r)||[]).length; return inTitle||hits>=2; }); }
+const VENRX=/\b(CVPR|ICCV|ECCV|NeurIPS|ICLR|ICML|SIGGRAPH Asia|SIGGRAPH|3DV|AAAI|TPAMI|WACV|BMVC|ICRA|IROS|TVCG|TOG|Eurographics|CoRL|RSS|ICASSP|INTERSPEECH|Interspeech|DCASE|WASPAA|EUSIPCO|ISMIR|TASLP|IEEE SPL|ACM MM|IJCAI|ACL|EMNLP)\s*'?(20\d\d)\b/g;
+async function backendArxiv(query,max,start){
+  const url=BACKEND_URL+'?data='+encodeURIComponent(JSON.stringify({action:'arxiv',query,max,start:start||0}));
+  const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(),30000);
+  const r=await fetch(url,{signal:ctl.signal}); clearTimeout(to);
+  const j=await r.json(); if(!j.success) throw new Error(j.message||'backend error');
+  return j.papers.map(x=>({i:x.i,t:x.t,a:x.a,d:x.d,ab:x.ab,c:x.c||undefined,k:classify(x.t,x.ab),v:[...new Set([...(x.cm+' '+x.ab).matchAll(VENRX)].map(m=>m[1]+' '+m[2]))],g:[],fresh:true}));
+}
+let FRESH=null;
+async function loadFresh(){
+  if(!BACKEND_URL) return;
+  let items=null;
+  try{ const c=JSON.parse(localStorage.getItem(SP+'fresh')||'null'); if(c&&Date.now()-c.at<6*3600e3) items=c.items; }catch(e){}
+  if(!items){ try{ items=[]; const pages=DESK.freshPages||1; for(let pg=0;pg<pages;pg++){ const el=$('#freshnote'); if(el&&pages>1){ el.hidden=false; el.textContent=`Loading papers from arXiv through your backend… ${items.length} so far`; } const got=await backendArxiv(arxivQ.all,200,pg*200); items.push(...got); if(got.length<200) break; if(pg<pages-1) await new Promise(r=>setTimeout(r,3200)); } try{localStorage.setItem(SP+'fresh',JSON.stringify({at:Date.now(),items}));}catch(e){} }catch(e){ FRESH={err:true}; renderFreshNote(); return; } }
+  const add=items.filter(p=>p.i&&!BYID.has(p.i));
+  add.forEach(p=>BYID.set(p.i,p));
+  P.unshift(...add); P.sort((a,b)=>(b.d.slice(0,10)).localeCompare(a.d.slice(0,10))||b.i.localeCompare(a.i));
+  latestD=P.length?P[0].d:'—'; FRESH={n:add.length};
+  const ys=[...new Set(P.map(p=>p.d.slice(0,4)))].sort().reverse(); $('#f-year').innerHTML='<option value="all">All years</option>'+ys.map(y=>`<option${y===st.year?' selected':''}>${y}</option>`).join('');
+  document.querySelector('#stats b').textContent=P.length.toLocaleString();
+  document.querySelectorAll('#stats b')[2].textContent=latestD;
+  document.querySelectorAll('#stats b')[1].textContent=P.filter(p=>p.v.length).length.toLocaleString();
+  if(['latest','venues','reading'].includes(st.view)) render(); else renderFreshNote();
+}
+function renderFreshNote(){ const el=$('#freshnote'); if(!el||!FRESH) return; el.hidden=false;
+  el.textContent=FRESH.err?(P.length?'Could not reach your backend for newer arXiv papers; showing the snapshot only.':'Could not reach your backend, so no papers could be loaded. Check that the diary backend has the arxiv action deployed.'):(FRESH.n?(DESK.noLiveChip?`Loaded ${FRESH.n} paper${FRESH.n>1?'s':''} from arXiv through your backend.`:`Added ${FRESH.n} newer paper${FRESH.n>1?'s':''} from arXiv through your backend. They are marked “Live”.`):'Checked arXiv through your backend: the snapshot is up to date.'); }
+async function fetchLive(){
+  const k=topicKey(); const s=$('#livestatus'); s.className='status'; s.textContent='Asking arXiv for the 50 newest papers…';
+  if(BACKEND_URL){ try{ const items=await backendArxiv(arxivQ[k],50); return finishLive(items,'arXiv (through your backend)'); }catch(e){} }
+  try{
+    const url='https://export.arxiv.org/api/query?search_query='+encodeURIComponent(arxivQ[k])+'&sortBy=submittedDate&sortOrder=descending&max_results=50';
+    const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(),15000);
+    const r=await fetch(url,{signal:ctl.signal}); clearTimeout(to);
+    if(!r.ok) throw new Error('arXiv answered '+r.status);
+    const x=new DOMParser().parseFromString(await r.text(),'application/xml');
+    const items=[...x.getElementsByTagName('entry')].map(e=>{
+      const g=t=>(e.getElementsByTagName(t)[0]?.textContent||'').replace(/\s+/g,' ').trim();
+      const id=g('id').replace(/^.*abs\//,'').replace(/v\d+$/,'');
+      const com=g('arxiv:comment');
+      const ven=[...(g('summary')+' '+com).matchAll(/\b(CVPR|ICCV|ECCV|NeurIPS|ICLR|SIGGRAPH Asia|SIGGRAPH|3DV|AAAI|TPAMI|WACV|BMVC|ICRA|IROS|TVCG|TOG)\s*'?(20\d\d)\b/g)].map(m=>m[1]+' '+m[2]);
+      return {i:id,t:g('title'),a:[...e.getElementsByTagName('author')].map(a=>a.textContent.trim()).join(', '),d:g('published').slice(0,10),ab:g('summary'),k:k==='all'?[]:[k],v:[...new Set(ven)],g:[]};
+    });
+    return finishLive(items, 'arXiv API');
+  }catch(err){
+    try{
+      const url='https://api.openalex.org/works?search='+encodeURIComponent(plainQ[k])+'&sort=publication_date:desc&per_page=50&filter=from_publication_date:'+addDays(new Date().toISOString().slice(0,10),-120);
+      const r=await fetch(url); if(!r.ok) throw new Error('OpenAlex '+r.status);
+      const j=await r.json();
+      const items=j.results.map(w=>{ const ax=(JSON.stringify(w.ids||{})+JSON.stringify(w.locations||[])).match(/(\d{4}\.\d{4,5})/);
+        return {i:ax?ax[1]:'', t:w.title||w.display_name, a:(w.authorships||[]).map(a=>a.author.display_name).join(', '), d:w.publication_date, ab:'', k:k==='all'?[]:[k], v:[], g:[], src:w.doi||w.id}; }).filter(p=>p.i);
+      return finishLive(items,'OpenAlex');
+    }catch(err2){
+      s.className='status err';
+      s.innerHTML='Live fetch is blocked in this viewer (it only allows the page’s own data). Use “Open arXiv newest” or save the offline copy, which fetches live when opened in a normal browser.';
+    }
+  }
+}
+function finishLive(items, src){
+  st.live=items; st.liveSrc=src;
+  const fresh=items.filter(p=>!BYID.has(p.i)).length;
+  $('#livestatus').textContent=`${items.length} papers from ${src} · ${fresh} not yet in the snapshot · fetched ${new Date().toLocaleString()}`;
+  $('#livelist').innerHTML='<div class="list">'+items.map(p=>card(p,{live:true})).join('')+'</div>';
+}
+
+// ---------- views
+function renderList(){ const el=$('#results'); if(!el) return; const l=currentList(); $('#count').textContent=`${l.length.toLocaleString()} paper${l.length===1?'':'s'}`; el.innerHTML=listHTML(l); }
+function currentList(){
+  if(st.view==='venues'){ let l=base(P.filter(p=>p.v.length)); if(st.venue!=='all') l=l.filter(p=>p.v.some(v=>v.startsWith(st.venue+' ')||v===st.venue)); return l; }
+  if(st.view==='reading') return base(P.filter(p=>reading.has(p.i)));
+  return base(P);
+}
+function viewLatest(){
+  const k=topicKey();
+  return `<section class="panel live">
+    <h2>Newest on arXiv${k!=='all'?' · '+esc(TN[k]):''}</h2>
+    <p class="status" id="freshnote" hidden></p>
+    <p>${DESK.latestNote?esc(DESK.latestNote)+' Fetch live pulls':`The ledger below is a snapshot taken ${esc(SNAPSHOT)}. Fetch live to pull`} the 50 newest submissions for this topic straight from arXiv, or open arXiv’s own listing sorted by announcement date.</p>
+    <div class="row"><button class="btn primary" id="golive">Fetch live from arXiv</button>
+      <a class="btn" href="${arxivSiteURL(k)}" target="_blank" rel="noopener">Open arXiv newest ↗</a>
+      ${(DESK.listings||[['cs.CV','new','Today’s cs.CV listing'],['cs.GR','recent','cs.GR recent']]).map(l=>`<a class="btn" href="https://arxiv.org/list/${l[0]}/${l[1]}" target="_blank" rel="noopener">${esc(l[2])} ↗</a>`).join('')}
+      <button class="btn" id="savecopy" hidden>Save offline copy</button></div>
+    <div class="status" id="livestatus"></div><div id="livelist"></div>
+  </section>
+  ${searchBar(esc(DESK.searchEg||'Search title, abstract, authors, venue… e.g. “2DGS normal”, “pruning”, “Kerbl”'))}
+  <div class="meta-line"><span id="count"></span><span>${esc(DESK.listLabel||'Snapshot of arXiv papers, newest first')}</span></div>
+  <div id="results"></div>`;
+}
+function viewVenues(){
+  const pool=P.filter(p=>p.v.length && (st.topic==='all'||p.k.includes(st.topic)));
+  const fam={}; pool.forEach(p=>p.v.forEach(v=>{ const n=v.replace(/ \d{4}$/,''); fam[n]=(fam[n]||0)+1; }));
+  const order=['CVPR','ICCV','ECCV','NeurIPS','ICLR','SIGGRAPH','SIGGRAPH Asia','3DV','AAAI','ICML','WACV','BMVC','TPAMI','TVCG','ICRA','IROS','ACM MM'];
+  const names=Object.keys(fam).sort((a,b)=>{const ia=order.indexOf(a),ib=order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib)||fam[b]-fam[a];});
+  return `<div class="venuebar">${['all',...names.slice(0,30)].map(n=>`<button class="vbtn" data-v="${esc(n)}" aria-pressed="${st.venue===n}">${n==='all'?'All venues':esc(n)}<span class="ct">${n==='all'?pool.length:fam[n]}</span></button>`).join('')}</div>
+  ${searchBar('Search accepted papers… e.g. “CVPR 2026 feed-forward”')}
+  <div class="meta-line"><span id="count"></span><span>Acceptances from venue lists and author notes</span></div>
+  <div id="results"></div>`;
+}
+function viewReading(){
+  const list=P.filter(p=>reading.has(p.i));
+  return `<section class="panel live"><h2>Reading list</h2>
+    <p>Star any paper to keep it here. The list stays in this browser. Copy all entries as BibTeX for your survey’s .bib file.</p>
+    <div class="row"><button class="btn primary" id="copyall" ${list.length?'':'disabled'}>Copy all as BibTeX (${list.length})</button></div></section>
+    ${searchBar('Search your reading list')}
+    <div class="meta-line"><span id="count"></span><span></span></div><div id="results"></div>`;
+}
+
+// classic / foundational papers (pre-dating or defining each line of work)
+const F = DESK.classics || [
+ ['scene','EWA Volume Splatting','Zwicker, Pfister, van Baar, Gross','IEEE Visualization',2001],
+ ['scene','Surfels: Surface Elements as Rendering Primitives','Pfister, Zwicker, van Baar, Gross','SIGGRAPH',2000],
+ ['scene','Structure-from-Motion Revisited','Schönberger, Frahm','CVPR',2016],
+ ['scene','Pixelwise View Selection for Unstructured Multi-View Stereo','Schönberger, Zheng, Pollefeys, Frahm','ECCV',2016],
+ ['scene','NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis','Mildenhall et al.','ECCV',2020],
+ ['scene','Point-Based Neural Rendering with Per-View Optimization','Kopanas, Philip, Leimkühler, Drettakis','EGSR',2021],
+ ['scene','Mip-NeRF 360: Unbounded Anti-Aliased Neural Radiance Fields','Barron et al.','CVPR',2022],
+ ['scene','Zip-NeRF: Anti-Aliased Grid-Based Neural Radiance Fields','Barron et al.','ICCV',2023],
+ ['scene','3D Gaussian Splatting for Real-Time Radiance Field Rendering','Kerbl, Kopanas, Leimkühler, Drettakis','SIGGRAPH (TOG)',2023],
+ ['scene','Mip-Splatting: Alias-free 3D Gaussian Splatting','Yu, Chen, Huang, Sattler, Geiger','CVPR',2024],
+ ['fast','Instant Neural Graphics Primitives with a Multiresolution Hash Encoding','Müller, Evans, Schied, Keller','SIGGRAPH (TOG)',2022],
+ ['fast','Plenoxels: Radiance Fields without Neural Networks','Fridovich-Keil, Yu et al.','CVPR',2022],
+ ['fast','Direct Voxel Grid Optimization: Super-fast Convergence for Radiance Fields Reconstruction','Sun, Sun, Chen','CVPR',2022],
+ ['fast','TensoRF: Tensorial Radiance Fields','Chen, Xu, Geiger, Yu, Su','ECCV',2022],
+ ['compact','Deep Compression: Compressing Deep Neural Networks with Pruning, Trained Quantization and Huffman Coding','Han, Mao, Dally','ICLR',2016],
+ ['compact','Compact 3D Gaussian Representation for Radiance Field','Lee, Rho, Sun, Ko, Park','CVPR',2024],
+ ['compact','LightGaussian: Unbounded 3D Gaussian Compression with 15x Reduction and 200+ FPS','Fan et al.','NeurIPS',2024],
+ ['compact','Scaffold-GS: Structured 3D Gaussians for View-Adaptive Rendering','Lu et al.','CVPR',2024],
+ ['compact','HAC: Hash-grid Assisted Context for 3D Gaussian Splatting Compression','Chen et al.','ECCV',2024],
+ ['surf','Marching Cubes: A High Resolution 3D Surface Construction Algorithm','Lorensen, Cline','SIGGRAPH',1987],
+ ['surf','Poisson Surface Reconstruction','Kazhdan, Bolitho, Hoppe','SGP',2006],
+ ['surf','KinectFusion: Real-Time Dense Surface Mapping and Tracking','Newcombe et al.','ISMAR',2011],
+ ['surf','DeepSDF: Learning Continuous Signed Distance Functions for Shape Representation','Park et al.','CVPR',2019],
+ ['surf','Occupancy Networks: Learning 3D Reconstruction in Function Space','Mescheder et al.','CVPR',2019],
+ ['surf','NeuS: Learning Neural Implicit Surfaces by Volume Rendering for Multi-view Reconstruction','Wang et al.','NeurIPS',2021],
+ ['surf','Volume Rendering of Neural Implicit Surfaces (VolSDF)','Yariv, Gu, Kasten, Lipman','NeurIPS',2021],
+ ['surf','Neuralangelo: High-Fidelity Neural Surface Reconstruction','Li et al.','CVPR',2023],
+ ['surf','2D Gaussian Splatting for Geometrically Accurate Radiance Fields','Huang, Yu, Chen, Geiger, Gao','SIGGRAPH',2024],
+ ['surf','Gaussian Opacity Fields: Efficient Adaptive Surface Reconstruction in Unbounded Scenes','Yu, Sattler, Geiger','SIGGRAPH Asia (TOG)',2024],
+ ['dyn','DynamicFusion: Reconstruction and Tracking of Non-rigid Scenes in Real-Time','Newcombe, Fox, Seitz','CVPR',2015],
+ ['dyn','D-NeRF: Neural Radiance Fields for Dynamic Scenes','Pumarola et al.','CVPR',2021],
+ ['dyn','Nerfies: Deformable Neural Radiance Fields','Park et al.','ICCV',2021],
+ ['dyn','HyperNeRF: A Higher-Dimensional Representation for Topologically Varying Neural Radiance Fields','Park et al.','SIGGRAPH Asia (TOG)',2021],
+ ['dyn','K-Planes: Explicit Radiance Fields in Space, Time, and Appearance','Fridovich-Keil et al.','CVPR',2023],
+ ['dyn','HexPlane: A Fast Representation for Dynamic Scenes','Cao, Johnson','CVPR',2023],
+ ['dyn','Dynamic 3D Gaussians: Tracking by Persistent Dynamic View Synthesis','Luiten et al.','3DV',2024],
+ ['dyn','4D Gaussian Splatting for Real-Time Dynamic Scene Rendering','Wu et al.','CVPR',2024],
+ ['dyn','Deformable 3D Gaussians for High-Fidelity Monocular Dynamic Scene Reconstruction','Yang et al.','CVPR',2024],
+ ['sparse','Putting NeRF on a Diet: Semantically Consistent Few-Shot View Synthesis','Jain, Tancik, Abbeel','ICCV',2021],
+ ['sparse','RegNeRF: Regularizing Neural Radiance Fields for View Synthesis from Sparse Inputs','Niemeyer et al.','CVPR',2022],
+ ['sparse','FreeNeRF: Improving Few-shot Neural Rendering with Free Frequency Regularization','Yang, Pavone, Wang','CVPR',2023],
+ ['sparse','FSGS: Real-Time Few-shot View Synthesis using Gaussian Splatting','Zhu, Fan, Wang, Xu, Wang','ECCV',2024],
+ ['sparse','DNGaussian: Optimizing Sparse-View 3D Gaussian Radiance Fields with Global-Local Depth Normalization','Li et al.','CVPR',2024],
+ ['ff','MVSNet: Depth Inference for Unstructured Multi-view Stereo','Yao, Luo, Li, Fang, Quan','ECCV',2018],
+ ['ff','pixelNeRF: Neural Radiance Fields from One or Few Images','Yu, Ye, Tancik, Kanazawa','CVPR',2021],
+ ['ff','IBRNet: Learning Multi-View Image-Based Rendering','Wang et al.','CVPR',2021],
+ ['ff','MVSNeRF: Fast Generalizable Radiance Field Reconstruction from Multi-View Stereo','Chen et al.','ICCV',2021],
+ ['ff','pixelSplat: 3D Gaussian Splats from Image Pairs for Scalable Generalizable 3D Reconstruction','Charatan, Li, Tagliasacchi, Sitzmann','CVPR',2024],
+ ['ff','MVSplat: Efficient 3D Gaussian Splatting from Sparse Multi-View Images','Chen et al.','ECCV',2024],
+ ['ff','Splatter Image: Ultra-Fast Single-View 3D Reconstruction','Szymanowicz, Rupprecht, Vedaldi','CVPR',2024],
+ ['ff','LRM: Large Reconstruction Model for Single Image to 3D','Hong et al.','ICLR',2024],
+ ['ff','DUSt3R: Geometric 3D Vision Made Easy','Wang, Leroy, Cabon, Chidlovskii, Revaud','CVPR',2024],
+ ['mesh','Neural 3D Mesh Renderer','Kato, Ushiku, Harada','CVPR',2018],
+ ['mesh','Soft Rasterizer: A Differentiable Renderer for Image-based 3D Reasoning','Liu, Li, Chen, Li','ICCV',2019],
+ ['mesh','Deep Marching Tetrahedra: a Hybrid Representation for High-Resolution 3D Shape Synthesis','Shen, Gao, Yin, Liu, Fidler','NeurIPS',2021],
+ ['mesh','Extracting Triangular 3D Models, Materials, and Lighting From Images (nvdiffrec)','Munkberg et al.','CVPR',2022],
+ ['mesh','Delicate Textured Mesh Recovery from NeRF via Adaptive Surface Refinement (NeRF2Mesh)','Tang et al.','ICCV',2023],
+ ['mesh','SuGaR: Surface-Aligned Gaussian Splatting for Efficient 3D Mesh Reconstruction','Guédon, Lepetit','CVPR',2024],
+ ['mesh','Gaussian Frosting: Editable Complex Radiance Fields with Real-Time Rendering','Guédon, Lepetit','ECCV',2024],
+];
+function viewFoundations(){
+  let rows=F.filter(r=>st.topic==='all'||r[0]===st.topic);
+  const q=st.q.trim().toLowerCase(); if(q) rows=rows.filter(r=>(r[1]+' '+r[2]+' '+r[3]).toLowerCase().includes(q));
+  rows=rows.slice().sort((a,b)=>a[4]-b[4]);
+  return `${searchBar('Filter classic papers')}
+  <div class="meta-line"><span>${rows.length} classic papers, oldest first</span><span>Hand-picked roots of each survey topic</span></div>
+  <div class="tablebox"><table class="found"><thead><tr><th>Year</th><th>Paper</th><th>Venue</th><th>Topic</th></tr></thead><tbody>
+  ${rows.map(r=>`<tr><td class="yr">${r[4]}</td><td><a href="https://scholar.google.com/scholar?q=${encodeURIComponent('"'+r[1]+'"')}" target="_blank" rel="noopener">${esc(r[1])}</a><div class="p-auth">${esc(r[2])} · <a href="https://www.semanticscholar.org/search?q=${encodeURIComponent(r[1])}" target="_blank" rel="noopener">Semantic Scholar</a></div></td><td class="vn">${esc(r[3])}</td><td><span class="chip" style="color:var(--c-${r[0]})">${esc(TN[r[0]])}</span></td></tr>`).join('')}
+  </tbody></table></div>
+  <p class="note">Titles link to Google Scholar for citation counts and “cited by” chains. Use the Search conferences tab to look further back in a specific venue.</p>`;
+}
+const VEN = DESK.venues || [
+  ['CVPR','Computer Vision and Pattern Recognition','conf/cvpr'],['ICCV','International Conference on Computer Vision','conf/iccv'],
+  ['ECCV','European Conference on Computer Vision','conf/eccv'],['NeurIPS','Neural Information Processing Systems','conf/nips'],
+  ['ICLR','International Conference on Learning Representations','conf/iclr'],['SIGGRAPH / TOG','ACM Transactions on Graphics','journals/tog'],
+  ['3DV','International Conference on 3D Vision','conf/3dim'],['TPAMI','IEEE Trans. Pattern Analysis & Machine Intelligence','journals/pami'],
+  ['IJCV','International Journal of Computer Vision','journals/ijcv'],['TVCG','IEEE Trans. Visualization & Computer Graphics','journals/tvcg'],
+  ['Eurographics / CGF','Computer Graphics Forum','journals/cgf'],['SGP','Symposium on Geometry Processing (CGF)','journals/cgf'],
+  ['BMVC','British Machine Vision Conference','conf/bmvc'],['WACV','Winter Conf. on Applications of Computer Vision','conf/wacv'],
+  ['AAAI','AAAI Conference on Artificial Intelligence','conf/aaai'],['ICRA / IROS','Robotics venues (SLAM, mapping)','conf/icra']
+];
+function viewSearchOut(){
+  const k=st.topic; const qd=st.q.trim()||plainQ[k];
+  const enc=encodeURIComponent;
+  const gen=[
+    ['arXiv, newest first','https://arxiv.org/search/?query='+enc(qd)+'&searchtype=all&order=-announced_date_first&size=100','All preprints'],
+    ['Google Scholar, since 2023','https://scholar.google.com/scholar?q='+enc(qd)+'&as_ylo=2023','Citations and venues'],
+    ['Google Scholar, before 2020','https://scholar.google.com/scholar?q='+enc(DESK.oldQuery?DESK.oldQuery(qd):qd.replace(/gaussian splatting/i,'point-based rendering'))+'&as_yhi=2019',DESK.oldLabel||'Pre-NeRF roots'],
+    ['Semantic Scholar','https://www.semanticscholar.org/search?q='+enc(qd)+'&sort=relevance','Citation graph'],
+    ['OpenReview','https://openreview.net/search?term='+enc(qd)+'&content=all&group=all&source=all','ICLR / NeurIPS reviews'],
+    ...(DESK.extraSearch?DESK.extraSearch(qd,enc):[
+    ['CVF Open Access','https://www.google.com/search?q='+enc('site:openaccess.thecvf.com '+qd),'CVPR, ICCV, WACV PDFs'],
+    ['ECVA (ECCV papers)','https://www.google.com/search?q='+enc('site:ecva.net '+qd),'ECCV PDFs'],
+    ['ACM Digital Library','https://dl.acm.org/action/doSearch?AllField='+enc(qd),'SIGGRAPH and TOG']]),
+    ['Papers with code on GitHub','https://github.com/search?q='+enc(qd)+'&type=repositories&s=updated&o=desc','Recently updated repos']
+  ];
+  return `${searchBar('Your query (blank uses the selected topic)')}
+  <section class="sec"><h2>Search everywhere</h2><p class="note">Query: <b>${esc(qd)}</b>. Change it above or pick a topic on the left. Every link opens the source site in a new tab.</p>
+  <div class="extgrid">${gen.map(g=>`<a class="ext" href="${g[1]}" target="_blank" rel="noopener"><b>${esc(g[0])} ↗</b><small>${esc(g[2])}</small></a>`).join('')}</div></section>
+  <section class="sec"><h2>Search one venue, all years (DBLP)</h2><p class="note">DBLP indexes every edition of these conferences and journals back to their first year. ${esc(DESK.dblpNote||'Good for finding older geometry and vision work on the same idea.')}</p>
+  <div class="extgrid">${VEN.map(v=>`<a class="ext" href="https://dblp.org/search?q=${enc(qd+' streamid:'+v[2]+':')}" target="_blank" rel="noopener"><b>${esc(v[0])} ↗</b><small>${esc(v[1])}</small></a>`).join('')}</div></section>
+  <section class="sec"><h2>${esc(DESK.oldKwTitle||'Older geometry keywords to try')}</h2><p class="note">${esc(DESK.oldKwNote||'Pre-splatting terms for the same problems.')} Click one to load it into the query.</p>
+  <div class="row">${(DESK.oldKeywords||['point-based rendering','surfel splatting','EWA splatting','multi-view stereo','structure from motion','Poisson surface reconstruction','volumetric fusion','non-rigid reconstruction','image-based rendering','light field rendering','mesh simplification','level of detail point cloud','neural radiance field compression','generalizable radiance field']).map(t=>`<button class="vbtn" data-term="${esc(t)}">${esc(t)}</button>`).join('')}</div></section>`;
+}
+
+// ---------- learning path (courses & tutorials from scratch)
+const YT = q=>'https://www.youtube.com/results?search_query='+encodeURIComponent(q);
+const GH = q=>'https://github.com/search?q='+encodeURIComponent(q)+'&type=repositories&s=stars&o=desc';
+// [title, provider, kind, level, url, why, topic(optional)]
+const LEARN = DESK.learn || [
+ {s:'Math you will use every day', d:'Linear algebra, calculus and probability. Gaussians are covariance matrices, rotations and projections, so this part pays off everywhere.', items:[
+  ['Essence of Linear Algebra','3Blue1Brown','Video series','Beginner','https://www.3blue1brown.com/topics/linear-algebra','Visual intuition for matrices, eigenvectors and change of basis.'],
+  ['Essence of Calculus','3Blue1Brown','Video series','Beginner','https://www.3blue1brown.com/topics/calculus','Derivatives and the chain rule, which backpropagation and splat gradients rely on.'],
+  ['18.06 Linear Algebra (Gilbert Strang)','MIT OpenCourseWare','Course','Beginner','https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/','Full lecture course with problem sets.'],
+  ['Mathematics for Machine Learning','Deisenroth, Faisal, Ong','Free book','Beginner','https://mml-book.github.io/','Multivariate Gaussians, matrix calculus and optimization in one book.'],
+ ]},
+ {s:'Computer vision and multi-view geometry', d:'Cameras, projection, structure from motion and stereo. Every splatting pipeline starts from posed images.', items:[
+  ['First Principles of Computer Vision (Shree Nayar)','Columbia University','Video course','Beginner','https://fpcv.cs.columbia.edu/','Short, clear lectures on image formation, cameras and 3D reconstruction.'],
+  ['Computer Vision: Algorithms and Applications, 2nd ed.','Richard Szeliski','Free book','Beginner','https://szeliski.org/Book/','The standard textbook. Read the chapters on SfM, stereo and 3D reconstruction.'],
+  ['CS231n: Deep Learning for Computer Vision','Stanford University','Course','Beginner','https://cs231n.stanford.edu/','Neural networks for vision with notes and assignments.'],
+  ['Computer Vision lectures (Andreas Geiger)','University of Tübingen','Video course','Intermediate',YT('Andreas Geiger computer vision lecture Tübingen'),'Covers SfM, stereo, neural fields and 3D reconstruction from the group behind Mip-Splatting and 2DGS. Opens a YouTube search.'],
+  ['Photogrammetry and SfM lectures (Cyrill Stachniss)','University of Bonn','Video course','Intermediate',YT('Cyrill Stachniss photogrammetry structure from motion bundle adjustment'),'Bundle adjustment, camera calibration and epipolar geometry. Opens a YouTube search.'],
+  ['Multiple View Geometry in Computer Vision','Hartley & Zisserman','Book','Advanced','https://www.robots.ox.ac.uk/~vgg/hzbook/','The reference for projective geometry and multi-view math.'],
+  ['COLMAP tutorial','COLMAP docs','Tutorial','Beginner','https://colmap.github.io/tutorial.html','Run SfM on your own photos. This is how most 3DGS datasets get camera poses.'],
+ ]},
+ {s:'Computer graphics and rendering', d:'Rasterization, alpha blending, volume rendering and meshes. Splatting is a graphics technique first.', items:[
+  ['Scratchapixel','Scratchapixel','Tutorials','Beginner','https://www.scratchapixel.com/','Build a rasterizer and ray tracer from scratch with the math explained.'],
+  ['CS184/284A: Computer Graphics and Imaging','UC Berkeley','Course','Beginner','https://cs184.eecs.berkeley.edu/','Rasterization, sampling, meshes and rendering with assignments.'],
+  ['15-462/662 Computer Graphics (Keenan Crane)','Carnegie Mellon University','Course','Beginner','https://15462.courses.cs.cmu.edu/','Clear slides on rasterization, geometry and rendering.'],
+  ['Physically Based Rendering, 4th ed.','Pharr, Jakob, Humphreys','Free book','Advanced','https://pbr-book.org/','Volume rendering and light transport in depth.'],
+  ['Discrete Differential Geometry (Keenan Crane)','Carnegie Mellon University','Course','Intermediate','https://www.cs.cmu.edu/~kmcrane/Projects/DDG/','Curvature, normals and mesh processing. Useful for surface and mesh topics.','surf'],
+  ['Polygon Mesh Processing','Botsch, Kobbelt, Pauly, Alliez, Lévy','Book','Intermediate','http://www.pmp-book.org/','Mesh data structures, smoothing, simplification and remeshing.','mesh'],
+  ['EWA Volume Splatting (2001)','Zwicker, Pfister, van Baar, Gross','Paper','Intermediate','https://scholar.google.com/scholar?q=%22EWA+Volume+Splatting%22','The original elliptical Gaussian splatting math that 3DGS builds on.'],
+ ]},
+ {s:'Deep learning and PyTorch', d:'Enough deep learning to read and modify research code.', items:[
+  ['Dive into Deep Learning','d2l.ai','Free book + code','Beginner','https://d2l.ai/','Every concept comes with runnable PyTorch code.'],
+  ['Practical Deep Learning for Coders','fast.ai','Course','Beginner','https://course.fast.ai/','Top-down, code-first course.'],
+  ['PyTorch tutorials','PyTorch','Tutorials','Beginner','https://pytorch.org/tutorials/','Tensors, autograd and custom training loops.'],
+  ['Neural Networks: Zero to Hero (Andrej Karpathy)','Andrej Karpathy','Video series','Beginner',YT('Andrej Karpathy neural networks zero to hero micrograd'),'Build backpropagation by hand. Opens a YouTube search.'],
+ ]},
+ {s:'Neural radiance fields', d:'NeRF introduced the differentiable volume rendering and datasets that 3DGS competes with.', items:[
+  ['NeRF project page and paper','Mildenhall et al., ECCV 2020','Paper','Intermediate','https://www.matthewtancik.com/nerf','Read this before the 3DGS paper.'],
+  ['Neural Fields in Visual Computing','Xie et al., Eurographics STAR 2022','Survey + site','Intermediate','https://neuralfields.cs.brown.edu/','Survey of neural fields with a searchable paper list.'],
+  ['Nerfstudio documentation','Nerfstudio','Framework docs','Beginner','https://docs.nerf.studio/','Train NeRFs and Gaussian splats (Splatfacto) on your own captures.'],
+  ['NeRF from scratch tutorials',"Community",'Code','Beginner',GH('nerf from scratch pytorch'),'Minimal NeRF implementations to read line by line. Opens a GitHub search.'],
+ ]},
+ {s:'3D Gaussian Splatting core', d:'The method itself: projection of 3D Gaussians, tile rasterization, alpha compositing, densification.', items:[
+  ['Introduction to 3D Gaussian Splatting','Hugging Face blog','Article','Beginner','https://huggingface.co/blog/gaussian-splatting','A gentle explanation before reading the paper.'],
+  ['3D Gaussian Splatting for Real-Time Radiance Field Rendering','Kerbl et al., SIGGRAPH 2023','Paper + project','Intermediate','https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/','The original paper, video and datasets.'],
+  ['Official 3DGS code','GRAPHDECO, Inria','Code','Intermediate','https://github.com/graphdeco-inria/gaussian-splatting','Reference implementation with CUDA rasterizer.'],
+  ['Mathematical Supplement for the gsplat Library','Ye & Kanazawa','Paper','Intermediate','https://arxiv.org/abs/2312.02121','Forward and backward passes of splatting derived step by step.'],
+  ['gsplat documentation','Nerfstudio team','Library docs','Intermediate','https://docs.gsplat.studio/','Readable, fast CUDA splatting library. Good for your own experiments.'],
+  ['A Survey on 3D Gaussian Splatting','Chen & Wang','Survey','Intermediate','https://arxiv.org/abs/2401.03890','A model for how to structure your own survey.'],
+  ['Gaussian splatting from scratch','Community','Code','Intermediate',GH('gaussian splatting from scratch'),'Pure PyTorch re-implementations without CUDA. Opens a GitHub search.'],
+  ['3DGS explained (videos)','Community','Video','Beginner',YT('3D Gaussian Splatting explained paper walkthrough'),'Talks and paper walkthroughs. Opens a YouTube search.'],
+ ]},
+ {s:'Deep dives for your survey topics', d:'One starting point per topic: a well-documented codebase to read and run.', items:[
+  ['pixelSplat code','Charatan et al., CVPR 2024','Code','Advanced','https://github.com/dcharatan/pixelsplat','Feed-forward Gaussians from image pairs.','ff'],
+  ['MVSplat code','Chen et al., ECCV 2024','Code','Advanced','https://github.com/donydchen/mvsplat','Cost-volume based feed-forward splatting.','ff'],
+  ['Mip-Splatting code','Yu et al., CVPR 2024','Code','Advanced','https://github.com/autonomousvision/mip-splatting','Anti-aliasing for per-scene 3DGS.','scene'],
+  ['2D Gaussian Splatting code','Huang et al., SIGGRAPH 2024','Code','Advanced','https://github.com/hbb1/2d-gaussian-splatting','Surfel-like Gaussians for accurate surfaces.','surf'],
+  ['4D Gaussian Splatting code','Wu et al., CVPR 2024','Code','Advanced','https://github.com/hustvl/4DGaussians','Deformation field over Gaussians for dynamic scenes.','dyn'],
+  ['FSGS code','Zhu et al., ECCV 2024','Code','Advanced','https://github.com/VITA-Group/FSGS','Few-shot / sparse-view Gaussian splatting.','sparse'],
+  ['gsplat training examples','Nerfstudio team','Code','Intermediate','https://github.com/nerfstudio-project/gsplat','Faster training and lower memory than the original rasterizer.','fast'],
+  ['LightGaussian code','Fan et al., NeurIPS 2024','Code','Advanced','https://github.com/VITA-Group/LightGaussian','Pruning, distillation and quantization of Gaussians.','compact'],
+  ['SuGaR code','Guédon & Lepetit, CVPR 2024','Code','Advanced','https://github.com/Anttwo/SuGaR','Mesh extraction from Gaussians and Gaussians bound to meshes.','mesh'],
+ ]},
+ {s:'Hands-on tools', d:'Capture, view and edit splats yourself.', items:[
+  ['SuperSplat editor','PlayCanvas','Web tool','Beginner','https://superspl.at/','View, crop and clean .ply splats in the browser.'],
+  ['Open3D','Open3D','Library docs','Beginner','https://www.open3d.org/docs/','Point clouds, meshes and evaluation (Chamfer distance) in Python.'],
+  ['Awesome 3D Gaussian Splatting','MrNeRF','Paper list','Beginner','https://github.com/MrNeRF/awesome-3D-gaussian-splatting','Curated list, one of the sources of this desk.'],
+ ]},
+];
+let done = new Set();
+try{ done = new Set(JSON.parse(localStorage.getItem(SP+'learn')||'[]')); }catch(e){}
+function viewLearn(){
+  const k=st.topic, q=st.q.trim().toLowerCase();
+  let total=0, fin=0;
+  const secs = LEARN.map((sec,si)=>{
+    const items = sec.items.map((it,ii)=>({it, id:si+'-'+ii})).filter(({it})=>{
+      if(k!=='all' && it[6] && it[6]!==k) return false;
+      if(q && !(it.join(' ')+' '+sec.s).toLowerCase().includes(q)) return false;
+      return true; });
+    total+=items.length; fin+=items.filter(x=>done.has(x.id)).length;
+    if(!items.length) return '';
+    return `<section class="sec lstep"><div class="lhead"><span class="lnum">Step ${si+1}</span><h2>${esc(sec.s)}</h2></div><p class="note">${esc(sec.d)}</p>
+      <div class="lgrid">${items.map(({it,id})=>`<div class="litem${done.has(id)?' isdone':''}">
+        <label class="ldone"><input type="checkbox" data-learn="${id}" ${done.has(id)?'checked':''} aria-label="Mark ${esc(it[0])} as done"></label>
+        <div style="min-width:0"><a href="${esc(it[4])}" target="_blank" rel="noopener" class="ltitle">${esc(it[0])} ↗</a>
+        <div class="p-auth">${esc(it[1])}</div>
+        <div class="chips"><span class="chip date">${esc(it[2])}</span><span class="chip lvl lvl-${it[3].toLowerCase()}">${esc(it[3])}</span>${it[6]?`<span class="chip" style="color:var(--c-${it[6]})">${esc(TN[it[6]])}</span>`:''}</div>
+        <p class="lwhy">${esc(it[5])}</p></div></div>`).join('')}</div></section>`;
+  }).join('');
+  const pct = total?Math.round(100*fin/total):0;
+  return `<section class="panel live"><h2>Learning path, from scratch</h2>
+    <p>${esc(DESK.learnIntro||'Free courses, books, tutorials and code in the order to take them: math, then vision and graphics, then NeRF, then Gaussian splatting, then one deep dive per survey topic.')} Tick items as you finish them; progress stays in this browser.${k!=='all'?' Showing general material plus the deep dive for <b>'+esc(TN[k])+'</b>.':''}</p>
+    <div class="lprog"><div class="lbar"><span style="width:${pct}%"></span></div><span class="status">${fin} of ${total} done</span></div></section>
+    ${searchBar('Filter courses and tutorials, e.g. “PyTorch”, “mesh”, “video”')}
+    ${secs||'<div class="empty">Nothing matches that filter.</div>'}`;
+}
+document.getElementById('main').addEventListener('change',e=>{
+  const c=e.target.closest('[data-learn]'); if(!c) return;
+  c.checked?done.add(c.dataset.learn):done.delete(c.dataset.learn);
+  try{localStorage.setItem(SP+'learn',JSON.stringify([...done]));}catch(_){}
+  const y=window.scrollY; render(); window.scrollTo(0,y);
+});
+
+// ---------- paper detail panel: summary + method flow diagram (generated by Claude via `sample`)
+const XVER='v2';
+const xmem=new Map();
+let xctl=null, curPaper=null;
+function xget(id){ if(xmem.has(id)) return xmem.get(id); try{ const v=localStorage.getItem(SP+'x-'+XVER+'-'+id); if(v){ const o=JSON.parse(v); xmem.set(id,o); return o; } }catch(e){} return null; }
+function xput(id,o){ xmem.set(id,o); try{ localStorage.setItem(SP+'x-'+XVER+'-'+id, JSON.stringify(o)); }catch(e){} }
+function findPaper(id){ return BYID.get(id) || (st.live||[]).find(p=>p.i===id); }
+
+const panel=document.createElement('div');
+panel.innerHTML=`<div class="dv-scrim" id="dv-scrim" hidden></div>
+<aside class="dv" id="dv" hidden role="dialog" aria-modal="true" aria-labelledby="dv-title">
+  <div class="dv-bar"><span class="lab" style="margin:0">Paper explainer</span><button class="btn" id="dv-close" aria-label="Close">Close ✕</button></div>
+  <div class="dv-body" id="dv-body"></div>
+</aside>`;
+document.body.appendChild(panel);
+$('#dv-close').addEventListener('click',closePaper);
+$('#dv-scrim').addEventListener('click',closePaper);
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !$('#dv').hidden) closePaper(); });
+
+function closePaper(){ $('#dv').hidden=true; $('#dv-scrim').hidden=true; document.body.style.overflow=''; xctl?.abort(); curPaper=null; }
+function openPaper(id){
+  const p=findPaper(id); if(!p) return;
+  curPaper=p;
+  $('#dv').hidden=false; $('#dv-scrim').hidden=false; document.body.style.overflow='hidden';
+  const v=p.v.map(x=>`<span class="chip venue">${esc(x)}</span>`).join('');
+  const t=p.k.map(k=>`<span class="chip" style="color:var(--c-${k})">${esc(TN[k])}</span>`).join('');
+  $('#dv-body').innerHTML=`<h2 class="dv-title" id="dv-title">${esc(p.t)}</h2>
+    <div class="p-auth">${esc(p.a)}${p.org?' · '+esc(p.org):''}</div>
+    <div class="chips">${v}<span class="chip date">${esc(p.d)} · arXiv ${esc(p.i)}</span>${t}</div>
+    <div class="links"><a href="https://arxiv.org/abs/${esc(p.i)}" target="_blank" rel="noopener">arXiv page</a><a href="https://arxiv.org/pdf/${esc(p.i)}" target="_blank" rel="noopener">PDF</a>${p.c?`<a href="${esc(p.c)}" target="_blank" rel="noopener">Code</a>`:''}${p.pp?`<a href="${esc(p.pp)}" target="_blank" rel="noopener">Project page</a>`:''}<button data-star-dv="${esc(p.i)}">${reading.has(p.i)?'★ In reading list':'☆ Add to reading list'}</button></div>
+    ${p.ab?`<details class="dv-abs"><summary>Abstract</summary><p>${esc(p.ab)}</p></details>`:''}
+    <div class="pdfbox" id="pdfbox"><div><b>Add the full paper for experiment details</b><p>Datasets, baselines, training time, GPUs and number of views are usually only in the paper body. Download the PDF from the arXiv link above, then choose it or drop it here. The text is read in your browser and sent to Claude with the request.</p></div>
+      <label class="btn primary" for="pdf-in">Choose PDF</label><input type="file" accept="application/pdf,.pdf" id="pdf-in" hidden><span class="status" id="pdf-st" role="status"></span></div>
+    <div id="dv-x"></div>`;
+  const pb=$('#pdfbox'), pin=$('#pdf-in');
+  pin.onchange=()=>{ if(pin.files[0]) usePdf(p,pin.files[0]); };
+  pb.addEventListener('dragover',e=>{ e.preventDefault(); pb.classList.add('drag'); });
+  pb.addEventListener('dragleave',()=>pb.classList.remove('drag'));
+  pb.addEventListener('drop',e=>{ e.preventDefault(); pb.classList.remove('drag'); const f=e.dataTransfer.files[0]; if(f) usePdf(p,f); });
+  $('#dv-body').querySelector('[data-star-dv]').onclick=e=>{ const b=e.currentTarget; reading.has(p.i)?reading.delete(p.i):reading.add(p.i); saveRL(); b.textContent=reading.has(p.i)?'★ In reading list':'☆ Add to reading list'; const s=document.querySelector(`[data-star="${CSS.escape(p.i)}"]`); if(s){s.setAttribute('aria-pressed',reading.has(p.i)); s.textContent=reading.has(p.i)?'★':'☆';} };
+  $('#dv').scrollTop=0;
+  const cached=xget(p.i);
+  if(cached) renderX(p,cached,true); else explain(p);
+}
+
+function xprompt(p, full){
+  return `You are helping a PhD student write ${DSUB}.
+
+Explain the method of this paper in detail and describe its workflow as a block diagram.
+
+PAPER
+Title: ${p.t}
+Authors: ${p.a||'unknown'}
+arXiv: ${p.i}   Date: ${p.d}   Venue: ${p.v.join(', ')||'preprint'}
+Abstract: ${p.ab||'(no abstract available; rely on the title and on what you know about this paper)'}
+${full?`\nFULL PAPER TEXT (extracted from the PDF; may be truncated):\n<<<\n${full}\n>>>\n`:''}
+RULES
+- Use the abstract as the primary source. If you clearly know this specific paper, you may add details from it; otherwise infer the standard building blocks a method like this needs (${DESK.blockHints||'e.g. SfM/COLMAP initialization, differentiable tile rasterization, alpha compositing, densification/pruning, photometric L1 + D-SSIM losses'}) and mark those stages "basis":"inferred".
+- ${full?'Use the full paper text as the main source: read the method, experiments and implementation-details sections. Quote numbers exactly as the paper states them.':'Never invent numbers (PSNR, FPS, sizes, speedups). Only quote numbers that appear in the abstract.'}
+- For "experiments", fill each field and set its "basis": "paper" (found in the full text), "abstract" (stated in the abstract), "recalled" (you clearly remember it from this specific paper; use sparingly), or "not stated" (value must then be "not stated" or []). Never guess hardware, training time or view counts.
+- The diagram must be a directed graph of 8 to 16 blocks showing data flow from inputs to outputs, including the main modules, intermediate representations, losses / supervision, and training-only loops (${DESK.loopHint||'e.g. densification or optimization feedback'}). Use concise block labels (2-6 words). Edge labels name what flows (${DESK.edgeHint||'e.g. "camera poses", "Gaussian params", "rendered image"'}), 1-4 words, or "" if obvious.
+- "kind" is one of: "input", "module", "representation", "loss", "output".
+- "phase" is one of: "train", "infer", "both".
+- "basis" is "abstract" if the abstract states or directly implies the block, else "inferred".
+
+Reply with ONLY one JSON object, no prose, in exactly this shape:
+{
+ "tldr": "one sentence",
+ "problem": "2-3 sentences: what gap or failure of prior work the paper addresses",
+ "key_idea": "2-3 sentences: the core insight",
+ "contributions": ["3-5 items"],
+ "stages": [{"id":"s1","label":"Multi-view images","kind":"input","phase":"both","basis":"abstract","detail":"2-4 sentences explaining what this block does, how, and why"}],
+ "edges": [{"from":"s1","to":"s2","label":"images"}],
+ "training": "2-4 sentences: objectives, losses, supervision, optimization or training data",
+ "results": "1-3 sentences on reported results, only numbers from the abstract",
+ "limitations": ["2-3 likely limitations or open questions"],
+ "survey_fit": "1-2 sentences: which survey topic(s) this belongs to and how it relates to ${DESK.baseline||'baseline 3DGS'}",
+ "experiments": {
+   "datasets": {"value": ["datasets used for training and evaluation, e.g. ${DESK.datasetEg||'Mip-NeRF 360, Tanks and Temples, DTU, RealEstate10K'}"], "basis": "paper"},
+   "baselines": {"value": ["methods it is compared against"], "basis": "paper"},
+   "metrics": {"value": ["e.g. ${DESK.metricEg||'PSNR, SSIM, LPIPS, Chamfer distance, FPS, storage MB'}"], "basis": "paper"},
+   "train_time": {"value": "training time as stated, e.g. '~30 min per scene' or '3 days on the full dataset'", "basis": "paper"},
+   "hardware": {"value": "GPU model and count, e.g. '8x NVIDIA A100 80GB' or '1x RTX 4090'", "basis": "paper"},
+   "num_views": {"value": "${DESK.viewsDesc||"number of input / training views, e.g. '2 context views', '3, 6, 9 views', 'all available views (dense)'"}", "basis": "paper"},
+   "generalization": {"value": "is it evaluated across datasets / zero-shot on unseen datasets or scenes? say which, or 'per-scene optimization, no cross-dataset generalization'", "basis": "paper"},
+   "inference_speed": {"value": "rendering FPS or reconstruction time if stated", "basis": "paper"}
+ },
+ "known_paper": true
+}
+"known_paper" is true only if you recognise this specific paper beyond the abstract.`;
+}
+
+async function explain(p, full){
+  const box=$('#dv-x'); if(!box) return;
+  if(!window.claude){ box.innerHTML=`<div class="x-note">The explainer needs Claude, so it works only when this page is opened on claude.ai. The offline copy can still show the abstract and links.</div>`; return; }
+  box.innerHTML=`<div class="x-wait"><div class="x-spin" aria-hidden="true"></div><div><b>Explaining the method…</b><div class="status" id="x-prog">${full?'Reading the full paper. This takes about 1–2 minutes.':'Reading the abstract. This takes about 20–60 seconds.'}</div></div><button class="btn" id="x-stop">Stop</button></div>`;
+  const sample=await claude.use('sample');
+  if(!sample){ box.innerHTML=`<div class="x-note">Claude is not available in this view, so the explainer can't run here.</div>`; return; }
+  xctl?.abort(); const ctl=new AbortController(); xctl=ctl;
+  $('#x-stop').onclick=()=>ctl.abort();
+  try{
+    const data=await sample.json(xprompt(p, full),{signal:ctl.signal, modelTier:'default',
+      onText:({text})=>{ const g=$('#x-prog'); if(g && curPaper===p) g.textContent=`Writing the explanation… ${text.length.toLocaleString()} characters so far`; }});
+    const o=normX(data); if(!o) throw {code:'invalid_json'};
+    o.at=new Date().toISOString().slice(0,10); o.src=full?'pdf':'abstract';
+    xput(p.i,o);
+    if(curPaper===p) renderX(p,o,false);
+  }catch(e){
+    if(curPaper!==p) return;
+    const msg={cancelled:'Stopped.',not_granted:'Claude was not allowed for this page, so the explainer can’t run. You can allow it from the page’s permissions menu and try again.',rate_limited:'Too many requests at once. Wait a minute and try again.',sampling_disabled:'Claude is not available for this account.',invalid_json:'The answer came back in an unexpected format. Try again.',refused:'Claude declined to explain this paper.'}[e&&e.code]||'The explainer could not finish. Try again.';
+    box.innerHTML=`<div class="x-note">${esc(msg)} <button class="btn" id="x-retry">Try again</button></div>`;
+    $('#x-retry').onclick=()=>explain(p, full);
+  }
+}
+function normX(d){
+  if(!d||typeof d!=='object'||!Array.isArray(d.stages)) return null;
+  const S=d.stages.filter(s=>s&&s.id&&s.label).slice(0,20).map(s=>({id:String(s.id),label:String(s.label).slice(0,60),kind:['input','module','representation','loss','output'].includes(s.kind)?s.kind:'module',phase:['train','infer','both'].includes(s.phase)?s.phase:'both',basis:s.basis==='inferred'?'inferred':'abstract',detail:String(s.detail||'')}));
+  const ids=new Set(S.map(s=>s.id));
+  const E=(Array.isArray(d.edges)?d.edges:[]).filter(e=>e&&ids.has(String(e.from))&&ids.has(String(e.to))&&e.from!==e.to).map(e=>({from:String(e.from),to:String(e.to),label:String(e.label||'').slice(0,40)}));
+  if(S.length<2) return null;
+  const arr=a=>Array.isArray(a)?a.map(String):[];
+  const EXK=['datasets','baselines','metrics','train_time','hardware','num_views','generalization','inference_speed'];
+  const ex={}; const de=d.experiments&&typeof d.experiments==='object'?d.experiments:{};
+  EXK.forEach(k=>{ const f=de[k]; const raw=f&&typeof f==='object'&&!Array.isArray(f)?f.value:f; const b=f&&f.basis; let v=Array.isArray(raw)?raw.map(String).filter(Boolean):String(raw??'').trim();
+    const ns=(Array.isArray(v)?!v.length:(!v||/^not stated/i.test(v)));
+    ex[k]={v:ns?(Array.isArray(v)?[]:'not stated'):v, b:ns?'not stated':(['paper','abstract','recalled'].includes(b)?b:'abstract')}; });
+  return {ex, tldr:String(d.tldr||''),problem:String(d.problem||''),key_idea:String(d.key_idea||''),contributions:arr(d.contributions),stages:S,edges:E,training:String(d.training||''),results:String(d.results||''),limitations:arr(d.limitations),survey_fit:String(d.survey_fit||''),known:!!d.known_paper};
+}
+
+// layered DAG layout (top to bottom)
+function layout(o){
+  const S=o.stages, idx=new Map(S.map((s,i)=>[s.id,i]));
+  const out=new Map(S.map(s=>[s.id,[]])), inn=new Map(S.map(s=>[s.id,[]]));
+  // find back edges with DFS so loops (e.g. densification feedback) don't break layering
+  const state={}, back=new Set();
+  o.edges.forEach(e=>out.get(e.from).push(e));
+  const dfs=u=>{ state[u]=1; for(const e of out.get(u)){ if(state[e.to]===1) back.add(e); else if(!state[e.to]) dfs(e.to); } state[u]=2; };
+  S.forEach(s=>{ if(!state[s.id]) dfs(s.id); });
+  const fwd=o.edges.filter(e=>!back.has(e));
+  fwd.forEach(e=>inn.get(e.to).push(e));
+  const L={}; const lv=id=>{ if(L[id]!=null) return L[id]; L[id]=0; let m=0; for(const e of inn.get(id)) m=Math.max(m,lv(e.from)+1); return L[id]=m; };
+  S.forEach(s=>lv(s.id));
+  const layers=[]; S.forEach(s=>{ (layers[L[s.id]] ||= []).push(s); });
+  for(let i=1;i<layers.length;i++){ const prevPos=new Map(layers[i-1].map((s,j)=>[s.id,j]));
+    layers[i].sort((a,b)=>{ const bc=n=>{ const ps=inn.get(n.id).map(e=>prevPos.get(e.from)).filter(x=>x!=null); return ps.length?ps.reduce((x,y)=>x+y,0)/ps.length:idx.get(n.id); }; return bc(a)-bc(b); }); }
+  const W=196, GX=28, GY=58, PAD=24;
+  const wrap=(t,n)=>{ const w=t.split(/\s+/), lines=[]; let c=''; for(const x of w){ if((c+' '+x).trim().length>n){ if(c) lines.push(c); c=x; } else c=(c+' '+x).trim(); } if(c) lines.push(c); return lines.slice(0,3); };
+  const maxCols=Math.max(...layers.map(l=>l.length));
+  const width=Math.max(maxCols*(W+GX)-GX+PAD*2, 420);
+  const pos={}; let y=PAD;
+  layers.forEach(l=>{ let h=0; l.forEach(s=>{ s._lines=wrap(s.label,22); s._h=30+s._lines.length*17; h=Math.max(h,s._h); });
+    const rowW=l.length*(W+GX)-GX; let x=(width-rowW)/2;
+    l.forEach(s=>{ pos[s.id]={x,y:y+(h-s._h)/2,w:W,h:s._h}; x+=W+GX; }); y+=h+GY; });
+  const bw=back.size?Math.max(...[...back].map(e=>e.label.length*3.1+5))+22+back.size*16:0;
+  return {pos,width:width+bw,height:y-GY+PAD,back,fwd};
+}
+const KSHORT={input:'Input',module:'Module',representation:'Repr.',loss:'Loss',output:'Output'};
+const KIND={input:'Input',module:'Module',representation:'Representation',loss:'Loss / supervision',output:'Output'};
+const EXL={datasets:'Datasets',baselines:'Compared against',metrics:'Metrics',train_time:'Training time',hardware:'GPUs / hardware',num_views:(DESK.viewsLabel||'Number of views'),generalization:'Generalization across datasets',inference_speed:'Inference / render speed'};
+const BSL={paper:'from paper',abstract:'from abstract',recalled:'recalled, verify','not stated':'not stated'};
+function exVal(f){ if(!f) return '<span class="ns">regenerate to add</span>'; const v=Array.isArray(f.v)?(f.v.length?f.v.join(', '):'not stated'):f.v; return (f.b==='not stated'?`<span class="ns">${esc(v)}</span>`:esc(v))+`<span class="bs bs-${f.b==='not stated'?'ns':f.b}">${BSL[f.b]}</span>`; }
+function exText(f){ if(!f) return '—'; const v=Array.isArray(f.v)?(f.v.length?f.v.join(', '):'not stated'):f.v; return v+(f.b==='recalled'?' (recalled)':''); }
+function expGrid(o){ return `<div class="expgrid">${Object.keys(EXL).map(k=>`<div class="ek">${EXL[k]}</div><div>${exVal(o.ex&&o.ex[k])}</div>`).join('')}</div>`; }
+const lastPdf=new Map();
+let pdfLib=null;
+function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=()=>rej(new Error('load')); document.head.appendChild(s); }); }
+async function getPdfLib(){
+  if(pdfLib) return pdfLib;
+  const B='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+  await loadScript(B+'pdf.min.js'); await loadScript(B+'pdf.worker.min.js');
+  pdfLib=window.pdfjsLib; pdfLib.GlobalWorkerOptions.workerSrc=B+'pdf.worker.min.js';
+  return pdfLib;
+}
+async function usePdf(p,file){
+  const st=$('#pdf-st'); const box=$('#pdfbox');
+  if(!/pdf$/i.test(file.type)&&!/\.pdf$/i.test(file.name)){ st.textContent='That file is not a PDF.'; return; }
+  try{
+    st.textContent='Loading the PDF reader…';
+    const lib=await getPdfLib();
+    st.textContent='Reading the PDF…';
+    const doc=await lib.getDocument({data:await file.arrayBuffer(), isEvalSupported:false, disableFontFace:true}).promise;
+    const n=Math.min(doc.numPages,40); let out='';
+    for(let i=1;i<=n;i++){ const pg=await doc.getPage(i); const tc=await pg.getTextContent(); out+=`\n[page ${i}]\n`+tc.items.map(it=>it.str+(it.hasEOL?'\n':' ')).join(''); st.textContent=`Reading page ${i} of ${n}…`; if(out.length>140000) break; }
+    out=out.replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').slice(0,140000);
+    if(out.replace(/\s/g,'').length<500){ st.textContent='No text found in this PDF. It may be a scanned image.'; return; }
+    lastPdf.set(p.i,out); box.classList.add('has');
+    st.textContent=`Read ${n} page${n>1?'s':''} (${Math.round(out.length/1000)}k characters) from ${file.name}.`;
+    explain(p,out);
+  }catch(e){ st.textContent='Could not read this PDF. Try another copy, or use the abstract-only explanation.'; }
+}
+function diagramSVG(o){
+  const {pos,width,height,back,fwd}=layout(o);
+  let edges='', labels='';
+  fwd.forEach(e=>{ const a=pos[e.from], b=pos[e.to]; const x1=a.x+a.w/2, y1=a.y+a.h, x2=b.x+b.w/2, y2=b.y-6; const my=(y1+y2)/2;
+    edges+=`<path class="fe" d="M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}" marker-end="url(#ah)"/>`;
+    if(e.label){ const lx=(x1+x2)/2, ly=my; const tw=e.label.length*6.1+10; labels+=`<g class="el"><rect x="${lx-tw/2}" y="${ly-9}" width="${tw}" height="17" rx="4"/><text x="${lx}" y="${ly+3.5}" text-anchor="middle">${esc(e.label)}</text></g>`; } });
+  let bi=0; const right=Math.max(...Object.values(pos).map(q=>q.x+q.w));
+  back.forEach(e=>{ const a=pos[e.from], b=pos[e.to]; const xr=right+22+bi*16; bi++;
+    const y1=a.y+a.h/2+4, y2=b.y+b.h/2-4, r=8;
+    edges+=`<path class="be" d="M${a.x+a.w},${y1} H${xr-r} Q${xr},${y1} ${xr},${y1-r} V${y2+r} Q${xr},${y2} ${xr-r},${y2} H${b.x+b.w+7}" marker-end="url(#ahb)"/>`;
+    if(e.label){ const tw=e.label.length*6.1+10; const ly=(y1+y2)/2; labels+=`<g class="el"><rect x="${xr-tw/2}" y="${ly-9}" width="${tw}" height="17" rx="4"/><text x="${xr}" y="${ly+3.5}" text-anchor="middle">${esc(e.label)}</text></g>`; } });
+  const nodes=o.stages.map((s,i)=>{ const p=pos[s.id];
+    return `<g class="nd k-${s.kind}${s.phase==='train'?' ph-train':''}${s.basis==='inferred'?' inf':''}" data-node="${esc(s.id)}" tabindex="0" role="button" aria-label="${esc(s.label)}">
+      <rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="8"/>
+      <rect class="band" x="${p.x}" y="${p.y}" width="5" height="${p.h}" rx="2"/>
+      <text class="nk" x="${p.x+14}" y="${p.y+16}">${i+1} · ${esc(KSHORT[s.kind])}${s.phase==='train'?' · train':s.phase==='infer'?' · test':''}</text>
+      ${s._lines.map((l,j)=>`<text class="nl" x="${p.x+14}" y="${p.y+34+j*17}">${esc(l)}</text>`).join('')}
+    </g>`; }).join('');
+  return `<svg class="flow" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="Method block diagram">
+    <defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ahp" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="ahb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ahb" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+    ${edges}${nodes}${labels}</svg>`;
+}
+function mermaid(o){
+  const q=s=>'"'+s.replace(/"/g,"'")+'"';
+  const shape={input:['[/','/]'],output:['([','])'],loss:['{{','}}'],representation:['[(',')]'],module:['[',']']};
+  return 'flowchart TD\n'+o.stages.map(s=>`  ${s.id}${shape[s.kind][0]}${q(s.label)}${shape[s.kind][1]}`).join('\n')+'\n'+
+    o.edges.map(e=>`  ${e.from} -->${e.label?'|'+q(e.label)+'|':''} ${e.to}`).join('\n');
+}
+function renderX(p,o,fromCache){
+  const box=$('#dv-x'); if(!box) return;
+  const inf=o.stages.filter(s=>s.basis==='inferred').length;
+  box.innerHTML=`
+  <section class="x-sec"><p class="x-tldr">${esc(o.tldr)}</p></section>
+  <div class="x-two"><section class="x-sec"><h3>Problem</h3><p>${esc(o.problem)}</p></section><section class="x-sec"><h3>Key idea</h3><p>${esc(o.key_idea)}</p></section></div>
+  ${o.contributions.length?`<section class="x-sec"><h3>Contributions</h3><ul>${o.contributions.map(c=>`<li>${esc(c)}</li>`).join('')}</ul></section>`:''}
+  <section class="x-sec"><div class="x-h"><h3>Method workflow</h3><button class="btn" id="x-mmd">Copy as Mermaid</button></div>
+    <div class="legend"><span><i class="lg k-input"></i>Input</span><span><i class="lg k-module"></i>Module</span><span><i class="lg k-representation"></i>Representation</span><span><i class="lg k-loss"></i>Loss</span><span><i class="lg k-output"></i>Output</span><span><i class="lg dash"></i>Training only</span><span><i class="lg fb"></i>Feedback loop</span><span><i class="lg infr"></i>Inferred block</span></div>
+    <div class="flowbox">${diagramSVG(o)}</div>
+    <p class="note">Click a block to read what it does. The numbered steps below follow the same order.</p>
+    <div class="x-nodeinfo" id="x-ni" hidden></div>
+    <ol class="x-steps">${o.stages.map(s=>`<li data-step="${esc(s.id)}"><b>${esc(s.label)}</b> <span class="chip date">${esc(KIND[s.kind])}</span>${s.basis==='inferred'?' <span class="chip" style="color:var(--warn)">inferred</span>':''}<p>${esc(s.detail)}</p></li>`).join('')}</ol>
+  </section>
+  <section class="x-sec"><h3>Experimental setup</h3>${expGrid(o)}
+    ${o.src!=='pdf'?`<p class="note">Built from the abstract only. Add the PDF above to fill in details the abstract leaves out.</p>`:`<p class="note">Built from the full paper text.</p>`}</section>
+  ${o.training?`<section class="x-sec"><h3>Training and objectives</h3><p>${esc(o.training)}</p></section>`:''}
+  ${o.results?`<section class="x-sec"><h3>Reported results</h3><p>${esc(o.results)}</p></section>`:''}
+  ${o.limitations.length?`<section class="x-sec"><h3>Limitations and open questions</h3><ul>${o.limitations.map(c=>`<li>${esc(c)}</li>`).join('')}</ul></section>`:''}
+  ${o.survey_fit?`<section class="x-sec"><h3>Where it fits in your survey</h3><p>${esc(o.survey_fit)}</p></section>`:''}
+  <div class="x-note">Written by Claude from ${o.src==='pdf'?'the full paper text':'the abstract'}${o.known?' and its knowledge of this paper':''}${inf?`; ${inf} of ${o.stages.length} blocks are inferred standard steps, not stated in ${o.src==='pdf'?'the paper':'the abstract'}`:''}. Check details against the PDF before citing. ${fromCache?`Saved explanation from ${esc(o.at||'earlier')}.`:''} <button class="btn" id="x-regen">Regenerate</button></div>`;
+  $('#x-regen').onclick=()=>explain(p, lastPdf.get(p.i));
+  const fb=box.querySelector('.flowbox'); if(fb) fb.scrollLeft=(fb.scrollWidth-fb.clientWidth)/2;
+  $('#x-mmd').onclick=()=>copy(mermaid(o),'Mermaid diagram copied');
+  const show=id=>{ const s=o.stages.find(x=>x.id===id); if(!s) return; box.querySelectorAll('.nd').forEach(n=>n.classList.toggle('sel',n.dataset.node===id));
+    const ni=$('#x-ni'); ni.hidden=false; ni.innerHTML=`<b>${esc(s.label)}</b> <span class="chip date">${esc(KIND[s.kind])}</span>${s.basis==='inferred'?' <span class="chip" style="color:var(--warn)">inferred</span>':''}<p>${esc(s.detail)}</p>`; };
+  box.querySelectorAll('.nd').forEach(n=>{ n.addEventListener('click',()=>show(n.dataset.node)); n.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); show(n.dataset.node);} }); });
+}
+
+// ---------- compare papers side by side
+const CMAX=4;
+let cmp=[];
+try{ cmp=JSON.parse(localStorage.getItem(SP+'cmp')||'[]').filter(id=>BYID.has(id)).slice(0,CMAX); }catch(e){}
+const cmpState={busy:false, ctl:null, msg:'', prog:''};
+function saveCmp(){ try{localStorage.setItem(SP+'cmp',JSON.stringify(cmp));}catch(e){} updateTray(); document.body.classList.toggle('has-tray',!tray.hidden); const n=$('#cn'); if(n) n.textContent=cmp.length; }
+function toggleCmp(id){
+  const i=cmp.indexOf(id);
+  if(i>=0){ cmp.splice(i,1); toast('Removed from comparison'); }
+  else if(cmp.length>=CMAX){ toast(`You can compare up to ${CMAX} papers. Remove one first.`); return false; }
+  else { cmp.push(id); toast(cmp.length>1?`${cmp.length} papers ready to compare`:'Added. Pick at least one more paper.'); }
+  saveCmp();
+  document.querySelectorAll(`[data-cmp="${CSS.escape(id)}"]`).forEach(b=>{ b.setAttribute('aria-pressed',cmp.includes(id)); b.textContent=cmp.includes(id)?'✓ Comparing':'+ Compare'; });
+  return true;
+}
+const tray=document.createElement('div');
+tray.className='ctray'; tray.hidden=true;
+tray.innerHTML=`<span id="ct-txt"></span><div class="row"><a class="btn primary" href="#compare">Compare side by side</a><button class="btn" id="ct-clear">Clear</button></div>`;
+document.body.appendChild(tray);
+$('#ct-clear').addEventListener('click',()=>{ cmp=[]; saveCmp(); render(); });
+function updateTray(){
+  tray.hidden = !cmp.length || st.view==='compare';
+  $('#ct-txt').innerHTML = `<b>${cmp.length}</b> of ${CMAX} papers picked`+(cmp.length<2?' · pick at least 2':'');
+  tray.querySelector('a').classList.toggle('disabled', cmp.length<2);
+}
+
+function cmpKey(){ return SP+'cmpx-'+XVER+'-'+cmp.slice().sort().join('|'); }
+function cmpGet(){ try{ const v=localStorage.getItem(cmpKey()); return v?JSON.parse(v):null; }catch(e){ return null; } }
+function cmpPut(o){ try{ localStorage.setItem(cmpKey(),JSON.stringify(o)); }catch(e){} }
+const XERR={cancelled:'Stopped.',not_granted:'Claude was not allowed for this page. You can allow it from the page’s permissions menu and try again.',rate_limited:'Too many requests at once. Wait a minute and try again.',sampling_disabled:'Claude is not available for this account.',invalid_json:'The answer came back in an unexpected format. Try again.',refused:'Claude declined this request.'};
+async function getSample(){ if(!window.claude) return null; try{ return await claude.use('sample'); }catch(e){ return null; } }
+
+async function explainMissing(){
+  const sample=await getSample();
+  if(!sample){ cmpState.msg='Claude is only available when this page is opened on claude.ai.'; render(); return; }
+  const todo=cmp.map(findPaper).filter(p=>p&&!xget(p.i));
+  cmpState.busy=true; cmpState.ctl=new AbortController(); cmpState.msg='';
+  try{
+    for(let k=0;k<todo.length;k++){
+      const p=todo[k]; cmpState.prog=`Explaining paper ${k+1} of ${todo.length}: ${p.t}`; render();
+      const data=await sample.json(xprompt(p),{signal:cmpState.ctl.signal, modelTier:'default'});
+      const o=normX(data); if(!o) throw {code:'invalid_json'};
+      o.at=new Date().toISOString().slice(0,10); xput(p.i,o);
+    }
+  }catch(e){ cmpState.msg=XERR[e&&e.code]||'Claude could not finish. Try again.'; }
+  cmpState.busy=false; cmpState.prog=''; render();
+}
+
+function cmpPrompt(ps){
+  return `You are helping a PhD student write ${DSUB}.
+
+Compare these ${ps.length} papers side by side.
+
+${ps.map((p,i)=>{ const x=xget(p.i); return `PAPER ${i+1}
+Title: ${p.t}
+arXiv: ${p.i}   Date: ${p.d}   Venue: ${p.v.join(', ')||'preprint'}
+Abstract: ${p.ab||'(none)'}${x?`\nMethod notes: ${x.key_idea} Pipeline: ${x.stages.map(s=>s.label).join(' -> ')}. Training: ${x.training}${x.ex?' Experiments: '+Object.keys(EXL).map(k=>EXL[k]+': '+exText(x.ex[k])).join('; '):''}`:''}`; }).join('\n\n')}
+
+RULES
+- Base everything on the abstracts and method notes above, plus your knowledge only if you clearly recognise a paper.
+- Never invent numbers. Quote numbers only if they appear above; otherwise describe qualitatively, or write "not stated".
+- Choose 8 to 12 comparison dimensions that actually separate these papers. Always include: "Input / setting", ${DESK.compareDims||'"3D representation", "Core technical idea", "Supervision and losses", "Optimization: per-scene or feed-forward", "Speed / efficiency", "Output and quality focus"'}. Add others that fit (${DESK.compareExtra||'e.g. "Camera poses required", "Handles dynamics", "Geometry / mesh quality", "Memory / storage"'}). Datasets, baselines, GPUs, training time and ${DESK.viewsLabel?esc(DESK.viewsLabel).toLowerCase():'view counts'} are already shown in separate rows, so do not repeat them as dimensions; but do use them in key_differences.
+- Each value is a short phrase (max ~18 words).
+
+Reply with ONLY one JSON object in exactly this shape:
+{
+ "summary": "3-4 sentences on how these papers relate and differ",
+ "dimensions": [{"name":"Input / setting","values":["one value per paper, in paper order"]}],
+ "shared": ["2-4 things they have in common"],
+ "key_differences": ["3-5 sharp differences, naming papers as P1, P2, ..."],
+ "choose_when": ["one sentence per paper, in order: when you would pick this method"],
+ "survey_grouping": "2-3 sentences: how to present these papers together in a survey section (taxonomy / storyline)"
+}`;
+}
+function normCmp(d,n){
+  if(!d||typeof d!=='object'||!Array.isArray(d.dimensions)) return null;
+  const arr=a=>Array.isArray(a)?a.map(String):[];
+  const dims=d.dimensions.filter(x=>x&&x.name).map(x=>({name:String(x.name),values:Array.from({length:n},(_,i)=>String((x.values||[])[i]??'—'))}));
+  if(!dims.length) return null;
+  return {summary:String(d.summary||''),dims,shared:arr(d.shared),diffs:arr(d.key_differences),choose:arr(d.choose_when),grouping:String(d.survey_grouping||''),at:new Date().toISOString().slice(0,10)};
+}
+async function runCompare(){
+  const sample=await getSample();
+  if(!sample){ cmpState.msg='Claude is only available when this page is opened on claude.ai.'; render(); return; }
+  const ps=cmp.map(findPaper).filter(Boolean);
+  cmpState.busy=true; cmpState.ctl=new AbortController(); cmpState.msg=''; cmpState.prog='Comparing the papers. This takes about 30–90 seconds.'; render();
+  try{
+    const data=await sample.json(cmpPrompt(ps),{signal:cmpState.ctl.signal, modelTier:'default', onText:({text})=>{ const g=$('#cmp-prog'); if(g) g.textContent=`Writing the comparison… ${text.length.toLocaleString()} characters so far`; }});
+    const o=normCmp(data,ps.length); if(!o) throw {code:'invalid_json'};
+    cmpPut(o);
+  }catch(e){ cmpState.msg=XERR[e&&e.code]||'Claude could not finish. Try again.'; }
+  cmpState.busy=false; cmpState.prog=''; render();
+}
+function cmpMarkdown(ps,o){
+  const cell=s=>String(s).replace(/\|/g,'\\|').replace(/\n/g,' ');
+  const head='| Dimension | '+ps.map((p,i)=>`P${i+1}: ${cell(p.t)}`).join(' | ')+' |';
+  const sep='|---|'+ps.map(()=>'---').join('|')+'|';
+  const rows=[['Venue / date',...ps.map(p=>(p.v.join(', ')||'arXiv')+' · '+p.d)],['arXiv',...ps.map(p=>p.i)]];
+  if(o) o.dims.forEach(d=>rows.push([d.name,...d.values]));
+  if(o && ps.some(p=>xget(p.i))) Object.keys(EXL).forEach(k=>rows.push([EXL[k],...ps.map(p=>{const x=xget(p.i);return x?exText(x.ex&&x.ex[k]):'—';})]));
+  else ps.map(p=>xget(p.i)).some(Boolean) && [['TL;DR',x=>x.tldr],['Key idea',x=>x.key_idea],['Pipeline',x=>x.stages.map(s=>s.label).join(' → ')],['Training',x=>x.training],...Object.keys(EXL).map(k=>[EXL[k],x=>exText(x.ex&&x.ex[k])])].forEach(([n,f])=>rows.push([n,...ps.map(p=>{const x=xget(p.i);return x?f(x):'—';})]));
+  return [head,sep,...rows.map(r=>'| '+r.map(cell).join(' | ')+' |')].join('\n')+(o&&o.summary?'\n\n'+o.summary:'');
+}
+
+function viewCompare(){
+  const ps=cmp.map(findPaper).filter(Boolean);
+  if(ps.length<2) return `<section class="panel live"><h2>Compare papers</h2>
+    <p>Pick 2 to ${CMAX} papers with the <b>+ Compare</b> button on any paper card, in any tab. They will appear here side by side: venue, topics, summary, key idea, method diagram, training, results and limitations. Claude can also write a comparison table you can paste into your survey.</p>
+    ${ps.length?`<p>Picked so far: <b>${esc(ps[0].t)}</b>. Pick at least one more.</p>`:''}
+    <div class="row"><a class="btn primary" href="#latest">Browse papers</a><a class="btn" href="#reading">From reading list</a></div></section>`;
+  const xs=ps.map(p=>xget(p.i));
+  const missing=xs.filter(x=>!x).length;
+  const co=cmpGet();
+  const cols=ps.length;
+  const grid=`style="grid-template-columns:150px repeat(${cols},minmax(240px,1fr))"`;
+  const row=(label,cells,cls='')=>`<div class="cr ${cls}" ${grid}><div class="ch">${label}</div>${cells.map(c=>`<div class="cc">${c}</div>`).join('')}</div>`;
+  const none='<span class="cnone">Not explained yet</span>';
+  const list=a=>a&&a.length?`<ul>${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:none;
+  const hdr=row('', ps.map((p,i)=>`<div class="cp-num">P${i+1}</div><button class="cp-t" data-open="${esc(p.i)}">${esc(p.t)}</button><div class="row" style="gap:10px;margin-top:6px"><button class="linkbtn" data-open="${esc(p.i)}">Open explainer</button><button class="linkbtn" data-cmp-rm="${esc(p.i)}">Remove</button></div>`),'chead');
+  let body='';
+  body+=row('Authors',ps.map(p=>`<span class="p-auth">${esc(p.a)}</span>`));
+  body+=row('Venue · date',ps.map(p=>`<div class="chips">${p.v.map(v=>`<span class="chip venue">${esc(v)}</span>`).join('')||'<span class="chip date">arXiv preprint</span>'}<span class="chip date">${esc(p.d)}</span></div>`));
+  body+=row('Survey topics',ps.map(p=>`<div class="chips">${p.k.map(k=>`<span class="chip" style="color:var(--c-${k})">${esc(TN[k])}</span>`).join('')||'—'}</div>`));
+  body+=row('Links',ps.map(p=>`<div class="links"><a href="https://arxiv.org/abs/${esc(p.i)}" target="_blank" rel="noopener">arXiv</a><a href="https://arxiv.org/pdf/${esc(p.i)}" target="_blank" rel="noopener">PDF</a>${p.c?`<a href="${esc(p.c)}" target="_blank" rel="noopener">Code</a>`:'<span class="cnone">no code</span>'}</div>`));
+  if(co) co.dims.forEach(d=>{ body+=row(esc(d.name), d.values.map(v=>esc(v)), 'cdim'); });
+  body+=row('TL;DR',xs.map(x=>x?`<b>${esc(x.tldr)}</b>`:none));
+  body+=row('Problem',xs.map(x=>x?esc(x.problem):none));
+  body+=row('Key idea',xs.map(x=>x?esc(x.key_idea):none));
+  body+=row('Contributions',xs.map(x=>x?list(x.contributions):none));
+  body+=row('Method diagram',xs.map(x=>x?`<div class="cdiag">${diagramSVG(x)}</div>`:none));
+  body+=row('Pipeline steps',xs.map(x=>x?`<ol class="csteps">${x.stages.map(s=>`<li>${esc(s.label)}</li>`).join('')}</ol>`:none));
+  [['datasets','Datasets'],['baselines','Compared against'],['metrics','Metrics'],['train_time','Training time'],['hardware','GPUs / hardware'],['num_views',(DESK.viewsLabel||'Number of views')],['generalization','Generalization across datasets'],['inference_speed','Inference / render speed']]
+    .forEach(([k,l])=>{ body+=row(l, xs.map(x=>x?exVal(x.ex&&x.ex[k]):none), 'cexp'); });
+  body+=row('Explained from',xs.map(x=>x?(x.src==='pdf'?'<span class="bs bs-paper" style="margin:0">full paper</span>':'<span class="bs bs-abstract" style="margin:0">abstract only</span> <button class="linkbtn" data-open="'+esc(ps[xs.indexOf(x)].i)+'">add PDF</button>'):none));
+  body+=row('Training',xs.map(x=>x?esc(x.training):none));
+  body+=row('Reported results',xs.map(x=>x?esc(x.results||'—'):none));
+  body+=row('Limitations',xs.map(x=>x?list(x.limitations):none));
+  body+=row('Abstract',ps.map(p=>p.ab?`<details><summary>Show abstract</summary><p class="cab">${esc(p.ab)}</p></details>`:'—'));
+  const busy=cmpState.busy;
+  return `<section class="panel live"><div class="x-h"><h2>Comparing ${cols} papers</h2><div class="row">
+      <button class="btn primary" id="cmp-run" ${busy?'disabled':''}>${co?'Regenerate comparison':'Compare with Claude'}</button>
+      ${missing?`<button class="btn" id="cmp-explain" ${busy?'disabled':''}>Explain ${missing} missing paper${missing>1?'s':''}</button>`:''}
+      <button class="btn" id="cmp-md">Copy as Markdown table</button>
+      <button class="btn" id="cmp-clear">Clear all</button></div></div>
+    <p>${co?'Claude’s comparison rows are highlighted in the table. ':'“Compare with Claude” adds rows that contrast the methods dimension by dimension. '}${missing?'Papers without an explanation show only their metadata; explain them to fill in summaries and diagrams.':'All papers have explanations.'} Both are written from the abstracts, so check details against the PDFs.</p>
+    ${busy?`<div class="x-wait"><div class="x-spin" aria-hidden="true"></div><div><b>Working…</b><div class="status" id="cmp-prog">${esc(cmpState.prog)}</div></div><button class="btn" id="cmp-stop">Stop</button></div>`:''}
+    ${cmpState.msg?`<div class="x-note">${esc(cmpState.msg)}</div>`:''}
+  </section>
+  ${co?`<section class="panel cmp-sum"><div class="x-two"><div class="x-sec"><h3>How they relate</h3><p>${esc(co.summary)}</p>${co.shared.length?`<h3>In common</h3>${list(co.shared)}`:''}</div>
+    <div class="x-sec"><h3>Key differences</h3>${list(co.diffs)}</div></div>
+    ${co.choose.length?`<div class="x-sec"><h3>When to choose each</h3><ul>${co.choose.map((c,i)=>`<li><b>P${i+1}</b> ${esc(c)}</li>`).join('')}</ul></div>`:''}
+    ${co.grouping?`<div class="x-sec"><h3>How to present them in your survey</h3><p>${esc(co.grouping)}</p></div>`:''}
+    <p class="note">Comparison written by Claude on ${esc(co.at)} from the abstracts and method notes.</p></section>`:''}
+  <div class="cmp-wrap"><div class="cmp" style="--n:${cols}">${hdr}${body}</div></div>`;
+}
+function bindCompare(){
+  const m=$('#main');
+  m.querySelectorAll('[data-cmp-rm]').forEach(b=>b.addEventListener('click',()=>{ toggleCmp(b.dataset.cmpRm); render(); }));
+  const r=$('#cmp-run'); if(r) r.onclick=runCompare;
+  const x=$('#cmp-explain'); if(x) x.onclick=explainMissing;
+  const s=$('#cmp-stop'); if(s) s.onclick=()=>cmpState.ctl?.abort();
+  const c=$('#cmp-clear'); if(c) c.onclick=()=>{ cmp=[]; saveCmp(); render(); };
+  const md=$('#cmp-md'); if(md) md.onclick=()=>copy(cmpMarkdown(cmp.map(findPaper).filter(Boolean),cmpGet()),'Comparison table copied as Markdown');
+}
+
+// ---------- Blender: 90-day beginner plan
+const BR={
+  manual:['Blender Manual','https://docs.blender.org/manual/en/latest/'],
+  fund:['Blender Fundamentals (official videos)',YT('Blender Fundamentals official Blender Studio playlist')],
+  donut:['Blender Guru donut tutorial',YT('Blender Guru donut tutorial beginner')],
+  chair:['Blender Guru chair / anvil beginner series',YT('Blender Guru beginner chair tutorial')],
+  grant:['Grant Abbitt beginner series',YT('Grant Abbitt blender beginner')],
+  cgb:['CG Boost / Ryan King Art beginner',YT('Ryan King Art blender beginner tutorial')],
+  studio:['Blender Studio courses','https://studio.blender.org/'],
+  ph:['Poly Haven (free HDRIs, textures, models)','https://polyhaven.com/'],
+  gn:['Geometry Nodes beginner tutorials',YT('blender geometry nodes beginner tutorial')],
+  sculpt:['Sculpting for beginners',YT('blender sculpting for beginners')],
+  uv:['UV unwrapping tutorials',YT('blender uv unwrapping beginner')],
+  anim:['Animation basics',YT('blender animation basics keyframes graph editor')],
+  comp:['Compositor tutorials',YT('blender compositor beginner tutorial')],
+  api:['Blender Python API reference','https://docs.blender.org/api/current/'],
+  py:['Blender Python scripting tutorials',YT('blender python scripting bpy beginner')],
+  bnerf:['BlenderNeRF add-on (NeRF-style datasets)','https://github.com/maximeraafat/BlenderNeRF'],
+  gsadd:['Gaussian splatting add-ons for Blender',GH('blender gaussian splatting addon')],
+  retopo:['Retopology tutorials',YT('blender retopology beginner')],
+  photog:['Photogrammetry to Blender workflow',YT('photogrammetry meshroom colmap import blender cleanup')],
+  colmap:['COLMAP tutorial','https://colmap.github.io/tutorial.html'],
+};
+// [title, task, done-when, resource key]
+const BW=[
+ {m:1,w:'Interface and navigation',d:[
+  ['Install and look around','Install the latest Blender LTS. Learn the default layout: 3D Viewport, Outliner, Properties, Timeline. Set up a mouse with middle button or enable "Emulate 3 Button Mouse".','You can orbit, pan and zoom without thinking.','fund'],
+  ['Select, move, rotate, scale','Practise G / R / S, axis locking (X, Y, Z), typed values, pivot points and snapping. Use the N panel to read exact transforms.','You can place a cube at an exact location and rotation.','fund'],
+  ['Objects and the Outliner','Add primitives, duplicate (Shift+D) vs linked duplicate (Alt+D), parent objects, use collections and hide/disable for render.','A small scene of 10 objects organised in 3 collections.','fund'],
+  ['Edit mode basics','Vertices, edges, faces. Extrude (E), inset (I), loop cut (Ctrl+R), bevel (Ctrl+B). Toggle X-ray.','A simple table built from one cube.','fund'],
+  ['Donut part 1–2','Start the donut: model the base torus and icing, using proportional editing.','A donut mesh with separate icing.','donut'],
+  ['Practice day','Model 3 everyday objects from primitives only (mug, lamp, book). No tutorials.','3 objects saved in one .blend file.',null],
+  ['Review and organise','Rewatch anything confusing. Write your own one-page shortcut cheat sheet. Set up autosave and a project folder structure.','A cheat sheet and a tidy project folder.','manual'],
+ ]},
+ {m:1,w:'Modeling foundations',d:[
+  ['Modifiers I','Subdivision Surface, Mirror, Solidify, Array. Learn modifier order and Apply.','A mirrored, subdivided character head blockout.','manual'],
+  ['Modifiers II','Boolean, Bevel, Screw, Curve. Hard-surface vs organic thinking.','A hard-surface gadget made with booleans and bevels.','manual'],
+  ['Donut part 3–4','Continue the donut: sculpt drips on the icing, add a plate and a basic scene.','Donut with icing drips on a plate.','donut'],
+  ['Topology basics','Quads vs triangles, edge flow, poles, shading artifacts. Shade smooth vs auto smooth.','You can explain why a mesh shades badly and fix it.','retopo'],
+  ['Curves and text','Bezier curves, bevel depth, curve to mesh. 3D text objects.','A neon sign with curves and text.','manual'],
+  ['Practice day','Model a chair or a small room corner from a reference photo.','One finished low-poly model.','chair'],
+  ['Review','Compare your models with references. Fix topology on one of them.','One model re-done with cleaner topology.',null],
+ ]},
+ {m:1,w:'Materials and shading',d:[
+  ['Principled BSDF','Base color, roughness, metallic, transmission, emission. The Shader Editor and node basics.','5 spheres showing 5 different real materials.','manual'],
+  ['Donut part 5–6','Shade the donut and icing. Add sprinkles with particles or geometry nodes.','A shaded donut with sprinkles.','donut'],
+  ['Image textures and PBR maps','Load albedo, roughness, normal and displacement maps from Poly Haven. Node Wrangler (Ctrl+Shift+T).','A brick wall with a full PBR texture set.','ph'],
+  ['Procedural textures','Noise, Voronoi, Wave, ColorRamp, Mix. Build a material with no images.','A procedural wood or marble material.','manual'],
+  ['Transparency and glass','Glass, refraction, alpha. Why these matter for radiance fields (view-dependent effects).','A glass and a metal object on a table.','manual'],
+  ['Practice day','Recreate 3 materials from photos of objects around you.','3 material spheres matching photos.',null],
+  ['Review','Make a material library .blend file you can append from later.','A reusable material library.',null],
+ ]},
+ {m:1,w:'Lighting, cameras and rendering',d:[
+  ['Eevee vs Cycles','Render engines, samples, denoising, render time vs quality. GPU setup in Preferences.','Same scene rendered in both engines.','manual'],
+  ['Lighting','Point, sun, spot, area lights. Three-point lighting. HDRI environment lighting.','A product shot lit with 3-point lighting and one with an HDRI.','ph'],
+  ['Cameras','Focal length, sensor size, depth of field, camera clipping. Track To constraint. Relate focal length to intrinsics (fx = f_mm × width_px / sensor_mm).','You can compute the pinhole intrinsics of a Blender camera.','manual'],
+  ['Donut part 7–8','Light, frame and render the donut scene. Color management (AgX / Filmic), exposure.','A final donut render.','donut'],
+  ['Render settings and output','Resolution, file formats, color depth, transparent background, render passes (Z, normal, mist).','A render with depth and normal passes saved as EXR.','manual'],
+  ['Practice day','Light the same object three ways (studio, outdoor HDRI, moody).','3 renders of one object.',null],
+  ['Month 1 checkpoint','Make a small portfolio still: model, materials, lighting, render. Share it with a friend for feedback.','One polished still render.',null],
+ ]},
+ {m:1,w:'Month 1 project',d:[
+  ['Month 1 project: build','Pick a desk or room scene with 8–15 objects. Block out everything at real-world scale, then model the 3–4 hero objects in detail.','A complete modeled scene.',null],
+  ['Month 1 project: shade and render','Texture the scene with your material library and Poly Haven, light it, set the camera and render in Cycles. Write down what was hard.','Final Month 1 render and notes.','ph'],
+ ]},
+ {m:2,w:'Sculpting and organic shapes',d:[
+  ['Sculpt mode basics','Brushes (Draw, Clay Strips, Grab, Smooth, Crease), symmetry, Dyntopo vs Multires vs Remesh.','A sculpted rock or tree stump.','sculpt'],
+  ['Sculpt a simple head','Block out a stylised head with basic shapes.','A stylised head sculpt.','sculpt'],
+  ['Remesh and decimate','Voxel remesh, Quadriflow, Decimate. Compare polycounts. Relevant to simplifying meshes from 2DGS/SuGaR.','A sculpt reduced to 10% polycount with little visual loss.','retopo'],
+  ['Retopology intro','Shrinkwrap modifier, snapping to faces, quad retopo of a simple sculpt.','A clean quad mesh over your sculpt.','retopo'],
+  ['Normal map baking intro','Bake high-poly detail onto a low-poly mesh in Cycles.','A low-poly object with a baked normal map.','manual'],
+  ['Practice day','Sculpt a creature or fruit from reference.','One sculpt.',null],
+  ['Review','Compare Dyntopo, Multires and Remesh workflows in your notes.','Notes table.',null],
+ ]},
+ {m:2,w:'UV unwrapping and texture painting',d:[
+  ['UV basics','Seams, unwrap, UV editor, checker texture, stretching.','A cube and a cylinder unwrapped with no stretching.','uv'],
+  ['UV a real model','Unwrap one of your Month 1 hero objects. Pack islands.','A clean UV layout.','uv'],
+  ['Texture painting','Paint directly in Blender. Stencils and masks.','A hand-painted texture on your model.','manual'],
+  ['Baking textures','Bake procedural materials, AO and lighting to images.','A model that looks the same with baked textures only.','manual'],
+  ['Export formats','Export OBJ, PLY, glTF/GLB, FBX. Understand vertex colors vs textures. Check exports in a viewer.','The same model exported in 4 formats and re-imported.','manual'],
+  ['Practice day','Unwrap and texture a small prop end to end.','One textured prop.',null],
+  ['Review','Note which export formats keep which data (normals, UVs, colors).','Format notes.',null],
+ ]},
+ {m:2,w:'Geometry Nodes',d:[
+  ['Geometry Nodes intro','Node tree basics, fields, instancing points on surfaces.','Grass or pebbles scattered on a plane.','gn'],
+  ['Procedural modeling','Build a parametric object (shelf, fence, building) with exposed inputs.','A parametric model with sliders.','gn'],
+  ['Points and instances','Distribute points, instance on points, realise instances, attributes. Think of points as splat centres.','A point cloud of spheres coloured by an attribute.','gn'],
+  ['Attributes and math','Named attributes, vector math, store attribute. Read the attributes of an imported PLY.','You can display a per-point attribute as color.','gn'],
+  ['Simulation nodes intro','Simulation zones for simple growth or motion.','A short procedural simulation.','gn'],
+  ['Practice day','Recreate a procedural asset from a Geometry Nodes tutorial without looking.','One procedural asset.',null],
+  ['Review','Save your best node groups as assets in the Asset Browser.','A node group asset library.',null],
+ ]},
+ {m:2,w:'Animation and cameras in motion',d:[
+  ['Keyframes','Insert keyframes, timeline, dope sheet, interpolation.','A bouncing ball.','anim'],
+  ['Graph editor','F-curves, easing, cycles modifier.','A bouncing ball with good timing.','anim'],
+  ['Camera animation','Orbit cameras, follow path, Track To. Smooth turntables for result videos.','A 360° turntable of one model.','anim'],
+  ['Rigging intro','Armatures, bones, weight painting, simple IK.','A rigged simple arm or lamp.','anim'],
+  ['Shape keys and deformation','Shape keys and drivers. Think about how deformable / 4D Gaussian methods model motion.','An object morphing between two shapes.','anim'],
+  ['Practice day','Animate a short 5-second shot with camera motion.','A rendered video clip.',null],
+  ['Review','Render the animation to video with the right codec and frame rate.','A shareable MP4.',null],
+ ]},
+ {m:2,w:'Compositing and Month 2 project',d:[
+  ['Compositor, passes and assets','Render layers, glare, color correction, cryptomatte masks. Mark your models and node groups as assets in the Asset Browser.','A composited render and an asset library.','comp'],
+  ['Month 2 project: short animated shot','Make a 5–10 second shot combining a sculpted or textured hero object, a Geometry Nodes element and a camera move. Render and composite it.','Final Month 2 video.',null],
+ ]},
+ {m:3,w:'Python scripting (bpy)',d:[
+  ['Scripting workspace','Python console, Info editor (copy operator calls), running scripts, tooltips with Python names.','You can find the Python call for any button.','py'],
+  ['bpy data model','bpy.data, bpy.context, objects, meshes, materials. Create and move objects from a script.','A script that builds a scene of 100 objects.','api'],
+  ['Read mesh data','Access vertices, faces, normals; use bmesh. Export positions with numpy.','A script that saves a mesh vertex array to .npy.','api'],
+  ['Render from a script','Set render settings, cameras and output paths from Python; run Blender headless (blender -b file.blend -P script.py).','A headless render triggered from the terminal.','api'],
+  ['Add-on basics','Write a tiny add-on with an operator and a panel.','Your first installed add-on.','api'],
+  ['Practice day','Automate something you did by hand in Month 1 or 2.','One useful script.',null],
+  ['Review','Put your scripts in a git repository with a README.','A scripts repo.',null],
+ ]},
+ {m:3,w:'Cameras and poses for 3D vision',d:[
+  ['Blender camera to OpenCV','Convert Blender camera matrix_world to OpenCV / COLMAP conventions (flip Y and Z axes). Write K from focal length and sensor.','A script that prints K and [R|t] for the active camera.','api'],
+  ['Multi-view camera rigs','Place N cameras on a sphere or hemisphere with Python, all looking at the object.','100 cameras around an object.','py'],
+  ['NeRF-synthetic style dataset','Render the views and write transforms.json (camera_angle_x and 4x4 transform_matrix per frame), like the NeRF Blender dataset.','A train/val/test dataset of one object.','bnerf'],
+  ['Depth, normals and masks','Render depth (EXR), normal and alpha passes per view for geometry supervision.','Per-view depth, normal and mask images.','comp'],
+  ['Sparse and dynamic variants','Render a 3-view sparse split and a short animated sequence for 4D experiments.','Sparse-view and dynamic test datasets.',null],
+  ['Train on your data','Train a 3DGS model (gsplat or the official code) on your synthetic dataset.','A trained splat of your own Blender object.','colmap'],
+  ['Review','Check your poses by overlaying renders from the trained model on Blender renders.','Pose sanity-check images.',null],
+ ]},
+ {m:3,w:'Gaussian splats and meshes in Blender',d:[
+  ['Import point clouds','Import a 3DGS .ply as a point cloud, inspect its attributes (position, opacity, scale, rotation, SH colors).','A splat .ply opened in Blender with attributes visible.','gsadd'],
+  ['Splat viewing add-ons','Try a Gaussian splatting add-on for Blender to display or render splats.','A splat rendered inside a Blender scene.','gsadd'],
+  ['Meshes from splats','Import meshes from 2DGS / SuGaR / TSDF fusion. Clean them: remove floaters, fill holes, decimate.','A cleaned mesh from a splat reconstruction.','retopo'],
+  ['Photogrammetry meshes','Import a COLMAP or photogrammetry mesh with its cameras; compare with your splat-derived mesh.','A side-by-side of two reconstructions.','photog'],
+  ['Evaluate geometry','Compute Chamfer distance between ground-truth and reconstructed meshes with a script (numpy or Open3D).','Chamfer numbers for your reconstructions.','api'],
+  ['Practice day','Capture a real object with your phone, reconstruct it, bring it into Blender.','A real object reconstructed and cleaned.',null],
+  ['Review','Write notes on what breaks (thin structures, reflections, floaters).','A failure-case notes page for your survey.',null],
+ ]},
+ {m:3,w:'Survey figures and final project',d:[
+  ['Teaser figure layout','Arrange several reconstructions in one clean scene with consistent lighting. Model simple icons (camera frustums, ellipsoids) for method diagrams.','A teaser render and a set of figure assets.',null],
+  ['Ellipsoid visualisation','Use Geometry Nodes to instance ellipsoids from splat scale and rotation attributes.','A render showing Gaussians as ellipsoids.','gn'],
+  ['Comparison videos','Render the same camera path for several methods side by side.','A comparison video.','anim'],
+  ['Final project: plan','Pick a final project: a synthetic benchmark scene, a survey figure set, or a reconstruction showcase. Write a plan.','A written project plan.',null],
+  ['Final project: build','Build it. Script anything you repeat.','Work in progress.',null],
+  ['Final project: render','Render final images and videos; composite and add labels.','Final renders.','comp'],
+  ['Document','Write a README for your dataset or figure scripts so others can reproduce them.','A documented repo.',null],
+  ['Portfolio and review','Collect your best work from all 3 months. Go through your notes and list weak areas to practise next.','A portfolio and a next-steps list.','studio'],
+  ['Celebrate and plan ahead','Share your work and plan the next 3 months (e.g. advanced Geometry Nodes or Blender Studio courses).','Done!','studio'],
+ ]},
+];
+const BDAYS=[]; BW.forEach((w,wi)=>w.d.forEach(d=>BDAYS.push({w:wi,m:w.m,d})));
+let bdone=new Set(), bstart='';
+try{ bdone=new Set(JSON.parse(localStorage.getItem(SP+'blender')||'[]')); bstart=localStorage.getItem(SP+'blender-start')||''; }catch(e){}
+const bst={hide:false};
+function bsave(){ try{ localStorage.setItem(SP+'blender',JSON.stringify([...bdone])); localStorage.setItem(SP+'blender-start',bstart); }catch(e){} }
+function todayIndex(){ if(!bstart) return -1; const s=new Date(bstart+'T00:00:00'), n=new Date(); n.setHours(0,0,0,0); return Math.floor((n-s)/86400000); }
+const MONTHS={1:['Month 1','Blender foundations: interface, modeling, materials, lighting, rendering'],2:['Month 2','Intermediate skills: sculpting, UVs, Geometry Nodes, animation, compositing'],3:['Month 3','Blender for 3D vision research: Python, camera poses, synthetic datasets, splats and meshes, survey figures']};
+function viewBlender(){
+  const total=BDAYS.length, fin=BDAYS.filter((_,i)=>bdone.has(i)).length, pct=Math.round(100*fin/total);
+  const ti=todayIndex(); const next=BDAYS.findIndex((_,i)=>!bdone.has(i));
+  const q=st.q.trim().toLowerCase();
+  let gi=0, html='';
+  [1,2,3].forEach(m=>{
+    html+=`<section class="sec"><div class="lhead"><span class="lnum">${MONTHS[m][0]}</span><h2>${esc(MONTHS[m][1])}</h2></div>`;
+    BW.forEach((w,wi)=>{ if(w.m!==m) return;
+      const startIdx=BDAYS.findIndex(x=>x.w===wi);
+      const rows=w.d.map((d,k)=>{ const i=startIdx+k; return {i,d}; })
+        .filter(({i,d})=>(!bst.hide||!bdone.has(i)) && (!q || d.join(' ').toLowerCase().includes(q)));
+      const wdone=w.d.filter((_,k)=>bdone.has(startIdx+k)).length;
+      if(!rows.length) return;
+      html+=`<div class="bweek"><div class="bwh"><b>Week ${wi+1} · ${esc(w.w)}</b><span class="status">${wdone}/${w.d.length} days</span></div>
+        ${rows.map(({i,d})=>{ const r=d[3]&&BR[d[3]]; const isT=i===ti, isN=i===next;
+          return `<div class="bday${bdone.has(i)?' isdone':''}${isT?' today':''}" id="bday-${i}">
+            <label class="ldone"><input type="checkbox" data-bday="${i}" ${bdone.has(i)?'checked':''} aria-label="Mark day ${i+1} done"></label>
+            <div class="bdn">Day ${i+1}${isT?'<span class="chip new">Today</span>':isN&&ti<0?'<span class="chip new">Next</span>':''}</div>
+            <div style="min-width:0"><b>${esc(d[0])}</b><p>${esc(d[1])}</p>
+              <div class="bmeta">${d[2]?`<span><span class="bk">Done when</span> ${esc(d[2])}</span>`:''}${r?`<a href="${esc(r[1])}" target="_blank" rel="noopener">${esc(r[0])} ↗</a>`:''}</div></div></div>`; }).join('')}</div>`;
+    });
+    html+='</section>';
+  });
+  return `<section class="panel live"><h2>Blender in 90 days, from zero</h2>
+    <p>About 1–2 hours a day. Month 1 builds the foundations, Month 2 adds intermediate skills, and Month 3 turns Blender into a research tool for your survey: scripted camera rigs, NeRF-style synthetic datasets, importing Gaussian splats and meshes, and figures and videos. Most weeks end with a practice day and a review day, and each month ends with a small project. Progress stays in this browser.</p>
+    <div class="row"><label for="bstart" class="status">Start date</label><input type="date" id="bstart" value="${esc(bstart)}" style="width:auto">
+      ${ti>=0?`<span class="status">${ti<total?`Today is day ${ti+1}`:'Plan period finished'}</span>`:''}
+      <label class="check"><input type="checkbox" id="bhide" ${bst.hide?'checked':''}> Hide finished days</label>
+      ${(ti>=0&&ti<total)||next>=0?`<button class="btn" id="bjump">Go to ${ti>=0&&ti<total?'today':'next day'}</button>`:''}</div>
+    <div class="lprog"><div class="lbar"><span style="width:${pct}%"></span></div><span class="status">${fin} of ${total} days done</span></div>
+    <div class="bres">${Object.values(BR).slice(0,8).map(r=>`<a class="vbtn" href="${esc(r[1])}" target="_blank" rel="noopener">${esc(r[0])} ↗</a>`).join('')}</div>
+    <p class="note">Video links open a YouTube search for that series, since channels move and rename playlists.</p></section>
+    ${searchBar('Filter days, e.g. “camera”, “Geometry Nodes”, “splat”')}
+    ${html||'<div class="empty">No days match.</div>'}`;
+}
+function bindBlender(){
+  const s=$('#bstart'); if(s) s.onchange=()=>{ bstart=s.value; bsave(); render(); };
+  const h=$('#bhide'); if(h) h.onchange=()=>{ bst.hide=h.checked; render(); };
+  const j=$('#bjump'); if(j) j.onclick=()=>{ const ti=todayIndex(); const i=(ti>=0&&ti<BDAYS.length)?ti:BDAYS.findIndex((_,k)=>!bdone.has(k)); document.getElementById('bday-'+i)?.scrollIntoView({behavior:'smooth',block:'center'}); };
+}
+document.getElementById('main').addEventListener('change',e=>{
+  const c=e.target.closest('[data-bday]'); if(!c) return;
+  const i=+c.dataset.bday; c.checked?bdone.add(i):bdone.delete(i); bsave();
+  const y=window.scrollY; render(); window.scrollTo(0,y);
+});
+
+const SUBNAV=v=>`<nav class="subnav"><a class="vbtn" href="#learn" aria-current="${v==='learn'?'page':'false'}">${esc(DESK.learnLabel||'3DGS learning path')}</a><a class="vbtn" href="#blender" aria-current="${v==='blender'?'page':'false'}">Blender 90-day plan</a></nav>`;
+function render(){
+  document.querySelectorAll('#tabs a').forEach(a=>a.setAttribute('aria-current', (a.dataset.v===st.view||(st.view==='blender'&&a.dataset.v==='learn'))?'page':'false'));
+  renderTopics();
+  const m=$('#main');
+  if(st.view==='latest') m.innerHTML=viewLatest();
+  else if(st.view==='venues') m.innerHTML=viewVenues();
+  else if(st.view==='reading') m.innerHTML=viewReading();
+  else if(st.view==='foundations') m.innerHTML=viewFoundations();
+  else if(st.view==='learn') m.innerHTML=(DESK.noBlender?'':SUBNAV('learn'))+viewLearn();
+  else if(st.view==='blender'){ m.innerHTML=SUBNAV('blender')+viewBlender(); bindBlender(); }
+  else if(st.view==='compare'){ m.innerHTML=viewCompare(); bindCompare(); }
+  else m.innerHTML=viewSearchOut();
+  if($('#results')) renderList();
+  const q=$('#q'); if(q){
+    if(st.view==='foundations'||st.view==='search-out'||st.view==='learn'||st.view==='blender'){ q.addEventListener('change',()=>{st.q=q.value; render();}); q.addEventListener('keydown',e=>{if(e.key==='Enter'){st.q=q.value; render();}}); }
+    else bindSearch();
+  }
+  m.querySelectorAll('[data-term]').forEach(b=>b.addEventListener('click',()=>{st.q=b.dataset.term; render();}));
+  const gl=$('#golive'); if(gl) gl.addEventListener('click',fetchLive);
+  if(st.live && $('#livelist')) finishLive(st.live, st.liveSrc);
+  const ca=$('#copyall'); if(ca) ca.addEventListener('click',()=>copy(P.filter(p=>reading.has(p.i)).map(bib).join('\n\n'),'BibTeX for '+reading.size+' papers copied'));
+  setupSave();
+  updateTray(); document.body.classList.toggle('has-tray',!tray.hidden); $('#cn').textContent=cmp.length;
+  renderFreshNote();
+}
+function setupSave(){
+  const b=$('#savecopy'); if(!b||!window.claude) return;
+  window.claude.use('downloads').then(dl=>{
+    if(!dl) return; b.hidden=false;
+    b.onclick=async()=>{ try{ await dl.save({filename:(DESK.fileName||'splat-survey-desk.html'), data:ORIGINAL_HTML}); toast('Saved. Open it in Chrome or Firefox for live arXiv fetches.'); }
+      catch(e){ if(e&&e.code==='declined') return; toast('Saving is not available here'); b.hidden=true; } };
+  }).catch(()=>{});
+}
+function route(){ const h=location.hash.slice(1); st.view=['latest','venues','foundations','search-out','compare','learn','blender','reading'].includes(h)&&!(h==='blender'&&DESK.noBlender)?h:'latest'; st.shown=40; if(st.view!=='latest') st.live=null; render(); }
+window.addEventListener('hashchange',route);
+
+// stats
+const acc=P.filter(p=>p.v.length).length;
+$('#stats').innerHTML=`<span><b>${P.length.toLocaleString()}</b>arXiv papers</span><span><b>${acc.toLocaleString()}</b>accepted</span><span><b>${esc(latestD)}</b>newest</span>`;
+$('#srcnote').innerHTML=DESK.srcNote?esc(DESK.srcNote):`Snapshot ${esc(SNAPSHOT)}. Merged from community-maintained Gaussian splatting paper lists and a daily arXiv tracker. Topic tags are assigned by keyword rules, so check borderline papers.`;
+saveRL(); route(); loadFresh();
+})();
+</script>
+
+</body>
+</html>
