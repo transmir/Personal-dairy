@@ -7,6 +7,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script>window.SSD_BACKEND_URL='https://script.google.com/macros/s/AKfycbw_vYwTxspKnmQYkt9wy7fvIoWDMVbQiR_0CHzxtaT-pQuZS8lW8Tx-z1g4MsAr8XFOOg/exec';</script>
 <style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -375,7 +376,7 @@ $('#f-code').addEventListener('change',e=>{st.code=e.target.checked; st.shown=40
 $('#f-acc').addEventListener('change',e=>{st.acc=e.target.checked; st.shown=40; render();});
 
 // ---------- paper card
-const latestD = P[0].d;
+let latestD = P[0].d;
 function card(p, opts={}){
   const isNew = p.d >= addDays(latestD,-45);
   const tchips = p.k.map(k=>`<span class="chip" style="color:var(--c-${k})">${esc(TN[k])}</span>`).join('');
@@ -386,7 +387,7 @@ function card(p, opts={}){
     <div class="p-head"><h3 class="p-title"><button data-open="${esc(id)}" title="Open summary and method diagram">${esc(p.t)}</button></h3>
       ${opts.nostar?'':`<button class="star" data-star="${esc(id)}" aria-pressed="${reading.has(id)}" title="Add to reading list" aria-label="Add to reading list">${reading.has(id)?'★':'☆'}</button>`}</div>
     <div class="p-auth">${esc(p.a)}${p.org?` · <span>${esc(p.org)}</span>`:''}</div>
-    <div class="chips">${v}<span class="chip date">${esc(p.d)} · arXiv ${esc(id)}</span>${isNew&&!opts.live?'<span class="chip new">New</span>':''}${tchips}</div>
+    <div class="chips">${v}<span class="chip date">${esc(p.d)} · arXiv ${esc(id)}</span>${p.fresh?'<span class="chip new">Live</span>':isNew&&!opts.live?'<span class="chip new">New</span>':''}${tchips}</div>
     ${abs}
     <div class="links">
       ${p.ab?'<button data-expand>Abstract</button>':''}
@@ -439,8 +440,47 @@ function bindSearch(){ const q=$('#q'); if(!q) return; q.addEventListener('input
 // ---------- live arXiv
 function topicKey(){ return st.topic; }
 function arxivSiteURL(k){ return 'https://arxiv.org/search/?query='+encodeURIComponent(plainQ[k])+'&searchtype=all&abstracts=show&order=-announced_date_first&size=50'; }
+// ---------- optional Apps Script backend (set window.SSD_BACKEND_URL); proxies the arXiv API
+const BACKEND_URL=(window.SSD_BACKEND_URL||'').trim();
+const TOPRX={
+ ff:/feed[- ]?forward|generali[sz]able|pixelsplat|mvsplat|pose[- ]free|unposed|single[- ]image to 3d|image-to-3d|large reconstruction model|\bLRM\b|one forward pass|single forward|zero-shot (3d|reconstruction)|amortized/gi,
+ scene:/per-scene|scene[- ]specific|novel view synthesis|densification|anti-?alias|view-dependent|reflect|specular|unbounded|large-scale|in the wild|city|aerial|rendering quality|floaters/gi,
+ surf:/surface reconstruction|\bsdf\b|signed distance|2dgs|2d gaussian|geometr(y|ic) (accura|reconstruct|fidelity)|normal (prior|estimation|consisten)|planar|surfel|depth[- ]normal|watertight|neus|chamfer/gi,
+ dyn:/\b4d\b|4dgs|dynamic|deformable|deformation field|temporal|monocular video|motion|time-varying|non-rigid|free[- ]viewpoint video|volumetric video/gi,
+ sparse:/sparse[- ]view|few[- ]shot|few[- ]view|sparse input|limited views|two views|three views|\b3 views|sparse images|sparse observations/gi,
+ fast:/real[- ]time|fast training|training time|accelerat|speed[- ]?up|faster|in (seconds|minutes)|\d+ ?(seconds|minutes)|efficient training|rapid|instant|\bfps\b|lightweight/gi,
+ compact:/compact|compress|prun|storage|memory (footprint|efficient|consumption)|quantiz|codebook|\bmb\b|bitrate|rate-distortion|lightweight|fewer gaussians|number of gaussians|entropy|distill/gi,
+ mesh:/\bmesh|meshes|meshing|marching cubes|tetrahedr|triangle|mesh extraction|mesh-based|polygon|texture[d ]? mesh/gi
+};
+function classify(title,ab){ const txt=title+' '+ab; return Object.keys(TOPRX).filter(k=>{ const r=TOPRX[k]; r.lastIndex=0; const inTitle=new RegExp(r.source,'i').test(title); const hits=(txt.match(r)||[]).length; return inTitle||hits>=2; }); }
+const VENRX=/\b(CVPR|ICCV|ECCV|NeurIPS|ICLR|ICML|SIGGRAPH Asia|SIGGRAPH|3DV|AAAI|TPAMI|WACV|BMVC|ICRA|IROS|TVCG|TOG|Eurographics|CoRL|RSS)\s*'?(20\d\d)\b/g;
+async function backendArxiv(query,max){
+  const url=BACKEND_URL+'?data='+encodeURIComponent(JSON.stringify({action:'arxiv',query,max}));
+  const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(),30000);
+  const r=await fetch(url,{signal:ctl.signal}); clearTimeout(to);
+  const j=await r.json(); if(!j.success) throw new Error(j.message||'backend error');
+  return j.papers.map(x=>({i:x.i,t:x.t,a:x.a,d:x.d,ab:x.ab,c:x.c||undefined,k:classify(x.t,x.ab),v:[...new Set([...(x.cm+' '+x.ab).matchAll(VENRX)].map(m=>m[1]+' '+m[2]))],g:[],fresh:true}));
+}
+let FRESH=null;
+async function loadFresh(){
+  if(!BACKEND_URL) return;
+  let items=null;
+  try{ const c=JSON.parse(localStorage.getItem('ssd-fresh')||'null'); if(c&&Date.now()-c.at<6*3600e3) items=c.items; }catch(e){}
+  if(!items){ try{ items=await backendArxiv(arxivQ.all,200); try{localStorage.setItem('ssd-fresh',JSON.stringify({at:Date.now(),items}));}catch(e){} }catch(e){ FRESH={err:true}; renderFreshNote(); return; } }
+  const add=items.filter(p=>p.i&&!BYID.has(p.i));
+  add.forEach(p=>BYID.set(p.i,p));
+  P.unshift(...add); P.sort((a,b)=>(b.d.slice(0,10)).localeCompare(a.d.slice(0,10))||b.i.localeCompare(a.i));
+  latestD=P[0].d; FRESH={n:add.length};
+  document.querySelector('#stats b').textContent=P.length.toLocaleString();
+  document.querySelectorAll('#stats b')[2].textContent=latestD;
+  document.querySelectorAll('#stats b')[1].textContent=P.filter(p=>p.v.length).length.toLocaleString();
+  if(['latest','venues','reading'].includes(st.view)) render(); else renderFreshNote();
+}
+function renderFreshNote(){ const el=$('#freshnote'); if(!el||!FRESH) return; el.hidden=false;
+  el.textContent=FRESH.err?'Could not reach your backend for newer arXiv papers; showing the snapshot only.':(FRESH.n?`Added ${FRESH.n} newer paper${FRESH.n>1?'s':''} from arXiv through your backend. They are marked “Live”.`:'Checked arXiv through your backend: the snapshot is up to date.'); }
 async function fetchLive(){
   const k=topicKey(); const s=$('#livestatus'); s.className='status'; s.textContent='Asking arXiv for the 50 newest papers…';
+  if(BACKEND_URL){ try{ const items=await backendArxiv(arxivQ[k],50); return finishLive(items,'arXiv (through your backend)'); }catch(e){} }
   try{
     const url='https://export.arxiv.org/api/query?search_query='+encodeURIComponent(arxivQ[k])+'&sortBy=submittedDate&sortOrder=descending&max_results=50';
     const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(),15000);
@@ -487,6 +527,7 @@ function viewLatest(){
   const k=topicKey();
   return `<section class="panel live">
     <h2>Newest on arXiv${k!=='all'?' · '+esc(TN[k]):''}</h2>
+    <p class="status" id="freshnote" hidden></p>
     <p>The ledger below is a snapshot taken ${esc(SNAPSHOT)}. Fetch live to pull the 50 newest submissions for this topic straight from arXiv, or open arXiv’s own listing sorted by announcement date.</p>
     <div class="row"><button class="btn primary" id="golive">Fetch live from arXiv</button>
       <a class="btn" href="${arxivSiteURL(k)}" target="_blank" rel="noopener">Open arXiv newest ↗</a>
@@ -1360,6 +1401,7 @@ function render(){
   const ca=$('#copyall'); if(ca) ca.addEventListener('click',()=>copy(P.filter(p=>reading.has(p.i)).map(bib).join('\n\n'),'BibTeX for '+reading.size+' papers copied'));
   setupSave();
   updateTray(); document.body.classList.toggle('has-tray',!tray.hidden); $('#cn').textContent=cmp.length;
+  renderFreshNote();
 }
 function setupSave(){
   const b=$('#savecopy'); if(!b||!window.claude) return;
@@ -1376,7 +1418,7 @@ window.addEventListener('hashchange',route);
 const acc=P.filter(p=>p.v.length).length;
 $('#stats').innerHTML=`<span><b>${P.length.toLocaleString()}</b>arXiv papers</span><span><b>${acc.toLocaleString()}</b>accepted</span><span><b>${esc(latestD)}</b>newest</span>`;
 $('#srcnote').innerHTML=`Snapshot ${esc(SNAPSHOT)}. Merged from community-maintained Gaussian splatting paper lists and a daily arXiv tracker. Topic tags are assigned by keyword rules, so check borderline papers.`;
-saveRL(); route();
+saveRL(); route(); loadFresh();
 })();
 </script>
 

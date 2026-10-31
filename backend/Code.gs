@@ -34,6 +34,7 @@ function dispatch(payload) {
     if (action === 'load')             return loadData(payload);
     if (action === 'saveVideoToDrive') return saveVideoToDrive(payload);
     if (action === 'saveAudioToDrive') return saveAudioToDrive(payload);
+    if (action === 'arxiv')            return searchArxiv(payload);
 
     return respond(false, 'Unknown action: ' + action);
   } catch (err) {
@@ -203,6 +204,53 @@ function saveAudioToDrive(data) {
   } catch(err) {
     return respond(false, 'Drive save failed: ' + err.message);
   }
+}
+
+// ── arXiv search (used by splat-survey-desk/) ─────────────────
+// Read-only proxy to the public arXiv API, so the static Splat Survey
+// Desk page can load papers newer than its built-in snapshot.
+// Request: {action:'arxiv', query:'abs:"gaussian splatting"', start:0, max:100}
+// Response: {success:true, papers:[{i,t,a,d,ab,cm,c}], total}
+function searchArxiv(p) {
+  var query = String(p.query || 'abs:"gaussian splatting"').slice(0, 500);
+  var start = Math.max(0, Math.min(5000, parseInt(p.start, 10) || 0));
+  var max   = Math.max(1, Math.min(200, parseInt(p.max, 10) || 100));
+  var key   = 'arxiv:' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(
+                Utilities.DigestAlgorithm.MD5, query + '|' + start + '|' + max));
+  var cache = CacheService.getScriptCache();
+  var hit   = cache.get(key);
+  if (hit) return respond(true, 'ok (cached)', JSON.parse(hit));
+
+  var url = 'https://export.arxiv.org/api/query?search_query=' + encodeURIComponent(query) +
+            '&sortBy=submittedDate&sortOrder=descending&start=' + start + '&max_results=' + max;
+  var res = UrlFetchApp.fetch(url, { muteHttpExceptions: true, headers: { 'User-Agent': 'splat-survey-desk/1.0' } });
+  if (res.getResponseCode() !== 200) return respond(false, 'arXiv answered ' + res.getResponseCode());
+
+  var root  = XmlService.parse(res.getContentText()).getRootElement();
+  var atom  = XmlService.getNamespace('http://www.w3.org/2005/Atom');
+  var ax    = XmlService.getNamespace('arxiv', 'http://arxiv.org/schemas/atom');
+  var os    = XmlService.getNamespace('opensearch', 'http://a9.com/-/spec/opensearch/1.1/');
+  var clean = function (s) { return String(s || '').replace(/\s+/g, ' ').trim(); };
+  var papers = root.getChildren('entry', atom).map(function (en) {
+    var id   = clean(en.getChildText('id', atom)).replace(/^.*abs\//, '').replace(/v\d+$/, '');
+    var ab   = clean(en.getChildText('summary', atom));
+    var cm   = clean(en.getChildText('comment', ax));
+    var code = (cm + ' ' + ab).match(/https?:\/\/github\.com\/[\w.-]+\/[\w.-]+/);
+    return {
+      i: id,
+      t: clean(en.getChildText('title', atom)),
+      a: en.getChildren('author', atom).map(function (x) { return clean(x.getChildText('name', atom)); }).join(', '),
+      d: clean(en.getChildText('published', atom)).slice(0, 10),
+      ab: ab.length > 900 ? ab.slice(0, 900) + '…' : ab,
+      cm: cm,
+      c: code ? code[0].replace(/\.$/, '') : ''
+    };
+  });
+  var total = parseInt(clean(root.getChildText('totalResults', os)), 10) || papers.length;
+  var out = { papers: papers, total: total, fetchedAt: new Date().toISOString() };
+  var json = JSON.stringify(out);
+  if (json.length < 95000) cache.put(key, json, 1800); // 30 min
+  return respond(true, 'ok', out);
 }
 
 // ── Helpers ───────────────────────────────────────────────────
