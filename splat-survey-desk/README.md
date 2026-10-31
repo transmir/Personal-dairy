@@ -36,4 +36,9 @@ The page layout and code live in `build/template.html`. Topic tags come from key
 
 The built-in list is a snapshot, and the public lists it comes from can lag arXiv by weeks. To fill the gap, the page asks the diary's Apps Script backend (`backend/Code.gs`, action `arxiv`) for the 200 newest Gaussian splatting papers on arXiv every time it opens. Papers newer than the snapshot are added at the top with a **Live** tag, and the answer is cached for 6 hours in the browser and 30 minutes in Apps Script. The **Fetch live from arXiv** button also goes through the backend first.
 
-`build/make_page.py` reads the backend URL from `SCRIPT_URL` in the diary's `index.html`. To use a different deployment, put its URL in `build/backend_url.txt`. After changing `Code.gs`, deploy a new version of the web app; the steps are below.
+`build/make_page.py` reads the backend URL from `SCRIPT_URL` in the diary's `index.html`. To use a different deployment, put its URL in `build/backend_url.txt`. After changing `Code.gs`, deploy a new version of the existing web app so its URL stays the same:
+
+1. In Apps Script, choose **Deploy → Manage deployments**.
+2. Select the web app deployment and click the pencil icon (**Edit**).
+3. Under **Version**, choose **New version**, then click **Deploy**.
+4. If Google asks you to authorise access to an external service (arXiv), allow it.
