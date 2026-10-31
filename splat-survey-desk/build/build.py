@@ -81,6 +81,43 @@ for f in [D + '/README.md'] + glob.glob(D + '/docs/archive/2026/*.md'):
             cm = re.search(r'\((https://github[^)]+)\)', code)
             if cm and not p.get('c'): p['c'] = cm.group(1)
 
+# --- arXiv API: newest papers straight from arXiv (skipped if arXiv is unreachable)
+def fetch_arxiv(max_total=1500, page=200):
+    import urllib.request, urllib.parse, time, xml.etree.ElementTree as ET, ssl
+    ns = {'a': 'http://www.w3.org/2005/Atom', 'x': 'http://arxiv.org/schemas/atom'}
+    ctx = None
+    for ca in ('/root/.ccr/ca-bundle.crt',):
+        if os.path.exists(ca): ctx = ssl.create_default_context(cafile=ca)
+    q = 'abs:"gaussian splatting" OR ti:"gaussian splatting" OR abs:3DGS OR abs:"gaussian splats"'
+    got = 0
+    for start in range(0, max_total, page):
+        url = 'https://export.arxiv.org/api/query?' + urllib.parse.urlencode({'search_query': q, 'sortBy': 'submittedDate', 'sortOrder': 'descending', 'start': start, 'max_results': page})
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': 'splat-survey-desk/1.0'}), timeout=60, context=ctx) as r:
+                root = ET.fromstring(r.read())
+        except Exception as e:
+            print('arXiv API not reachable, skipping live arXiv step:', e, file=sys.stderr); return got
+        entries = root.findall('a:entry', ns)
+        if not entries: break
+        for en in entries:
+            i = arx(en.findtext('a:id', '', ns))
+            if not i: continue
+            p = get(i)
+            p.setdefault('t', ' '.join(en.findtext('a:title', '', ns).split()))
+            if not p.get('a'): p['a'] = ', '.join(x.findtext('a:name', '', ns) for x in en.findall('a:author', ns))
+            if not p.get('ab'): p['ab'] = ' '.join(en.findtext('a:summary', '', ns).split())
+            if not p.get('d') or len(p['d']) < 10: p['d'] = en.findtext('a:published', '', ns)[:10]
+            com = en.findtext('x:comment', '', ns) or ''
+            for vm in VEN_RE.finditer(com): p['v'].add(norm_ven(*vm.groups()))
+            cm = re.search(r'https?://github\.com/[\w.-]+/[\w.-]+', com + ' ' + p.get('ab', ''))
+            if cm and not p.get('c'): p['c'] = cm.group(0).rstrip('.')
+            got += 1
+        if len(entries) < page: break
+        time.sleep(3)  # arXiv API etiquette
+    return got
+if os.environ.get('SKIP_ARXIV') != '1':
+    print('arXiv API papers:', fetch_arxiv(), file=sys.stderr)
+
 # --- topic classification
 TOP = {
  'ff': (r'feed[- ]?forward|generali[sz]able|pixelsplat|mvsplat|pose[- ]free|unposed|single[- ]image to 3d|image-to-3d|large reconstruction model|\bLRM\b|one forward pass|single forward|zero-shot (3d|reconstruction)|amortized', {'Feed-Forward'}),
