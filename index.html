@@ -619,6 +619,24 @@ button:active:not(:disabled){transform:scale(.97);}
 .rs-open:hover{border-color:var(--accent);color:var(--accent)}
 .rs-frame{display:block;width:100%;height:calc(100vh - 170px);min-height:520px;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
 @media (max-width:768px){.rs-frame{height:calc(100dvh - 230px);border-radius:12px}}
+
+/* 90-day calisthenics plan */
+.c90-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.c90-top label{font-size:.88em;color:var(--ink2);display:flex;gap:6px;align-items:center}
+.c90-top input[type=date]{padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit}
+.c90-prog{display:flex;gap:10px;align-items:center;margin-bottom:8px}.c90-prog .ft-bar{flex:1;max-width:340px}
+.c90-week{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:12px}
+.c90-wh{display:flex;justify-content:space-between;padding:8px 12px;background:var(--surface2);font-weight:600;font-size:.88em}.c90-wh span{color:var(--muted);font-weight:500}
+.c90-day{display:grid;grid-template-columns:20px 92px minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 12px;border-top:1px solid var(--line)}
+.c90-day:first-of-type{border-top:0}
+.c90-day input[type=checkbox]{margin-top:3px;width:17px;height:17px;accent-color:var(--accent)}
+.c90-n{font-weight:700;font-size:.9em;display:flex;flex-direction:column;gap:3px;align-items:flex-start}.c90-n small{font-weight:500;color:var(--muted)}
+.c90-day.done{opacity:.55}.c90-day.done .ft-title{text-decoration:line-through}
+.c90-day.today{background:var(--accent-soft)}
+.c90-day.rest .ft-title{color:var(--muted)}
+.c90-day.test .ft-title{color:var(--accent)}
+.c90-miss{font-size:.75em;color:#ef4444;font-weight:600}
+@media (max-width:640px){.c90-day{grid-template-columns:20px minmax(0,1fr)}.c90-day .c90-b,.c90-day .c90-n,.c90-day>button{grid-column:2}.c90-n{flex-direction:row;flex-wrap:wrap;gap:6px}}
 </style>
 </head>
 <body>
@@ -1807,13 +1825,168 @@ function ftPreset(style,phase){
   const copy=()=>({name:full.name,ex:full.ex.map(e=>Object.assign({},e,{id:ftId()}))});
   return {mon:copy(),tue:rest('Rest — walk + stretch'),wed:copy(),thu:rest('Rest — walk + stretch'),fri:copy(),sat:rest('Rest — optional walk'),sun:rest('Rest — full recovery')};
 }
+// ── 90-day home calisthenics plan ────────────────────────────
+// One room, one 20 kg resistance band, a sturdy table (inverted rows) and a chair/bed edge.
+// Day 1 = the plan's start date. Each month repeats a 7-day cycle and gets harder week by week:
+// Month 1 full body ×3/week, Month 2 upper/lower ×4/week, Month 3 push/pull/legs + skills ×5/week.
+// Max tests on days 1, 30, 60 and 90; lighter sessions before each test.
+const C90_MONTH=['','Foundation','Strength + skills','Skill focus'];
+const C90_CACHE={};
+function c90Id(n){return 'c90-'+n.toLowerCase().replace(/\(.*?\)/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+function c90E(n,s,r){return {id:c90Id(n),n,sets:s,reps:r};}
+function ftC90(n){
+  if(C90_CACHE[n])return C90_CACHE[n];
+  const m=n<=30?1:n<=60?2:3, base=m===1?1:m===2?31:61, wi=Math.floor((n-base)/7), c=(n-base)%7;
+  const P=a=>a[Math.min(wi,a.length-1)], E=c90E;
+  const WU=()=>E('Warm-up: jumping jacks, arm circles, leg swings',1,'5-8 min'), CD=()=>E('Cool-down stretching',1,'5-10 min');
+  const walk={name:'Rest — walk + mobility',rest:true,ex:[],note:'20–30 min easy walk, then 10 min mobility: cat-cow, hip-flexor stretch, thoracic rotations and band shoulder dislocates.'};
+  const off={name:'Rest — full recovery',rest:true,ex:[],note:'Full rest. Sleep 7–9 hours and hit your protein target: this is when muscle is built.'};
+  const test=k=>({name:k===1?'Test day — baseline':'Test day — retest (day '+n+')',test:true,ex:[WU(),
+    E('Max push-ups, good form (incline if you can’t do 5)',1,'max reps'),E('Max inverted rows under table',1,'max reps'),
+    E('Max squats in 60 seconds',1,'max reps'),E('Max plank hold',1,'max sec'),E('Max wall sit',1,'max sec')]
+    .concat(k>1?[E('Max wall-assisted handstand hold',1,'max sec')]:[]).concat([CD()]),
+    note:'Write each number in Notes (e.g. “push-ups 14, rows 9, squats 38, plank 75 s, wall sit 60 s”). Compare against your last test.'});
+  let d;
+  if(n===1)d=test(1);
+  else if(n===30||n===60||n===90)d=test(n);
+  else if(m===1){
+    const A=light=>({name:light?'Light full body (deload)':'Full body A',ex:[WU(),
+      wi<2?E('Incline Push-ups (hands on bed)',light?2:3,P(['8-10','10-12'])):E('Push-ups (knees if needed)',light?2:3,P(['','','6-8','8-10','8-12'])),
+      E('Inverted Rows under table, knees bent',light?2:3,P(['5-8','6-8','8-10','8-10'])),
+      E('Band Rows (20 kg band)',light?2:3,P(['12','12','15','15'])),
+      E('Squats',light?2:3,P(['12','15','15-20','20'])),
+      E('Glute Bridges',light?2:3,P(['12','15','15','20'])),
+      E('Plank',light?2:3,P(['20 sec','30 sec','40 sec','45 sec'])),CD()]});
+    const B=()=>({name:'Full body B',ex:[WU(),
+      E('Chair/Bed Dips, knees bent',3,P(['5-8','6-10','8-10','8-12'])),
+      E('Pike Push-ups, knees on floor',3,P(['5','6-8','8','8-10'])),
+      E('Band Pull-aparts',3,'15'),
+      E('Reverse Lunges',3,P(['8 each leg','10 each leg','10-12 each leg','12 each leg'])),
+      E('Calf Raises',3,P(['15','20','20','25'])),
+      E('Dead Bug',3,P(['8 each side','10 each side','10 each side','12 each side'])),
+      E('Side Plank',2,P(['15 sec each','20 sec each','25 sec each','30 sec each'])),CD()]});
+    if(n===29)d=A(true);
+    else{const odd=wi%2===0;d=[odd?A():B(),walk,odd?B():A(),walk,odd?A():B(),walk,off][c];}
+  }
+  else if(m===2){
+    const U=(skills,light)=>({name:(light?'Light upper body (deload)':'Upper body')+(skills&&!light?' + skills':''),ex:[WU(),
+      E('Push-ups',light?2:4,P(['8-12','10-12','10-15','12-15'])),
+      E('Inverted Rows under table, legs straight',light?2:4,P(['5-8','6-8','6-10','8-10'])),
+      E('Band Rows (20 kg band)',3,P(['12','12','15','15'])),
+      E('Chair/Bed Dips, legs straight',3,P(['8-10','10','10-12','12'])),
+      E('Pike Push-ups',3,P(['6-8','8','8-10','10'])),
+      E('Band Face Pulls',3,'15'),E('Band Biceps Curls',3,P(['12','12','15','15']))]
+      .concat(light?[]:[E('Wall-assisted Handstand Hold (chest to wall)',3,P(['15 sec','20 sec','25 sec','30 sec']))])
+      .concat(skills&&!light?[E('Tuck L-sit (hands on two chairs)',3,P(['5 sec','8 sec','10 sec','10-15 sec']))]:[]).concat([CD()])});
+    const L=light=>({name:light?'Light lower body (deload)':'Lower body + core',ex:[WU(),
+      E('Banded Squats (20 kg band under feet)',light?2:4,P(['10','12','12-15','15'])),
+      E('Bulgarian Split Squats (rear foot on chair/bed)',3,P(['6 each leg','8 each leg','8-10 each leg','10 each leg'])),
+      E('Banded Good Mornings (20 kg band)',3,P(['12','12','15','15'])),
+      E('Single-leg Glute Bridges',3,P(['8 each leg','10 each leg','12 each leg','12 each leg'])),
+      E('Single-leg Calf Raises',3,P(['10 each leg','12 each leg','15 each leg','15 each leg'])),
+      E('Lying Leg Raises',3,P(['8','10','10-12','12'])),
+      E('Hollow Body Hold',3,P(['15 sec','20 sec','25 sec','30 sec'])),CD()]});
+    if(n===57)d=U(false,true);else if(n===58)d=L(true);else if(n===59)d=off;
+    else d=[U(false),L(),walk,U(true),L(),walk,off][c];
+  }
+  else{
+    const push=light=>({name:light?'Light full body (deload)':'Push — chest, shoulders, triceps',ex:light?[WU(),E('Push-ups',2,'10'),E('Inverted Rows under table, legs straight',2,'8'),E('Banded Squats (20 kg band under feet)',2,'12'),E('Plank',2,'40 sec'),CD()]:[WU(),
+      E('Decline Push-ups (feet on chair/bed)',4,P(['8-10','10-12','10-12','12-15'])),
+      E('Archer Push-ups',3,P(['4-6 each side','5-7 each side','6-8 each side','6-8 each side'])),
+      E('Elevated Pike Push-ups (feet on chair)',4,P(['6-8','6-8','8-10','8-10'])),
+      E('Chair/Bed Dips, feet elevated',3,P(['8-10','10-12','10-12','12-15'])),
+      E('Band Triceps Extensions',3,'12-15'),CD()]});
+    const pull={name:'Pull — back, biceps',ex:[WU(),
+      E('Inverted Rows, feet elevated',4,P(['6-8','6-8','8-10','8-10'])),
+      E('Single-arm Band Rows',3,P(['10 each arm','12 each arm','12 each arm','15 each arm'])),
+      E('Band Lat Pulldown (band anchored high on door)',3,'12-15'),
+      E('Explosive Inverted Rows (muscle-up pull progression)',3,P(['3','3-4','4-5','5'])),
+      E('Band Face Pulls',3,'15'),E('Band Biceps Curls',3,'12-15'),CD()]};
+    const legs={name:'Legs',ex:[WU(),
+      E('Assisted Pistol Squats (hold a door frame)',4,P(['4-6 each leg','5-7 each leg','6-8 each leg','6-8 each leg'])),
+      E('Banded Bulgarian Split Squats',3,P(['8 each leg','10 each leg','10 each leg','12 each leg'])),
+      E('Banded Good Mornings (20 kg band)',4,'12-15'),
+      E('Nordic Curl Negatives (heels hooked under bed)',3,P(['3','3-4','4-5','5'])),
+      E('Single-leg Calf Raises',3,'15-20 each leg'),CD()]};
+    const skills={name:'Upper body skills',ex:[WU(),
+      E('Wall-assisted Handstand Hold',4,P(['20 sec','25 sec','30 sec','35-45 sec'])),
+      E('Handstand Kick-up Practice (against wall)',1,'5 min'),
+      E('L-sit (hands on two chairs)',4,P(['5-10 sec','8-12 sec','10-15 sec','10-15 sec'])),
+      E('Pseudo-planche Lean',3,P(['10 sec','15 sec','15 sec','20 sec'])),
+      E('Plank to Push-up',3,'10-15'),CD()]};
+    const core={name:'Lower body + core',ex:[WU(),
+      E('Banded Squats (20 kg band under feet)',4,'15-20'),
+      E('Reverse Lunges',3,'12 each leg'),
+      E('Wall Sit',3,P(['40 sec','45 sec','60 sec','60 sec'])),
+      E('Lying Leg Raises',3,'12-15'),
+      E('Windshield Wipers (lying)',3,P(['6 each side','8 each side','8 each side','10 each side'])),
+      E('Hollow Body Rocks',3,P(['10','12','15','15'])),
+      E('Side Plank',3,P(['30 sec each','35 sec each','40 sec each','45 sec each'])),CD()]};
+    if(n===89)d=push(true);
+    else d=[push(false),pull,legs,walk,skills,core,off][c];
+  }
+  const w=Math.floor((n-1)/7)+1;
+  d=Object.assign({n,m,w,phase:C90_MONTH[m]},d);
+  if(!d.ex)d.ex=[];
+  return C90_CACHE[n]=d;
+}
+function ftC90Num(date){
+  if(!fit||fit.plan.style!=='cali'||!fit.plan.start)return 0;
+  return Math.round((new Date(date+'T00:00:00')-new Date(fit.plan.start+'T00:00:00'))/86400000)+1;
+}
+// The workout for a calendar date: the 90-day plan for calisthenics (after day 90 it keeps cycling Month 3),
+// otherwise the weekly split.
+function ftWorkoutFor(date){
+  const n=ftC90Num(date);
+  if(n>=1){const k=n<=90?n:61+((n-91)%28);const d=ftC90(k);return n<=90?d:Object.assign({},d,{n,name:'After day 90 · '+d.name});}
+  return fit.plan.workout[ftDayKey(date)];
+}
+function ftC90Date(n){return ftShift(fit.plan.start,n-1);}
+function ftC90Done(n){
+  const date=ftC90Date(n), L=fit.logs[date], d=ftC90(n);
+  if(!L)return false;
+  if(L.done&&L.done.c90)return true;
+  if(d.rest)return !!(L.done&&L.done.restday);
+  const T=ftTotals(date);return T.exTotal>0&&T.exDone>=Math.ceil(T.exTotal*0.8);
+}
+let c90Hide=false;
+function ftC90Plan_(){
+  const today=ftToday(), tn=ftC90Num(today), done=Array.from({length:90},(_,i)=>ftC90Done(i+1)), nd=done.filter(Boolean).length;
+  const pct=Math.round(nd/90*100);
+  let h=`<div class="ft-card"><h3>📅 90-day home calisthenics plan</h3>
+    <div class="c90-top"><label>Start date <input type="date" data-a="c90-start" value="${fit.plan.start||''}"></label>
+      <span class="ft-tag">${tn<1?'Starts '+fmEsc(fit.plan.start):tn<=90?'Today is day '+tn+' of 90 · Month '+ftC90(tn).m+' · '+C90_MONTH[ftC90(tn).m]:'90 days done — the plan keeps cycling Month 3'}</span>
+      <label class="c90-chk"><input type="checkbox" data-a="c90-hide" ${c90Hide?'checked':''}> Hide finished days</label>
+      ${tn>=1&&tn<=90?'<button class="ft-btn ghost" data-c="c90-jump">Go to today</button>':''}</div>
+    <div class="c90-prog"><div class="ft-bar ${nd>=90?'ok':''}"><i style="width:${pct}%"></i></div><span class="ft-sub">${nd} of 90 days done</span></div>
+    <p class="ft-sub">One room is enough: a sturdy table for inverted rows, a chair or bed edge for dips and split squats, the floor, and your 20 kg band (anchored on a door, under your feet or held in your hands). Each week adds reps or time; each month moves to harder variations. A day counts as done when you tick it here, finish 80% of its exercises in Today, or tick a rest day. Days 1, 30, 60 and 90 are max tests: write your numbers in Notes.</p></div>`;
+  [1,2,3].forEach(m=>{
+    const from=m===1?1:m===2?31:61,to=from+29;
+    h+=`<div class="ft-card"><h3>Month ${m} · ${C90_MONTH[m]} <span class="ft-sub" style="font-weight:400">· ${m===1?'3 full-body days a week':m===2?'4 days: upper / lower, handstand and L-sit practice':'5 days: push, pull, legs, skills, lower + core'}</span></h3>`;
+    for(let ws=from;ws<=to;ws+=7){
+      const we=Math.min(to,ws+6), rows=[];
+      for(let n=ws;n<=we;n++){
+        const d=ftC90(n), dt=ftC90Date(n), isDone=done[n-1], isT=n===tn, past=tn>n&&!isDone;
+        if(c90Hide&&isDone)continue;
+        const wdn=FT_DN[ftDayKey(dt)].slice(0,3);
+        const sum=d.rest?fmEsc(d.note||''):d.ex.filter(e=>!/^(Warm-up|Cool-down)/.test(e.n)).map(e=>fmEsc(e.n)+' <b>'+e.sets+'×'+fmEsc(e.reps)+'</b>').join(' · ');
+        rows.push(`<div class="c90-day${isDone?' done':''}${isT?' today':''}${d.rest?' rest':''}${d.test?' test':''}" id="c90-${n}">
+          <input type="checkbox" data-a="c90-done" data-n="${n}" ${isDone?'checked':''} aria-label="Mark day ${n} done">
+          <div class="c90-n">Day ${n}<small>${wdn} ${dt.slice(5)}</small>${isT?'<span class="ft-tag">Today</span>':past?'<span class="c90-miss">missed</span>':''}</div>
+          <div class="c90-b"><div class="ft-title">${fmEsc(d.name)}</div><div class="ft-sub">${sum}</div></div>
+          ${d.rest?'':`<button class="ft-btn ghost" data-c="c90-open" data-n="${n}">Open</button>`}</div>`);
+      }
+      if(rows.length)h+=`<div class="c90-week"><div class="c90-wh">Week ${Math.floor((ws-1)/7)+1} <span>Days ${ws}–${we}</span></div>${rows.join('')}</div>`;
+    }
+    h+='</div>';
+  });
+  return h;
+}
 function ftPlanKey(){const st=fit.plan.style||'gym';return st==='cali'?'cali'+(fit.plan.phase||1):st;}
 function ftWeekInfo(){
-  if(!fit.plan.start)return '';
-  const wk=Math.floor((new Date(ftToday()+'T00:00:00')-new Date(fit.plan.start+'T00:00:00'))/604800000)+1;
-  if(wk<1)return '';
-  const m=Math.min(3,Math.ceil(wk/4));
-  return wk>12?`You started ${fit.plan.start} — 12 weeks done! Keep Month 3 or add harder variations.`:`Started ${fit.plan.start} → week ${wk} of 12, so Month ${m} is the one to follow.`;
+  const n=ftC90Num(ftToday());
+  if(n<1)return fit.plan.start?'Your 90-day plan starts on '+fit.plan.start+'.':'';
+  return n>90?'90 days complete! The plan keeps cycling Month 3 — add reps or harder variations.':'Day '+n+' of 90 · Month '+ftC90(n).m+' · '+C90_MONTH[ftC90(n).m]+'. Today: '+ftC90(n).name+'.';
 }
 function ftKey(){return 'fitness_'+(currentUser?currentUser.id:'x');}
 function ftLoad(remote){
@@ -1847,7 +2020,7 @@ function ftTotals(date){
     kcal+=m.kcal!==undefined&&m.kcal!==''?ftNum(m.kcal):ftNum(it.kcal);
     prot+=m.protein!==undefined&&m.protein!==''?ftNum(m.protein):ftNum(it.protein);
   });
-  const wd=fit.plan.workout[ftDayKey(date)];
+  const wd=ftWorkoutFor(date);
   const exTotal=wd?wd.ex.length:0, exDone=wd?wd.ex.filter(e=>L.ex[e.id]&&L.ex[e.id].done).length:0;
   return {kcal:Math.round(kcal),prot:Math.round(prot),exTotal,exDone};
 }
@@ -1866,7 +2039,7 @@ function ftRender(){
 }
 
 function ftStats_(date){
-  const L=ftLog(date,false), wd=fit.plan.workout[ftDayKey(date)], T=ftTotals(date), S=fit.settings, water=ftNum(L.water);
+  const L=ftLog(date,false), wd=ftWorkoutFor(date), T=ftTotals(date), S=fit.settings, water=ftNum(L.water);
   return `<div class="ft-stats">
     <div class="ft-stat"><div class="l">Calories</div><div class="v">${T.kcal} <small>/ ${S.kcal} kcal</small></div>${ftBar(T.kcal,S.kcal)}</div>
     <div class="ft-stat"><div class="l">Protein</div><div class="v">${T.prot} <small>/ ${S.protein} g</small></div>${ftBar(T.prot,S.protein)}</div>
@@ -1877,19 +2050,19 @@ function ftStats_(date){
 }
 
 function ftToday_(){
-  const date=ftDate, L=ftLog(date,false), dk=ftDayKey(date), wd=fit.plan.workout[dk], T=ftTotals(date), S=fit.settings;
+  const date=ftDate, L=ftLog(date,false), dk=ftDayKey(date), wd=ftWorkoutFor(date), c9=ftC90Num(date), T=ftTotals(date), S=fit.settings;
   const water=ftNum(L.water);
   let h=`<div class="ft-datebar"><button data-c="prev">‹</button><input type="date" data-a="date" value="${date}"><button data-c="next">›</button><button data-c="today">Today</button>
-    <span class="ft-tag">${FT_DN[dk]} · ${fmEsc(wd?wd.name:'')}</span></div>`;
+    <span class="ft-tag">${FT_DN[dk]}${c9>=1&&c9<=90?' · Day '+c9+' of 90':''} · ${fmEsc(wd?wd.name:'')}</span></div>`;
   h+=ftStats_(date);
   ftSorted().forEach(it=>{
     const done=!!L.done[it.id], m=L.meals[it.id]||{};
     let inner='';
     if(it.type==='workout'){
       if(wd&&wd.rest){
-        inner=`<div class="ft-sub">Recovery day — 20-30 min walk, light stretching/mobility. Muscle grows while you rest.</div>`;
+        inner=`<div class="ft-sub">${fmEsc(wd.note||'Recovery day — 20-30 min walk, light stretching/mobility. Muscle grows while you rest.')}</div>`;
       }else if(wd){
-        inner=wd.ex.map(e=>{
+        inner=(wd.note?`<div class="ft-sub" style="margin-bottom:8px">${fmEsc(wd.note)}</div>`:'')+wd.ex.map(e=>{
           const le=L.ex[e.id]||{}, last=ftLast(e.id,date), n=Math.max(1,parseInt(e.sets)||3);
           const sets=Array.from({length:n},(_,i)=>{const s=(le.sets||[])[i]||{};return `<span class="ft-set">${i+1}<input type="number" step="0.5" min="0" placeholder="kg" data-a="set" data-id="${e.id}" data-i="${i}" data-f="w" value="${fmEsc(s.w||'')}">×<input type="number" min="0" placeholder="reps" data-a="set" data-id="${e.id}" data-i="${i}" data-f="r" value="${fmEsc(s.r||'')}"></span>`;}).join('');
           return `<div class="ft-ex"><div class="ft-ex-h"><input type="checkbox" data-a="exdone" data-id="${e.id}" ${le.done?'checked':''}><div><div class="ft-title" style="${le.done?'text-decoration:line-through;color:var(--muted)':''}">${fmEsc(e.n)}</div><div class="ft-sub">${e.sets} sets × ${fmEsc(e.reps)}</div></div></div>
@@ -1921,15 +2094,15 @@ function ftPlan_(){
     <p class="ft-sub" style="margin-top:10px">Defaults assume a small calorie surplus (~+400 kcal over maintenance) and ~2 g protein per kg. If your weight isn't rising after 2-3 weeks, add ~200 kcal; if it rises faster than 0.5 kg/week, trim a little.</p></div>
   <div class="ft-card"><h3>🏋️ Workout style</h3>
     <div class="ft-pills" style="margin-bottom:8px"><button data-c="style" data-s="gym" class="${(fit.plan.style||'gym')==='gym'?'on':''}">🏋️ Gym (weights)</button><button data-c="style" data-s="cali" class="${fit.plan.style==='cali'?'on':''}">🏠 Home calisthenics + 20 kg band</button></div>
-    ${fit.plan.style==='cali'?`<div class="ft-pills" style="margin-bottom:8px">${[1,2,3].map(n=>`<button data-c="phase" data-p="${n}" class="${(fit.plan.phase||1)===n?'on':''}">Month ${n} · ${['Foundation','Intensity + skills','Skill focus'][n-1]}</button>`).join('')}</div><p class="ft-sub" style="margin-bottom:6px"><b>${fmEsc(ftWeekInfo())}</b></p>`:''}
-    <p class="ft-sub">${fit.plan.style==='cali'?'Built for one room: a sturdy table (for inverted rows), a chair or bed edge (dips, Bulgarian split squats, decline push-ups), the floor, and your 20 kg band (rows anchored on a door or under your feet, pull-aparts, good mornings). Month 1 = 3 full-body days · Month 2 = 4 days upper/lower + skills · Month 3 = 4-5 days + skill day. No pull-up bar, so pull-ups and muscle-ups become table rows and band work — if you add a bar later, swap them in. Progress by adding reps, then a harder variation, then more band tension.':'Barbell, dumbbell and machine split. Switching style keeps your edits — each style remembers its own plan.'}</p></div>
-  <div class="ft-card"><h3>🏋️ Weekly workout split</h3>
+    ${fit.plan.style==='cali'?`<p class="ft-sub" style="margin-bottom:6px"><b>${fmEsc(ftWeekInfo())}</b></p>`:''}
+    <p class="ft-sub">${fit.plan.style==='cali'?'Built for one room: a sturdy table (for inverted rows), a chair or bed edge (dips, Bulgarian split squats, decline push-ups), the floor, and your 20 kg band (rows anchored on a door or under your feet, pull-aparts, good mornings). Follow the 90-day plan below, one day at a time. No pull-up bar, so pull-ups and muscle-ups become table rows and band work — if you add a bar later, swap them in. Progress by adding reps, then a harder variation, then more band tension.':'Barbell, dumbbell and machine split. Switching style keeps your edits — each style remembers its own plan.'}</p></div>
+  ${fit.plan.style==='cali'?ftC90Plan_():`<div class="ft-card"><h3>🏋️ Weekly workout split</h3>
     <div class="ft-pills">${FT_DAYS.slice(1).concat('sun').map(d=>`<button data-c="planday" data-d="${d}" class="${d===ftPlanDay?'on':''}">${FT_DN[d].slice(0,3)}</button>`).join('')}</div>
     <div class="ft-grid" style="margin-bottom:12px"><div style="grid-column:1/-1"><label>${FT_DN[ftPlanDay]} — session name</label><input data-a="wd-name" value="${fmEsc(wd.name)}"></div></div>
     <label style="display:flex;gap:8px;align-items:center;font-size:.88em;color:var(--ink2);margin-bottom:10px"><input type="checkbox" data-a="wd-rest" ${wd.rest?'checked':''}> Rest day</label>
     ${wd.ex.map((e,i)=>`<div class="ft-edit-ex"><input data-a="ex-edit" data-i="${i}" data-f="n" value="${fmEsc(e.n)}" placeholder="Exercise"><input type="number" min="1" data-a="ex-edit" data-i="${i}" data-f="sets" value="${e.sets}" title="Sets"><input data-a="ex-edit" data-i="${i}" data-f="reps" value="${fmEsc(e.reps)}" title="Reps"><button class="ft-x" data-c="ex-del" data-i="${i}">✕</button></div>`).join('')}
     ${wd.rest?'':`<button class="ft-btn ghost" data-c="ex-add">+ Add exercise</button>`}
-    <p class="ft-sub" style="margin-top:10px">Progressive overload: when you hit the top of the rep range on every set, add 2.5 kg next time. Log your weights in Today — it shows last session's numbers.</p></div>
+    <p class="ft-sub" style="margin-top:10px">Progressive overload: when you hit the top of the rep range on every set, add 2.5 kg next time. Log your weights in Today — it shows last session's numbers.</p></div>`}
   <div class="ft-card"><h3>🍽️ Daily timetable &amp; meals</h3>
     ${ftSorted().map(it=>{const i=fit.plan.schedule.indexOf(it);return `<div class="ft-edit-row">
       <input type="time" data-a="sch" data-i="${i}" data-f="time" value="${it.time}">
@@ -1970,14 +2143,14 @@ function ftProgress_(){
   // last 7 days
   const rows=[];let wDone=0,wTotal=0,kSum=0,pSum=0,tracked=0;
   for(let i=0;i<7;i++){
-    const d=ftShift(ftToday(),-i), L=fit.logs[d], wd=fit.plan.workout[ftDayKey(d)], T=ftTotals(d);
+    const d=ftShift(ftToday(),-i), L=fit.logs[d], wd=ftWorkoutFor(d), T=ftTotals(d);
     const trained=!!(wd&&!wd.rest&&T.exTotal&&T.exDone>=Math.ceil(T.exTotal*0.8));
     if(wd&&!wd.rest){wTotal++;if(trained)wDone++;}
     if(L&&T.kcal){kSum+=T.kcal;pSum+=T.prot;tracked++;}
     rows.push(`<tr><td>${d.slice(5)} ${FT_DN[ftDayKey(d)].slice(0,3)}</td><td>${wd&&wd.rest?'Rest':trained?'<span class="ft-good">✔ '+T.exDone+'/'+T.exTotal+'</span>':'<span class="ft-bad">'+T.exDone+'/'+T.exTotal+'</span>'}</td>
       <td class="${T.kcal>=S.kcal*0.9?'ft-good':''}">${T.kcal||'–'}</td><td class="${T.prot>=S.protein*0.9?'ft-good':''}">${T.prot||'–'}</td><td>${L&&L.water?L.water+' L':'–'}</td><td>${L&&L.sleep?L.sleep+' h':'–'}</td><td>${L&&L.weight?L.weight+' kg':'–'}</td></tr>`);
   }
-  let streak=0;for(let i=0;i<60;i++){const d=ftShift(ftToday(),-i),wd=fit.plan.workout[ftDayKey(d)],T=ftTotals(d);if(wd&&wd.rest)continue;if(T.exTotal&&T.exDone>=Math.ceil(T.exTotal*0.8))streak++;else if(i>0)break;}
+  let streak=0;for(let i=0;i<60;i++){const d=ftShift(ftToday(),-i),wd=ftWorkoutFor(d),T=ftTotals(d);if(wd&&wd.rest)continue;if(T.exTotal&&T.exDone>=Math.ceil(T.exTotal*0.8))streak++;else if(i>0)break;}
   return `<div class="ft-stats">
     <div class="ft-stat"><div class="l">Current weight</div><div class="v">${cur} <small>kg</small></div><div class="ft-sub">${change>=0?'+':''}${change.toFixed(1)} kg since start · goal ${S.goalWeight} kg</div></div>
     <div class="ft-stat"><div class="l">BMI</div><div class="v">${(cur/Math.pow(S.heightCm/100,2)).toFixed(1)}</div><div class="ft-sub">Healthy range 18.5–24.9</div></div>
@@ -1999,6 +2172,8 @@ function ftProgress_(){
     else if(c==='today')ftDate=ftToday();
     else if(c==='water'){const L=ftLog(ftDate,true);L.water=Math.max(0,Math.round((ftNum(L.water)+ftNum(b.dataset.n))*100)/100);ftSaveSoon();}
     else if(c==='planday')ftPlanDay=b.dataset.d;
+    else if(c==='c90-open'){ftDate=ftC90Date(+b.dataset.n);ftTab='today';}
+    else if(c==='c90-jump'){const el=document.getElementById('c90-'+ftC90Num(ftToday()));if(el)el.scrollIntoView({behavior:'smooth',block:'center'});return;}
     else if(c==='style'||c==='phase'){
       const curKey=ftPlanKey(), st=c==='style'?b.dataset.s:(fit.plan.style||'gym'), ph=c==='phase'?+b.dataset.p:(fit.plan.phase||1);
       const nextKey=st==='cali'?'cali'+ph:st;
@@ -2021,7 +2196,7 @@ function ftProgress_(){
     const t=e.target.closest('[data-a]');if(!t)return;const a=t.dataset.a,f=t.dataset.f,id=t.dataset.id,i=+t.dataset.i,v=t.type==='checkbox'?t.checked:t.value;
     if(a==='date'){if(v)ftDate=v;}
     else if(a==='done'){
-      const L=ftLog(ftDate,true),it=fit.plan.schedule.find(x=>x.id===id),wd=fit.plan.workout[ftDayKey(ftDate)];
+      const L=ftLog(ftDate,true),it=fit.plan.schedule.find(x=>x.id===id),wd=ftWorkoutFor(ftDate);
       L.done[id]=v; if(it&&it.type==='workout'&&wd&&wd.rest)L.done.restday=v;
     }
     else if(a==='exdone'){const L=ftLog(ftDate,true);(L.ex[id]=L.ex[id]||{sets:[]}).done=v;}
@@ -2029,6 +2204,9 @@ function ftProgress_(){
     else if(a==='meal'){const L=ftLog(ftDate,true);(L.meals[id]=L.meals[id]||{})[f]=v;if(v&&!L.done[id])L.done[id]=true;}
     else if(a==='day'){ftLog(ftDate,true)[f]=v;}
     else if(a==='set-s'){fit.settings[f]=ftNum(v);}
+    else if(a==='c90-start'){if(v)fit.plan.start=v;}
+    else if(a==='c90-hide'){c90Hide=v;ftRender();return;}
+    else if(a==='c90-done'){const n=+t.dataset.n,L=ftLog(ftC90Date(n),true);L.done.c90=v;if(ftC90(n).rest)L.done.restday=v;}
     else if(a==='wd-name'){fit.plan.workout[ftPlanDay].name=v;}
     else if(a==='wd-rest'){fit.plan.workout[ftPlanDay].rest=v;}
     else if(a==='ex-edit'){const e2=fit.plan.workout[ftPlanDay].ex[i];e2[f]=f==='sets'?Math.max(1,parseInt(v)||1):v;}
@@ -2303,7 +2481,7 @@ function hmDayState(kind,d){
   if(kind==='tasks'){if(!t.length)return '';const done=t.filter(x=>x.status==='done').length;return done===t.length?'good':(done||t.some(x=>x.status==='partial'))?'part':'';}
   if(kind==='habits'){const n=hmHabitCount(d),en=getHabitSettings().enabledHabits.length||1;return n>=en*0.7?'good':n?'part':'';}
   if(!fit)return '';
-  const wd=fit.plan.workout[ftDayKey(d)],T=ftTotals(d);
+  const wd=ftWorkoutFor(d),T=ftTotals(d);
   if(kind==='workout'){if(wd&&wd.rest)return 'rest';return T.exTotal&&T.exDone>=Math.ceil(T.exTotal*0.8)?'good':T.exDone?'part':'';}
   if(kind==='food'){return T.kcal>=fit.settings.kcal*0.9?'good':T.kcal?'part':'';}
   return '';
@@ -2326,7 +2504,7 @@ function homeRender(){
   const lines=['Small steps, every day.','Consistency beats intensity.','Show up, then improve.','Progress, not perfection.','Your future self is watching.','One more rep. One more page.','Discipline is a form of self-respect.'];
   const dateStr=new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'});
   const tasks=hmTasks(today),tDone=tasks.filter(t=>t.status==='done').length,tPart=tasks.filter(t=>t.status==='partial').length;
-  const dk=ftDayKey(today),wd=fit.plan.workout[dk],T=ftTotals(today),L=ftLog(today,false),S=fit.settings;
+  const dk=ftDayKey(today),wd=ftWorkoutFor(today),T=ftTotals(today),L=ftLog(today,false),S=fit.settings;
   const en=getHabitSettings().enabledHabits.length||1,hn=hmHabitCount(today);
   // weight
   const wts=Object.keys(fit.logs).sort().filter(d=>ftNum(fit.logs[d].weight)>0).map(d=>ftNum(fit.logs[d].weight));
