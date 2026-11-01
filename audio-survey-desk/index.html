@@ -19,6 +19,148 @@
   const AX = id => 'https://arxiv.org/abs/' + id;
   const BASE = '(cat:eess.AS OR cat:cs.SD) AND (abs:"audio classification" OR abs:"sound classification" OR abs:"audio tagging" OR abs:"sound event" OR abs:"acoustic scene" OR abs:"audio event")';
   const B = '(cat:eess.AS OR cat:cs.SD)';
+
+  // ── DCASE challenge tab ───────────────────────────────────────
+  // Task history is curated by hand; each row links the official year page to check details.
+  const DC = 'https://dcase.community/';
+  const SCH = t => 'https://scholar.google.com/scholar?q=' + encodeURIComponent('"' + t + '"');
+  const SITE = q => 'https://www.google.com/search?q=' + encodeURIComponent('site:dcase.community ' + q);
+  // [family key, label, what it is]
+  const FAM = [
+    ['asc', 'Acoustic scene classification', 'Label a whole recording with the place it was recorded (park, metro, airport…). Later editions add device mismatch, low-complexity limits (parameters, MACs) and data efficiency.'],
+    ['sed', 'Sound event detection', 'Find which events happen and when (onset/offset). Domestic SED (DESED) has run since 2018 with weak, strong, synthetic and soft labels.'],
+    ['seld', 'Sound event localization and detection', 'Detect events and estimate their direction (and later distance) from multichannel microphone-array or FOA audio.'],
+    ['asd', 'Anomalous sound detection', 'Detect machine faults from sound, trained only on normal sounds; later editions add domain shift and first-shot (unseen machine types).'],
+    ['tag', 'Audio tagging', 'Clip-level multi-label classification, including noisy labels and urban sound tagging.'],
+    ['bio', 'Bioacoustics', 'Bird audio detection and few-shot bioacoustic event detection (find a call type from five examples).'],
+    ['lang', 'Captioning, retrieval and language', 'Automated audio captioning, language-based audio retrieval and language-queried source separation.'],
+    ['other', 'Other tasks', 'Domestic activity monitoring, sound synthesis, traffic monitoring and more.']
+  ];
+  // [year, task, family, title, dataset, main metric]
+  const TASKS = [
+    [2013,'—','asc','Scene classification (IEEE AASP challenge)','DCASE 2013 scenes','accuracy'],
+    [2013,'—','sed','Event detection, office live and synthetic','DCASE 2013 office events','frame/event-based F1'],
+    [2016,1,'asc','Acoustic scene classification','TUT Acoustic Scenes 2016','accuracy'],
+    [2016,2,'sed','Sound event detection in synthetic audio','DCASE 2016 office synthetic','event-based F1'],
+    [2016,3,'sed','Sound event detection in real-life audio','TUT Sound Events 2016','segment-based ER / F1'],
+    [2016,4,'tag','Domestic audio tagging','CHiME-Home','equal error rate'],
+    [2017,1,'asc','Acoustic scene classification','TUT Acoustic Scenes 2017','accuracy'],
+    [2017,2,'sed','Detection of rare sound events','TUT Rare Sound Events 2017','event-based ER / F1'],
+    [2017,3,'sed','Sound event detection in real-life audio','TUT Sound Events 2017','segment-based ER / F1'],
+    [2017,4,'tag','Large-scale weakly supervised SED for smart cars','AudioSet subset','tagging F1, segment-based ER'],
+    [2018,1,'asc','Acoustic scene classification (incl. mismatched devices)','TUT Urban Acoustic Scenes 2018 (+ Mobile)','accuracy'],
+    [2018,2,'tag','General-purpose audio tagging of Freesound content','FSDKaggle2018','MAP@3'],
+    [2018,3,'bio','Bird audio detection','freefield1010, warblrb10k, BirdVox-DCASE-20k','AUC'],
+    [2018,4,'sed','Large-scale weakly labeled semi-supervised SED in domestic environments','DCASE 2018 Task 4 (AudioSet-based)','event-based F1'],
+    [2018,5,'other','Monitoring of domestic activities','SINS','macro F1'],
+    [2019,1,'asc','Acoustic scene classification (device mismatch, open set)','TAU Urban Acoustic Scenes 2019','accuracy'],
+    [2019,2,'tag','Audio tagging with noisy labels and minimal supervision','FSDKaggle2019','lwlrap'],
+    [2019,3,'seld','Sound event localization and detection','TAU Spatial Sound Events 2019','ER, F1, DOA error, frame recall'],
+    [2019,4,'sed','Sound event detection in domestic environments','DESED','event-based F1'],
+    [2019,5,'tag','Urban sound tagging','SONYC-UST','micro/macro AUPRC'],
+    [2020,1,'asc','ASC: multi-device (1a) and low-complexity (1b)','TAU Urban Acoustic Scenes 2020 Mobile / 3Class','accuracy, log loss, model size'],
+    [2020,2,'asd','Unsupervised anomalous sound detection for machine condition monitoring','ToyADMOS, MIMII','AUC, pAUC'],
+    [2020,3,'seld','Sound event localization and detection','TAU-NIGENS Spatial Sound Events 2020','location-aware ER / F1'],
+    [2020,4,'sed','SED and separation in domestic environments','DESED','event-based F1, PSDS'],
+    [2020,5,'tag','Urban sound tagging with spatiotemporal context','SONYC-UST-V2','AUPRC'],
+    [2020,6,'lang','Automated audio captioning','Clotho','SPIDEr'],
+    [2021,1,'asc','Low-complexity device-robust ASC (1a), audio-visual scenes (1b)','TAU Urban Acoustic Scenes 2020 Mobile, TAU Urban Audio-Visual Scenes 2021','log loss, accuracy'],
+    [2021,2,'asd','Unsupervised ASD under domain shift','ToyADMOS2, MIMII DUE','AUC, pAUC'],
+    [2021,3,'seld','SELD with directional interference','TAU-NIGENS Spatial Sound Events 2021','location-aware ER / F1'],
+    [2021,4,'sed','SED and separation in domestic environments','DESED','PSDS'],
+    [2021,5,'bio','Few-shot bioacoustic event detection','DCASE few-shot bioacoustic set','event-based F-measure'],
+    [2021,6,'lang','Automated audio captioning','Clotho','SPIDEr'],
+    [2022,1,'asc','Low-complexity ASC (1-second clips)','TAU Urban Acoustic Scenes 2022 Mobile','log loss, accuracy, MACs'],
+    [2022,2,'asd','Unsupervised ASD with domain generalization','ToyADMOS2, MIMII DG','AUC, pAUC'],
+    [2022,3,'seld','SELD in real spatial recordings','STARSS22 + synthetic','location-aware F / ER, DOA error'],
+    [2022,4,'sed','SED in domestic environments','DESED','PSDS'],
+    [2022,5,'bio','Few-shot bioacoustic event detection','DCASE few-shot bioacoustic set','event-based F-measure'],
+    [2022,6,'lang','Audio captioning (6a) and language-based audio retrieval (6b)','Clotho','SPIDEr; mAP@10, R@k'],
+    [2023,1,'asc','Low-complexity ASC','TAU Urban Acoustic Scenes 2022 Mobile','accuracy, complexity'],
+    [2023,2,'asd','First-shot unsupervised ASD','ToyADMOS2, MIMII DG (new machine types)','AUC, pAUC'],
+    [2023,3,'seld','SELD, audio-only and audio-visual','STARSS23','location-aware F / ER, DOA error'],
+    [2023,4,'sed','SED with weak labels (4a) and soft labels (4b)','DESED; MAESTRO Real','PSDS; F1 / ER on soft labels'],
+    [2023,5,'bio','Few-shot bioacoustic event detection','DCASE few-shot bioacoustic set','event-based F-measure'],
+    [2023,6,'lang','Audio captioning (6a) and language-based retrieval (6b)','Clotho','SPIDEr / SPIDEr-FL; mAP@10'],
+    [2023,7,'other','Foley sound synthesis','DCASE Foley set','FAD + listening test'],
+    [2024,1,'asc','Data-efficient low-complexity ASC','TAU Urban Acoustic Scenes 2022 Mobile (training subsets)','accuracy vs. training-data size'],
+    [2024,2,'asd','First-shot unsupervised ASD','ToyADMOS2 / MIMII DG family','AUC, pAUC'],
+    [2024,3,'seld','Audio and audio-visual SELD with source distance','STARSS23','location-aware F, DOA and distance error'],
+    [2024,4,'sed','SED with heterogeneous training data and missing labels','DESED + MAESTRO','PSDS, mpAUC'],
+    [2024,5,'bio','Few-shot bioacoustic event detection','DCASE few-shot bioacoustic set','event-based F-measure'],
+    [2024,6,'lang','Automated audio captioning','Clotho','FENSE, SPIDEr-FL'],
+    [2024,7,'other','Sound scene synthesis','DCASE scene synthesis set','FAD + listening test'],
+    [2024,8,'lang','Language-based audio retrieval','Clotho','mAP@10'],
+    [2024,9,'lang','Language-queried audio source separation','Clotho / FSD-based mixtures','SDR'],
+    [2024,10,'other','Acoustic-based traffic monitoring','DCASE traffic set','error in vehicle counts']
+  ];
+  // [family, title, authors, venue, year, why it matters]
+  const DPAPERS = [
+    ['asc','Detection and Classification of Acoustic Scenes and Events','Stowell, Giannoulis, Benetos, Lagrange, Plumbley','IEEE Trans. Multimedia',2015,'Outcome of the first (2013) challenge; defines the field.'],
+    ['sed','Metrics for Polyphonic Sound Event Detection','Mesaros, Heittola, Virtanen','Applied Sciences',2016,'Segment- and event-based ER/F1 used in DCASE (sed_eval).'],
+    ['asc','Detection and Classification of Acoustic Scenes and Events: Outcome of the DCASE 2016 Challenge','Mesaros et al.','IEEE/ACM TASLP',2018,'Overview of all 2016 tasks and systems.'],
+    ['asc','Acoustic Scene Classification in DCASE 2019 Challenge: Closed and Open Set Classification and Data Mismatch Setups','Mesaros, Heittola, Virtanen','DCASE Workshop',2019,'Task 1 overview: device mismatch and open-set ASC.'],
+    ['asc','Receptive-Field-Regularized CNN Variants for Acoustic Scene Classification','Koutini, Eghbal-zadeh, Widmer','DCASE Workshop',2019,'Influential top-ranked ASC architecture.'],
+    ['asc','Acoustic Scene Classification in DCASE 2020 Challenge: Generalization Across Devices and Low Complexity Solutions','Heittola, Mesaros, Virtanen','DCASE Workshop',2020,'Task 1 overview introducing low-complexity limits.'],
+    ['sed','Sound Event Detection in Domestic Environments with Weakly Labeled Data and Soundscape Synthesis','Turpault, Serizel, Parag Shah, Salamon','DCASE Workshop',2019,'The DESED dataset behind Task 4 since 2019.'],
+    ['sed','A Framework for the Robust Evaluation of Sound Event Detection','Bilen, Ferroni, Tuveri, Azcarreta, Krstulović','ICASSP',2020,'PSDS, the main SED metric since 2020.'],
+    ['sed','Sound Event Detection: A Tutorial','Mesaros, Serizel, Heittola, Virtanen, Plumbley','IEEE Signal Processing Magazine',2021,'Best single introduction to SED and its evaluation.'],
+    ['seld','Sound Event Localization and Detection of Overlapping Sources Using Convolutional Recurrent Neural Networks','Adavanne, Politis, Nikunen, Virtanen','IEEE JSTSP',2019,'SELDnet, the original SELD baseline.'],
+    ['seld','Overview and Evaluation of Sound Event Localization and Detection in DCASE 2019','Politis, Mesaros, Adavanne, Heittola, Virtanen','IEEE/ACM TASLP',2021,'SELD task design and metrics.'],
+    ['seld','STARSS22: A Dataset of Spatial Recordings of Real Scenes with Spatiotemporal Annotations of Sound Events','Politis et al.','DCASE Workshop',2022,'Real-recording SELD data used from 2022.'],
+    ['asd','MIMII Dataset: Sound Dataset for Malfunctioning Industrial Machine Investigation and Inspection','Purohit et al.','DCASE Workshop',2019,'Machine sounds dataset used in Task 2.'],
+    ['asd','ToyADMOS: A Dataset of Miniature-Machine Operating Sounds for Anomalous Sound Detection','Koizumi et al.','WASPAA',2019,'Second Task 2 dataset.'],
+    ['asd','Description and Discussion on DCASE2020 Challenge Task2: Unsupervised Anomalous Sound Detection for Machine Condition Monitoring','Koizumi et al.','DCASE Workshop',2020,'Task 2 overview and baseline.'],
+    ['asd','MIMII DG: Sound Dataset for Malfunctioning Industrial Machine Investigation and Inspection for Domain Generalization Task','Dohi et al.','DCASE Workshop',2022,'Domain-generalization data for ASD.'],
+    ['tag','Audio Tagging with Noisy Labels and Minimal Supervision','Fonseca, Plakal, Font, Ellis, Serra','DCASE Workshop',2019,'Task 2 (2019) overview and FSDKaggle2019.'],
+    ['tag','Cross-Task Learning for Audio Tagging, Sound Event Detection and Spatial Localization: DCASE 2019 Baseline Systems','Kong, Cao, Iqbal, Xu, Wang, Plumbley','arXiv',2019,'Shared baselines across 2019 tasks.'],
+    ['bio','Learning to Detect an Animal Sound from Five Examples','Nolasco et al.','Ecological Informatics',2023,'Few-shot bioacoustic event detection task overview.'],
+    ['lang','Clotho: An Audio Captioning Dataset','Drossos, Lipping, Virtanen','ICASSP',2020,'Dataset for captioning and retrieval tasks.']
+  ];
+  const dcState = { fam: 'all', q: '', live: null, err: '' };
+  function dcRender(c) {
+    const e = c.esc, fams = dcState.fam === 'all' ? FAM : FAM.filter(f => f[0] === dcState.fam);
+    const q = dcState.q.trim().toLowerCase();
+    const hit = r => !q || r.join(' ').toLowerCase().includes(q);
+    const inDesk = c.P.filter(p => /dcase/i.test(p.t + ' ' + p.ab + ' ' + (p.v || []).join(' '))).length;
+    let h = `<section class="panel live"><h2>DCASE challenge</h2>
+      <p>The DCASE challenge (Detection and Classification of Acoustic Scenes and Events) runs yearly tasks with shared datasets, baselines and metrics, and a workshop where the task overviews and many systems are published. For a survey, the task overview papers, the datasets and the top-ranked technical reports are the standard citations.</p>
+      <div class="row"><a class="btn" href="${DC}" target="_blank" rel="noopener">dcase.community ↗</a>
+        <a class="btn" href="https://github.com/DCASE-REPO" target="_blank" rel="noopener">DCASE baselines on GitHub ↗</a>
+        <a class="btn" href="${SITE('results technical reports')}" target="_blank" rel="noopener">Results and technical reports ↗</a>
+        <button class="btn" data-dc="desk">${inDesk} desk paper${inDesk === 1 ? '' : 's'} mention${inDesk === 1 ? 's' : ''} DCASE</button></div>
+      <div class="row" style="margin-top:6px">${[2013,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026].map(y => `<a class="vbtn" href="${DC}challenge${y}/" target="_blank" rel="noopener">${y} ↗</a>`).join('')}</div>
+      <p class="note">Task list curated from the official challenge pages up to 2024; for 2025 onward, open the year page. Metrics and datasets are the main ones per task. Check the year page before citing details.</p></section>
+      <div class="searchbar"><input type="search" id="dcq" placeholder="Filter tasks and papers, e.g. “DESED”, “low-complexity”, “2022”" value="${e(dcState.q)}" aria-label="Filter DCASE tasks"></div>
+      <div class="venuebar">${[['all', 'All task families']].concat(FAM.map(f => [f[0], f[1]])).map(([k, l]) => `<button class="vbtn" data-dcf="${k}" aria-pressed="${dcState.fam === k}">${e(l)}<span class="ct">${k === 'all' ? TASKS.length : TASKS.filter(t => t[2] === k).length}</span></button>`).join('')}</div>`;
+    fams.forEach(f => {
+      const rows = TASKS.filter(t => t[2] === f[0] && hit(t)).sort((a, b) => a[0] - b[0]);
+      const pap = DPAPERS.filter(p => p[0] === f[0] && hit(p));
+      if (!rows.length && !pap.length) return;
+      h += `<section class="sec"><h2>${e(f[1])}</h2><p class="note">${e(f[2])}</p>`;
+      if (rows.length) h += `<div class="tablebox"><table class="found"><thead><tr><th>Year</th><th>Task</th><th>Dataset</th><th>Main metric</th><th>Find papers</th></tr></thead><tbody>${rows.map(r => `<tr><td class="yr"><a href="${DC}challenge${r[0]}/" target="_blank" rel="noopener">${r[0]}</a></td><td><b>${r[1] === '—' ? '' : 'Task ' + r[1] + ' · '}</b>${e(r[3])}</td><td>${e(r[4])}</td><td class="vn">${e(r[5])}</td><td><a href="${SITE('challenge' + r[0] + ' ' + r[3])}" target="_blank" rel="noopener">DCASE site</a> · <a href="https://scholar.google.com/scholar?q=${encodeURIComponent('DCASE ' + r[0] + ' ' + r[3])}" target="_blank" rel="noopener">Scholar</a></td></tr>`).join('')}</tbody></table></div>`;
+      if (pap.length) h += `<p class="lab" style="margin-top:6px">Key papers</p><div class="lgrid">${pap.map(p => `<div class="litem"><div style="min-width:0"><a class="ltitle" href="${SCH(p[1])}" target="_blank" rel="noopener">${e(p[1])} ↗</a><div class="p-auth">${e(p[2])}</div><div class="chips"><span class="chip venue">${e(p[3])} ${p[4]}</span></div><p class="lwhy">${e(p[5])}</p></div></div>`).join('')}</div>`;
+      h += '</section>';
+    });
+    h += `<section class="sec"><div class="x-h"><h2>DCASE papers on arXiv</h2><button class="btn primary" id="dcLive">${dcState.live ? 'Refresh' : 'Load newest'}</button></div>
+      <p class="note">Newest arXiv papers that mention DCASE in the title, abstract or comments (often challenge systems and workshop papers), through your diary backend.</p>
+      <div class="status" id="dcStatus">${e(dcState.err)}</div><div id="dcList">${dcState.live ? (dcState.live.length ? '<div class="list">' + dcState.live.slice(0, 60).map(p => c.card(p)).join('') + '</div>' : '<div class="empty">No papers found.</div>') : ''}</div></section>`;
+    return h;
+  }
+  async function dcLoad(c, force) {
+    const s = document.getElementById('dcStatus');
+    if (!c.hasBackend()) { dcState.err = 'Live search needs the diary backend; open this desk from the diary site.'; if (s) s.textContent = dcState.err; return; }
+    if (!force) { try { const x = JSON.parse(localStorage.getItem(c.SP + 'dcase') || 'null'); if (x && Date.now() - x.at < 6 * 3600e3) { dcState.live = x.items; x.items.forEach(p => c.BYID.set(p.i, p)); c.render(); return; } } catch (e) {} }
+    if (s) s.textContent = 'Loading DCASE papers from arXiv…';
+    try {
+      const items = await c.backendArxiv('abs:DCASE OR ti:DCASE OR co:DCASE', 100, 0);
+      items.forEach(p => { p.k = p.k && p.k.length ? p.k : []; c.BYID.set(p.i, p); });
+      dcState.live = items; dcState.err = items.length + (items.length === 1 ? ' paper' : ' papers') + ' · fetched ' + new Date().toLocaleString();
+      try { localStorage.setItem(c.SP + 'dcase', JSON.stringify({ at: Date.now(), items })); } catch (e) {}
+    } catch (e) { dcState.err = 'Could not load DCASE papers: ' + e.message; }
+    c.render();
+  }
+
   window.DESK = {
     allLabel: 'All audio classification',
     surveyDesc: 'a survey on audio classification (audio tagging and environmental sound classification, acoustic scene classification, sound event detection, audio transformers and pretrained models, zero/few-shot and audio-language models, efficient on-device models, self-supervised audio representations, and bioacoustics / music / speech classification)',
@@ -37,6 +179,14 @@
     listLabel: 'Live from arXiv, newest first',
     noLiveChip: true,
     storePrefix: 'acd-',
+    views: [{ id: 'dcase', label: 'DCASE challenge', render: dcRender, bind: c => {
+      const q = document.getElementById('dcq');
+      if (q) { q.addEventListener('input', () => { dcState.q = q.value; clearTimeout(dcState.t); dcState.t = setTimeout(() => { const pos = q.selectionStart; c.render(); const n = document.getElementById('dcq'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } }, 250); }); }
+      document.querySelectorAll('[data-dcf]').forEach(b => b.onclick = () => { dcState.fam = b.dataset.dcf; c.render(); });
+      const d = document.querySelector('[data-dc="desk"]'); if (d) d.onclick = () => c.go('latest', 'DCASE');
+      const l = document.getElementById('dcLive'); if (l) l.onclick = () => dcLoad(c, true);
+      if (!dcState.live && !dcState.tried) { dcState.tried = true; dcLoad(c, false); }
+    } }],
     listings: [['eess.AS','new','Today’s eess.AS listing'],['cs.SD','recent','cs.SD recent']],
     srcNote: 'Papers load live from arXiv (eess.AS and cs.SD) through the diary backend. Topic tags are assigned by keyword rules, so check borderline papers.',
     freshPages: 5,
@@ -419,6 +569,7 @@ body.has-tray .layout{padding-bottom:110px}
 @media (max-width:560px){.bday{grid-template-columns:22px minmax(0,1fr)}.bdn{grid-column:2;flex-direction:row}.bday>div:last-child{grid-column:2}}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:8px;font-size:14px;z-index:20}
 textarea#bib{width:100%;min-height:160px;font:12px var(--f-mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px;color:var(--ink)}
+a.vbtn{text-decoration:none;color:var(--ink)}
 .railtoggle{display:none}
 .embedded #mark,.embedded .brand{display:none}
 .embedded header.top{padding-block:14px 6px}
@@ -670,7 +821,8 @@ async function loadFresh(){
   try{ const c=JSON.parse(localStorage.getItem(SP+'fresh')||'null'); if(c&&Date.now()-c.at<6*3600e3) items=c.items; }catch(e){}
   if(!items){ try{ items=[]; const pages=DESK.freshPages||1; for(let pg=0;pg<pages;pg++){ const el=$('#freshnote'); if(el&&pages>1){ el.hidden=false; el.textContent=`Loading papers from arXiv through your backend… ${items.length} so far`; } const got=await backendArxiv(arxivQ.all,200,pg*200); items.push(...got); if(got.length<200) break; if(pg<pages-1) await new Promise(r=>setTimeout(r,3200)); } try{localStorage.setItem(SP+'fresh',JSON.stringify({at:Date.now(),items}));}catch(e){} }catch(e){ FRESH={err:true,msg:String(e&&e.message||e)}; renderFreshNote(); return; } }
   items=(items||[]).filter(p=>isArxivId(p.i));
-  const add=items.filter(p=>p.i&&!BYID.has(p.i));
+  const inP=new Set(P.map(p=>p.i));
+  const add=items.filter(p=>p.i&&!inP.has(p.i));
   add.forEach(p=>BYID.set(p.i,p));
   P.unshift(...add); P.sort((a,b)=>(b.d.slice(0,10)).localeCompare(a.d.slice(0,10))||b.i.localeCompare(a.i));
   latestD=P.length?P[0].d:'—'; FRESH={n:add.length};
@@ -678,7 +830,7 @@ async function loadFresh(){
   document.querySelector('#stats b').textContent=P.length.toLocaleString();
   document.querySelectorAll('#stats b')[2].textContent=latestD;
   document.querySelectorAll('#stats b')[1].textContent=P.filter(p=>p.v.length).length.toLocaleString();
-  if(['latest','venues','reading'].includes(st.view)) render(); else renderFreshNote();
+  if(['latest','venues','reading'].includes(st.view)||XVIEWS.some(v=>v.id===st.view)) render(); else { renderTopics(); renderFreshNote(); }
 }
 function renderFreshNote(){ const el=$('#freshnote'); if(!el||!FRESH) return; el.hidden=false;
   el.textContent=FRESH.err?(P.length?'Could not load newer arXiv papers through your backend ('+FRESH.msg+'); showing the snapshot only.':'Could not load papers through your backend: '+FRESH.msg+'.'):(FRESH.n?(DESK.noLiveChip?`Loaded ${FRESH.n} paper${FRESH.n>1?'s':''} from arXiv through your backend.`:`Added ${FRESH.n} newer paper${FRESH.n>1?'s':''} from arXiv through your backend. They are marked “Live”.`):'Checked arXiv through your backend: the snapshot is up to date.'); }
@@ -1584,6 +1736,10 @@ document.getElementById('main').addEventListener('change',e=>{
 });
 
 const SUBNAV=v=>`<nav class="subnav"><a class="vbtn" href="#learn" aria-current="${v==='learn'?'page':'false'}">${esc(DESK.learnLabel||'3DGS learning path')}</a><a class="vbtn" href="#blender" aria-current="${v==='blender'?'page':'false'}">Blender 90-day plan</a></nav>`;
+// Extra tabs a desk can add through DESK.views: [{id,label,render(ctx),bind(ctx)}]
+const XVIEWS=(DESK.views||[]);
+(function(){ const a=document.querySelector('#tabs a[data-v="search-out"]'); XVIEWS.slice().reverse().forEach(v=>{ const t=document.createElement('a'); t.href='#'+v.id; t.dataset.v=v.id; t.textContent=v.label; a.after(t); }); })();
+const XCTX={esc,card,listHTML,backendArxiv:(q,m,s)=>backendArxiv(q,m,s),hasBackend:()=>!!BACKEND_URL,isArxivId,P,BYID,st,SP,render:()=>render(),toast,YT,GH,go:(view,q)=>{ st.q=q||''; location.hash='#'+view; }};
 function render(){
   document.querySelectorAll('#tabs a').forEach(a=>a.setAttribute('aria-current', (a.dataset.v===st.view||(st.view==='blender'&&a.dataset.v==='learn'))?'page':'false'));
   renderTopics();
@@ -1595,6 +1751,7 @@ function render(){
   else if(st.view==='learn') m.innerHTML=(DESK.noBlender?'':SUBNAV('learn'))+viewLearn();
   else if(st.view==='blender'){ m.innerHTML=SUBNAV('blender')+viewBlender(); bindBlender(); }
   else if(st.view==='compare'){ m.innerHTML=viewCompare(); bindCompare(); }
+  else if(XVIEWS.some(v=>v.id===st.view)){ const v=XVIEWS.find(v=>v.id===st.view); m.innerHTML=v.render(XCTX); if(v.bind) v.bind(XCTX); }
   else m.innerHTML=viewSearchOut();
   if($('#results')) renderList();
   const q=$('#q'); if(q){
@@ -1617,7 +1774,7 @@ function setupSave(){
       catch(e){ if(e&&e.code==='declined') return; toast('Saving is not available here'); b.hidden=true; } };
   }).catch(()=>{});
 }
-function route(){ const h=location.hash.slice(1); st.view=['latest','venues','foundations','search-out','compare','learn','blender','reading'].includes(h)&&!(h==='blender'&&DESK.noBlender)?h:'latest'; st.shown=40; if(st.view!=='latest') st.live=null; render(); }
+function route(){ const h=location.hash.slice(1); st.view=(['latest','venues','foundations','search-out','compare','learn','blender','reading'].includes(h)||XVIEWS.some(v=>v.id===h))&&!(h==='blender'&&DESK.noBlender)?h:'latest'; st.shown=40; if(st.view!=='latest') st.live=null; render(); }
 window.addEventListener('hashchange',route);
 
 // stats

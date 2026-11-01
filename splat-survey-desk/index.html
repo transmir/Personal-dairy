@@ -243,6 +243,7 @@ body.has-tray .layout{padding-bottom:110px}
 @media (max-width:560px){.bday{grid-template-columns:22px minmax(0,1fr)}.bdn{grid-column:2;flex-direction:row}.bday>div:last-child{grid-column:2}}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:8px;font-size:14px;z-index:20}
 textarea#bib{width:100%;min-height:160px;font:12px var(--f-mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px;color:var(--ink)}
+a.vbtn{text-decoration:none;color:var(--ink)}
 .railtoggle{display:none}
 .embedded #mark,.embedded .brand{display:none}
 .embedded header.top{padding-block:14px 6px}
@@ -494,7 +495,8 @@ async function loadFresh(){
   try{ const c=JSON.parse(localStorage.getItem(SP+'fresh')||'null'); if(c&&Date.now()-c.at<6*3600e3) items=c.items; }catch(e){}
   if(!items){ try{ items=[]; const pages=DESK.freshPages||1; for(let pg=0;pg<pages;pg++){ const el=$('#freshnote'); if(el&&pages>1){ el.hidden=false; el.textContent=`Loading papers from arXiv through your backend… ${items.length} so far`; } const got=await backendArxiv(arxivQ.all,200,pg*200); items.push(...got); if(got.length<200) break; if(pg<pages-1) await new Promise(r=>setTimeout(r,3200)); } try{localStorage.setItem(SP+'fresh',JSON.stringify({at:Date.now(),items}));}catch(e){} }catch(e){ FRESH={err:true,msg:String(e&&e.message||e)}; renderFreshNote(); return; } }
   items=(items||[]).filter(p=>isArxivId(p.i));
-  const add=items.filter(p=>p.i&&!BYID.has(p.i));
+  const inP=new Set(P.map(p=>p.i));
+  const add=items.filter(p=>p.i&&!inP.has(p.i));
   add.forEach(p=>BYID.set(p.i,p));
   P.unshift(...add); P.sort((a,b)=>(b.d.slice(0,10)).localeCompare(a.d.slice(0,10))||b.i.localeCompare(a.i));
   latestD=P.length?P[0].d:'—'; FRESH={n:add.length};
@@ -502,7 +504,7 @@ async function loadFresh(){
   document.querySelector('#stats b').textContent=P.length.toLocaleString();
   document.querySelectorAll('#stats b')[2].textContent=latestD;
   document.querySelectorAll('#stats b')[1].textContent=P.filter(p=>p.v.length).length.toLocaleString();
-  if(['latest','venues','reading'].includes(st.view)) render(); else renderFreshNote();
+  if(['latest','venues','reading'].includes(st.view)||XVIEWS.some(v=>v.id===st.view)) render(); else { renderTopics(); renderFreshNote(); }
 }
 function renderFreshNote(){ const el=$('#freshnote'); if(!el||!FRESH) return; el.hidden=false;
   el.textContent=FRESH.err?(P.length?'Could not load newer arXiv papers through your backend ('+FRESH.msg+'); showing the snapshot only.':'Could not load papers through your backend: '+FRESH.msg+'.'):(FRESH.n?(DESK.noLiveChip?`Loaded ${FRESH.n} paper${FRESH.n>1?'s':''} from arXiv through your backend.`:`Added ${FRESH.n} newer paper${FRESH.n>1?'s':''} from arXiv through your backend. They are marked “Live”.`):'Checked arXiv through your backend: the snapshot is up to date.'); }
@@ -1408,6 +1410,10 @@ document.getElementById('main').addEventListener('change',e=>{
 });
 
 const SUBNAV=v=>`<nav class="subnav"><a class="vbtn" href="#learn" aria-current="${v==='learn'?'page':'false'}">${esc(DESK.learnLabel||'3DGS learning path')}</a><a class="vbtn" href="#blender" aria-current="${v==='blender'?'page':'false'}">Blender 90-day plan</a></nav>`;
+// Extra tabs a desk can add through DESK.views: [{id,label,render(ctx),bind(ctx)}]
+const XVIEWS=(DESK.views||[]);
+(function(){ const a=document.querySelector('#tabs a[data-v="search-out"]'); XVIEWS.slice().reverse().forEach(v=>{ const t=document.createElement('a'); t.href='#'+v.id; t.dataset.v=v.id; t.textContent=v.label; a.after(t); }); })();
+const XCTX={esc,card,listHTML,backendArxiv:(q,m,s)=>backendArxiv(q,m,s),hasBackend:()=>!!BACKEND_URL,isArxivId,P,BYID,st,SP,render:()=>render(),toast,YT,GH,go:(view,q)=>{ st.q=q||''; location.hash='#'+view; }};
 function render(){
   document.querySelectorAll('#tabs a').forEach(a=>a.setAttribute('aria-current', (a.dataset.v===st.view||(st.view==='blender'&&a.dataset.v==='learn'))?'page':'false'));
   renderTopics();
@@ -1419,6 +1425,7 @@ function render(){
   else if(st.view==='learn') m.innerHTML=(DESK.noBlender?'':SUBNAV('learn'))+viewLearn();
   else if(st.view==='blender'){ m.innerHTML=SUBNAV('blender')+viewBlender(); bindBlender(); }
   else if(st.view==='compare'){ m.innerHTML=viewCompare(); bindCompare(); }
+  else if(XVIEWS.some(v=>v.id===st.view)){ const v=XVIEWS.find(v=>v.id===st.view); m.innerHTML=v.render(XCTX); if(v.bind) v.bind(XCTX); }
   else m.innerHTML=viewSearchOut();
   if($('#results')) renderList();
   const q=$('#q'); if(q){
@@ -1441,7 +1448,7 @@ function setupSave(){
       catch(e){ if(e&&e.code==='declined') return; toast('Saving is not available here'); b.hidden=true; } };
   }).catch(()=>{});
 }
-function route(){ const h=location.hash.slice(1); st.view=['latest','venues','foundations','search-out','compare','learn','blender','reading'].includes(h)&&!(h==='blender'&&DESK.noBlender)?h:'latest'; st.shown=40; if(st.view!=='latest') st.live=null; render(); }
+function route(){ const h=location.hash.slice(1); st.view=(['latest','venues','foundations','search-out','compare','learn','blender','reading'].includes(h)||XVIEWS.some(v=>v.id===h))&&!(h==='blender'&&DESK.noBlender)?h:'latest'; st.shown=40; if(st.view!=='latest') st.live=null; render(); }
 window.addEventListener('hashchange',route);
 
 // stats
