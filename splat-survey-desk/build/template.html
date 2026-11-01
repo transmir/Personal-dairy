@@ -235,6 +235,26 @@ body.has-tray .layout{padding-bottom:110px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:8px;font-size:14px;z-index:20}
 textarea#bib{width:100%;min-height:160px;font:12px var(--f-mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px;color:var(--ink)}
 a.vbtn{text-decoration:none;color:var(--ink)}
+.asc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.asc-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.asc-card.verify{border-style:dashed}
+.asc-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.asc-h a{font-size:13px;text-decoration:none}
+.asc-y{font:700 22px/1 var(--f-display);color:var(--c-scene)}
+.asc-card h3{margin:0;font:600 15px/1.35 var(--f-body)}
+.asc-dl{display:grid;grid-template-columns:118px minmax(0,1fr);gap:4px 10px;margin:0;font-size:13.5px}
+.asc-dl dt{color:var(--muted);font-weight:500}
+.asc-dl dd{margin:0;overflow-wrap:anywhere}
+.asc-note{margin:0;font-size:13.5px;border-left:3px solid var(--c-scene);padding-left:10px}
+.asc-tech{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.asc-tg{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.asc-tg h3{margin:0 0 6px;font:600 14px var(--f-body);color:var(--c-scene)}
+.asc-tg ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:13.5px}
+.dc-other{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--panel)}
+.dc-other summary{cursor:pointer}
+.dc-fh{margin:14px 0 2px;font:600 15px var(--f-body)}
+.dc-pl{margin:6px 0 0;padding-left:18px;font-size:13.5px;display:flex;flex-direction:column;gap:4px}
+@media (max-width:560px){.asc-grid{grid-template-columns:minmax(0,1fr)}.asc-dl{grid-template-columns:96px minmax(0,1fr)}}
 .railtoggle{display:none}
 .embedded #mark,.embedded .brand{display:none}
 .embedded header.top{padding-block:14px 6px}

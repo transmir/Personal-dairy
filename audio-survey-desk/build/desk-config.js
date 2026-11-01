@@ -106,47 +106,105 @@
     ['bio','Learning to Detect an Animal Sound from Five Examples','Nolasco et al.','Ecological Informatics',2023,'Few-shot bioacoustic event detection task overview.'],
     ['lang','Clotho: An Audio Captioning Dataset','Drossos, Lipping, Virtanen','ICASSP',2020,'Dataset for captioning and retrieval tasks.']
   ];
-  const dcState = { fam: 'all', q: '', live: null, err: '' };
+  // ── Acoustic scene classification in DCASE (main focus of this tab) ──
+  // Curated by hand from the yearly Task 1 pages; each card links its year page for checking details.
+  const ASC_YEARS = [
+    {y:2013, t:'Scene classification (IEEE AASP D-CASE challenge)', data:'DCASE 2013 scenes (London)', cls:'10', clip:'30 s', dev:'Binaural, one recorder', sub:'One task', lim:'None', met:'Accuracy', base:'MFCC + GMM (bag of frames)', note:'Small dataset of 100 recordings. Hand-crafted features with SVM or GMM classifiers led; the results set ASC up as a research problem.'},
+    {y:2016, t:'Task 1 · Acoustic scene classification', data:'TUT Acoustic Scenes 2016', cls:'15', clip:'30 s', dev:'Binaural in-ear microphones, one device', sub:'One task', lim:'None', met:'Accuracy', base:'MFCC + GMM', note:'First DCASE challenge with a large ASC set. Top systems combined i-vectors with CNNs on spectrograms (CP-JKU); CNNs quickly became the default.'},
+    {y:2017, t:'Task 1 · Acoustic scene classification', data:'TUT Acoustic Scenes 2017', cls:'15', clip:'10 s', dev:'One device', sub:'One task', lim:'None', met:'Accuracy', base:'Log-mel + MLP', note:'Shorter clips. CNNs dominated, with GAN-based data augmentation among the top entries; a large drop from development to evaluation data showed overfitting to recording locations.'},
+    {y:2018, t:'Task 1 · Acoustic scene classification', data:'TUT Urban Acoustic Scenes 2018 (+ Mobile)', cls:'10', clip:'10 s', dev:'Device A (high quality) + phones B and C', sub:'1A same device · 1B mismatched devices · 1C external data', lim:'None', met:'Accuracy', base:'Log-mel CNN', note:'First device-mismatch setting: training mostly on device A, testing on phones. Spectrum correction and domain adaptation entered the field.'},
+    {y:2019, t:'Task 1 · Acoustic scene classification', data:'TAU Urban Acoustic Scenes 2019 (+ Mobile, Openset)', cls:'10 (+ unknown in 1C)', clip:'10 s', dev:'Devices A, B, C; 12 cities', sub:'1A · 1B mismatched devices · 1C open set', lim:'None', met:'Accuracy', base:'Log-mel CNN', note:'Receptive-field-regularized CNNs, mixup and large ensembles led. Open-set ASC (rejecting unknown scenes) was introduced.'},
+    {y:2020, t:'Task 1 · Multi-device (1A) and low-complexity (1B) ASC', data:'TAU Urban Acoustic Scenes 2020 Mobile (1A) · TAU Urban Acoustic Scenes 2020 3Class (1B)', cls:'10 (1A) · 3: indoor / outdoor / transportation (1B)', clip:'10 s', dev:'Real devices A, B, C + simulated S1–S6, some unseen in training', sub:'1A multi-device · 1B low-complexity', lim:'1B: model size ≤ 500 KB', met:'Accuracy, multi-class log loss', base:'Embedding / log-mel baselines (see year page)', note:'Generalization to unseen devices became central; first explicit model-size limit. Device augmentation, ResNet variants and ensembles led 1A.'},
+    {y:2021, t:'Task 1 · Low-complexity device-robust ASC (1A) · Audio-visual scenes (1B)', data:'TAU Urban Acoustic Scenes 2020 Mobile (1A) · TAU Urban Audio-Visual Scenes 2021 (1B)', cls:'10', clip:'10 s', dev:'Multi-device (real + simulated)', sub:'1A low-complexity device-robust · 1B audio-visual', lim:'1A: ≤ 128 KB of non-zero parameters', met:'Log loss (primary), accuracy', base:'Log-mel CNN', note:'Efficient design took over: broadcasted residual networks with residual normalization (winning approach), quantization, pruning and knowledge distillation.'},
+    {y:2022, t:'Task 1 · Low-complexity ASC', data:'TAU Urban Acoustic Scenes 2022 Mobile', cls:'10', clip:'1 s', dev:'Multi-device (real + simulated)', sub:'One task', lim:'≤ 128 K parameters and ≤ 30 MMACs', met:'Log loss, accuracy', base:'Small log-mel CNN', note:'Clips cut to 1 second. Knowledge distillation from large transformer teachers (PaSST) into tiny CNNs and frequency-wise device augmentation (Freq-MixStyle) led.'},
+    {y:2023, t:'Task 1 · Low-complexity ASC', data:'TAU Urban Acoustic Scenes 2022 Mobile', cls:'10', clip:'1 s', dev:'Multi-device', sub:'One task', lim:'≤ 128 kB parameter memory and ≤ 30 MMACs', met:'Accuracy, ranked together with model complexity', base:'Small log-mel CNN', note:'Ranking rewarded smaller models. Efficient CNN families (e.g. CP-Mobile), device impulse-response augmentation and distillation from teacher ensembles were common.'},
+    {y:2024, t:'Task 1 · Data-efficient low-complexity ASC', data:'TAU Urban Acoustic Scenes 2022 Mobile, training subsets of 5, 10, 25, 50 and 100 %', cls:'10', clip:'1 s', dev:'Multi-device', sub:'One task, five training-data sizes', lim:'≤ 128 kB parameter memory and ≤ 30 MMACs', met:'Accuracy averaged over the training-data splits', base:'Small log-mel CNN', note:'Focus moved to learning from little labelled data: strong augmentation, pretrained teachers and distillation mattered most on the smallest splits.'},
+    {y:2025, t:'Task 1 · Low-complexity ASC (see year page)', data:'Check the 2025 Task 1 page', cls:'—', clip:'—', dev:'—', sub:'—', lim:'—', met:'—', base:'—', note:'Not curated here yet. Open the year page for the setup, which continues the low-complexity, multi-device line.', verify:true}
+  ];
+  // [group, items]
+  const ASC_TECH = [
+    ['Input features', ['Log-mel spectrograms (most common), sometimes with deltas', 'CQT, gammatone or HPSS-separated channels in earlier years', 'Binaural / stereo channels (L, R, mid, side) when available', 'Pretrained embeddings (OpenL3, PANNs, PaSST) as teachers or features']],
+    ['Architectures', ['CNNs with controlled receptive field (CP-JKU ResNet variants)', 'Broadcasted residual networks (BC-ResNet) and MobileNet-style blocks for low complexity', 'Audio transformers (PaSST, AST) mainly as teachers', 'Ensembles of CNNs in years without complexity limits']],
+    ['Device robustness', ['Spectrum correction and per-device normalization', 'Residual / instance normalization over frequency', 'Freq-MixStyle: mixing frequency-wise statistics between clips', 'Device impulse-response augmentation (convolving with recorded device IRs)']],
+    ['Low complexity', ['Knowledge distillation from large teachers (PaSST ensembles) into small CNNs', 'Post-training quantization to INT8 / 16-bit', 'Pruning and parameter-efficient blocks (depthwise separable, broadcast residual)', 'Counting non-zero parameters, memory (kB) and MACs as the challenge rules define them']],
+    ['Augmentation and training', ['Mixup across clips and scenes', 'SpecAugment-style time and frequency masking', 'Random time shifts, roll and gain', 'Pseudo-labelling and teacher ensembles for data-efficient training']],
+    ['Evaluation', ['Accuracy and multi-class log loss on held-out cities and devices', 'Report results per device, especially unseen devices', 'Report parameters, memory and MACs alongside accuracy', 'Development vs. evaluation gap reveals overfitting to locations']]
+  ];
+  // [kind, title, authors, venue, year, why]
+  const ASC_PAPERS = [
+    ['Overview','Acoustic Scene Classification: Classifying Environments from the Sounds They Produce','Barchiesi, Giannoulis, Stowell, Plumbley','IEEE Signal Processing Magazine',2015,'Classic introduction to ASC and the 2013 challenge.'],
+    ['Overview','Detection and Classification of Acoustic Scenes and Events','Stowell, Giannoulis, Benetos, Lagrange, Plumbley','IEEE Trans. Multimedia',2015,'Outcome of the 2013 challenge.'],
+    ['Dataset','TUT Database for Acoustic Scene Classification and Sound Event Detection','Mesaros, Heittola, Virtanen','EUSIPCO',2016,'TUT Acoustic Scenes 2016 dataset paper.'],
+    ['Overview','Detection and Classification of Acoustic Scenes and Events: Outcome of the DCASE 2016 Challenge','Mesaros et al.','IEEE/ACM TASLP',2018,'Overview of DCASE 2016 including Task 1.'],
+    ['Overview','Acoustic Scene Classification: An Overview of DCASE 2017 Challenge Entries','Mesaros, Heittola, Virtanen','IWAENC',2018,'What worked in 2017 Task 1.'],
+    ['Dataset','A Multi-Device Dataset for Urban Acoustic Scene Classification','Mesaros, Heittola, Virtanen','DCASE Workshop',2018,'TUT Urban Acoustic Scenes 2018 and the device-mismatch setup.'],
+    ['Overview','Acoustic Scene Classification in DCASE 2019 Challenge: Closed and Open Set Classification and Data Mismatch Setups','Mesaros, Heittola, Virtanen','DCASE Workshop',2019,'Task 1 overview 2019.'],
+    ['Method','Receptive-Field-Regularized CNN Variants for Acoustic Scene Classification','Koutini, Eghbal-zadeh, Widmer','DCASE Workshop',2019,'Top 2019 approach; receptive field as a key design choice.'],
+    ['Method','Receptive Field Regularization Techniques for Audio Classification and Tagging with Deep Convolutional Neural Networks','Koutini, Eghbal-zadeh, Widmer','IEEE/ACM TASLP',2021,'Journal version with full analysis.'],
+    ['Overview','Acoustic Scene Classification in DCASE 2020 Challenge: Generalization Across Devices and Low Complexity Solutions','Heittola, Mesaros, Virtanen','DCASE Workshop',2020,'Task 1 overview 2020: unseen devices and model-size limits.'],
+    ['Review','A Review of Deep Learning Based Methods for Acoustic Scene Classification','Abeßer','Applied Sciences',2020,'Survey of deep ASC methods up to 2020; useful structure for your own survey.'],
+    ['Dataset','A Curated Dataset of Urban Scenes for Audio-Visual Scene Analysis','Wang, Mesaros, Heittola, Virtanen','ICASSP',2021,'TAU Urban Audio-Visual Scenes 2021 (Task 1B).'],
+    ['Overview','Low-Complexity Acoustic Scene Classification for Multi-Device Audio: Analysis of DCASE 2021 Challenge Systems','Martín-Morató, Heittola, Mesaros, Virtanen','DCASE Workshop',2021,'Task 1A 2021 analysis: what made small models work.'],
+    ['Method','Domain Generalization on Efficient Acoustic Scene Classification Using Residual Normalization','Kim, Yang, Chang, Park, Lee','DCASE Workshop',2021,'Residual normalization + BC-ResNet, the 2021 winning approach.'],
+    ['Method','Broadcasted Residual Learning for Efficient Keyword Spotting','Kim, Chang, Lee, Sung','Interspeech',2021,'BC-ResNet block widely reused in low-complexity ASC.'],
+    ['Overview','Low-Complexity Acoustic Scene Classification in DCASE 2022 Challenge','Martín-Morató et al.','DCASE Workshop',2022,'Task 1 overview 2022 (1-second clips, MAC limits).'],
+    ['Method','Efficient Large-Scale Audio Tagging via Transformer-to-CNN Knowledge Distillation','Schmid, Koutini, Widmer','ICASSP',2023,'Transformer-to-CNN distillation recipe used by top ASC systems.'],
+    ['Method','Device-Robust Acoustic Scene Classification via Impulse Response Augmentation','Morocutti, Schmid, Koutini, Widmer','EUSIPCO',2023,'Device impulse-response augmentation for unseen devices.'],
+    ['Method','Distilling the Knowledge of Transformers and CNNs with CP-Mobile','Schmid, Morocutti, Masoudian, Koutini, Widmer','DCASE Workshop',2023,'CP-Mobile architecture and distillation for 2023 limits.'],
+    ['Overview','Data-Efficient Low-Complexity Acoustic Scene Classification in the DCASE 2024 Challenge','Schmid et al.','DCASE Workshop',2024,'Task 1 overview 2024: learning from 5–100 % of the training data.']
+  ];
+  const dcState = { q: '', live: null, err: '', yr: 0 };
   function dcRender(c) {
-    const e = c.esc, fams = dcState.fam === 'all' ? FAM : FAM.filter(f => f[0] === dcState.fam);
-    const q = dcState.q.trim().toLowerCase();
-    const hit = r => !q || r.join(' ').toLowerCase().includes(q);
-    const inDesk = c.P.filter(p => /dcase/i.test(p.t + ' ' + p.ab + ' ' + (p.v || []).join(' '))).length;
-    let h = `<section class="panel live"><h2>DCASE challenge</h2>
-      <p>The DCASE challenge (Detection and Classification of Acoustic Scenes and Events) runs yearly tasks with shared datasets, baselines and metrics, and a workshop where the task overviews and many systems are published. For a survey, the task overview papers, the datasets and the top-ranked technical reports are the standard citations.</p>
+    const e = c.esc, q = dcState.q.trim().toLowerCase();
+    const hit = r => !q || JSON.stringify(r).toLowerCase().includes(q);
+    const years = ASC_YEARS.filter(hit), paps = ASC_PAPERS.filter(hit), tech = ASC_TECH.filter(hit);
+    const ascInDesk = c.P.filter(p => /acoustic scene/i.test(p.t + ' ' + p.ab)).length;
+    let h = `<section class="panel live"><h2>DCASE · Acoustic scene classification</h2>
+      <p>Acoustic scene classification (ASC) is DCASE Task 1 and has run in every edition since 2013. A recording is labelled with the place it was made, such as an airport, metro station, park or shopping mall. Each year added a new difficulty: mismatched recording devices (2018–2019), unseen devices and model-size limits (2020), low-complexity models (2021–2023), and learning from little labelled data (2024).</p>
       <div class="row"><a class="btn" href="${DC}" target="_blank" rel="noopener">dcase.community ↗</a>
-        <a class="btn" href="https://github.com/DCASE-REPO" target="_blank" rel="noopener">DCASE baselines on GitHub ↗</a>
-        <a class="btn" href="${SITE('results technical reports')}" target="_blank" rel="noopener">Results and technical reports ↗</a>
-        <button class="btn" data-dc="desk">${inDesk} desk paper${inDesk === 1 ? '' : 's'} mention${inDesk === 1 ? 's' : ''} DCASE</button></div>
-      <div class="row" style="margin-top:6px">${[2013,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026].map(y => `<a class="vbtn" href="${DC}challenge${y}/" target="_blank" rel="noopener">${y} ↗</a>`).join('')}</div>
-      <p class="note">Task list curated from the official challenge pages up to 2024; for 2025 onward, open the year page. Metrics and datasets are the main ones per task. Check the year page before citing details.</p></section>
-      <div class="searchbar"><input type="search" id="dcq" placeholder="Filter tasks and papers, e.g. “DESED”, “low-complexity”, “2022”" value="${e(dcState.q)}" aria-label="Filter DCASE tasks"></div>
-      <div class="venuebar">${[['all', 'All task families']].concat(FAM.map(f => [f[0], f[1]])).map(([k, l]) => `<button class="vbtn" data-dcf="${k}" aria-pressed="${dcState.fam === k}">${e(l)}<span class="ct">${k === 'all' ? TASKS.length : TASKS.filter(t => t[2] === k).length}</span></button>`).join('')}</div>`;
-    fams.forEach(f => {
-      const rows = TASKS.filter(t => t[2] === f[0] && hit(t)).sort((a, b) => a[0] - b[0]);
-      const pap = DPAPERS.filter(p => p[0] === f[0] && hit(p));
-      if (!rows.length && !pap.length) return;
-      h += `<section class="sec"><h2>${e(f[1])}</h2><p class="note">${e(f[2])}</p>`;
-      if (rows.length) h += `<div class="tablebox"><table class="found"><thead><tr><th>Year</th><th>Task</th><th>Dataset</th><th>Main metric</th><th>Find papers</th></tr></thead><tbody>${rows.map(r => `<tr><td class="yr"><a href="${DC}challenge${r[0]}/" target="_blank" rel="noopener">${r[0]}</a></td><td><b>${r[1] === '—' ? '' : 'Task ' + r[1] + ' · '}</b>${e(r[3])}</td><td>${e(r[4])}</td><td class="vn">${e(r[5])}</td><td><a href="${SITE('challenge' + r[0] + ' ' + r[3])}" target="_blank" rel="noopener">DCASE site</a> · <a href="https://scholar.google.com/scholar?q=${encodeURIComponent('DCASE ' + r[0] + ' ' + r[3])}" target="_blank" rel="noopener">Scholar</a></td></tr>`).join('')}</tbody></table></div>`;
-      if (pap.length) h += `<p class="lab" style="margin-top:6px">Key papers</p><div class="lgrid">${pap.map(p => `<div class="litem"><div style="min-width:0"><a class="ltitle" href="${SCH(p[1])}" target="_blank" rel="noopener">${e(p[1])} ↗</a><div class="p-auth">${e(p[2])}</div><div class="chips"><span class="chip venue">${e(p[3])} ${p[4]}</span></div><p class="lwhy">${e(p[5])}</p></div></div>`).join('')}</div>`;
-      h += '</section>';
-    });
-    h += `<section class="sec"><div class="x-h"><h2>DCASE papers on arXiv</h2><button class="btn primary" id="dcLive">${dcState.live ? 'Refresh' : 'Load newest'}</button></div>
-      <p class="note">Newest arXiv papers that mention DCASE in the title, abstract or comments (often challenge systems and workshop papers), through your diary backend.</p>
+        <a class="btn" href="https://github.com/DCASE-REPO" target="_blank" rel="noopener">Official baselines on GitHub ↗</a>
+        <a class="btn" href="${SITE('task1 acoustic scene classification results')}" target="_blank" rel="noopener">Task 1 results and technical reports ↗</a>
+        <button class="btn" data-dc="desk">${ascInDesk} desk paper${ascInDesk === 1 ? '' : 's'} on acoustic scenes</button></div>
+      <p class="note">Curated by hand from the Task 1 pages, 2013–2024. Each card links its year page; check details there before citing.</p></section>
+      <div class="searchbar"><input type="search" id="dcq" placeholder="Filter, e.g. “device”, “128”, “distillation”, “2022”" value="${e(dcState.q)}" aria-label="Filter the DCASE tab"></div>`;
+    // timeline strip
+    h += `<div class="venuebar">${ASC_YEARS.map(a => `<button class="vbtn" data-dcy="${a.y}" aria-pressed="${dcState.yr === a.y}">${a.y}</button>`).join('')}<button class="vbtn" data-dcy="0" aria-pressed="${!dcState.yr}">All years</button></div>`;
+    const shown = years.filter(a => !dcState.yr || a.y === dcState.yr);
+    if (shown.length) h += `<section class="sec"><h2>Task 1 edition by edition</h2><div class="asc-grid">${shown.map(a => `<article class="asc-card${a.verify ? ' verify' : ''}">
+        <div class="asc-h"><span class="asc-y">${a.y}</span><a href="${DC}challenge${a.y}/" target="_blank" rel="noopener">year page ↗</a></div>
+        <h3>${e(a.t)}</h3>
+        <dl class="asc-dl"><dt>Dataset</dt><dd>${e(a.data)}</dd><dt>Classes</dt><dd>${e(a.cls)}</dd><dt>Clip length</dt><dd>${e(a.clip)}</dd><dt>Devices</dt><dd>${e(a.dev)}</dd><dt>Subtasks</dt><dd>${e(a.sub)}</dd><dt>Complexity limit</dt><dd>${e(a.lim)}</dd><dt>Metric</dt><dd>${e(a.met)}</dd><dt>Baseline</dt><dd>${e(a.base)}</dd></dl>
+        <p class="asc-note">${e(a.note)}</p>
+        <div class="links"><a href="${SITE('challenge' + a.y + ' task1 acoustic scene classification')}" target="_blank" rel="noopener">Task page and reports</a><a href="https://scholar.google.com/scholar?q=${encodeURIComponent('DCASE ' + a.y + ' acoustic scene classification')}" target="_blank" rel="noopener">Scholar</a></div>
+      </article>`).join('')}</div></section>`;
+    if (tech.length) h += `<section class="sec"><h2>What works in DCASE ASC</h2><p class="note">Techniques that recur in top-ranked Task 1 systems, grouped the way a survey section could be.</p><div class="asc-tech">${tech.map(g => `<div class="asc-tg"><h3>${e(g[0])}</h3><ul>${g[1].map(x => `<li>${e(x)}</li>`).join('')}</ul></div>`).join('')}</div></section>`;
+    if (paps.length) h += `<section class="sec"><h2>ASC papers to cite</h2><p class="note">Dataset papers, yearly task overviews, winning systems and the methods they built on. Titles open Google Scholar.</p><div class="lgrid">${paps.sort((a, b) => a[4] - b[4]).map(p => `<div class="litem"><div style="min-width:0"><a class="ltitle" href="${SCH(p[1])}" target="_blank" rel="noopener">${e(p[1])} ↗</a><div class="p-auth">${e(p[2])}</div><div class="chips"><span class="chip venue">${e(p[3])} ${p[4]}</span><span class="chip date">${e(p[0])}</span></div><p class="lwhy">${e(p[5])}</p></div></div>`).join('')}</div></section>`;
+    h += `<section class="sec"><div class="x-h"><h2>Newest ASC papers on arXiv</h2><button class="btn primary" id="dcLive">${dcState.live ? 'Refresh' : 'Load newest'}</button></div>
+      <p class="note">Newest arXiv papers on acoustic scene classification, through your diary backend. Papers that mention DCASE are listed first.</p>
       <div class="status" id="dcStatus">${e(dcState.err)}</div><div id="dcList">${dcState.live ? (dcState.live.length ? '<div class="list">' + dcState.live.slice(0, 60).map(p => c.card(p)).join('') + '</div>' : '<div class="empty">No papers found.</div>') : ''}</div></section>`;
+    // other DCASE tasks, collapsed
+    const other = TASKS.filter(t => t[2] !== 'asc' && hit(t)), otherP = DPAPERS.filter(p => p[0] !== 'asc' && hit(p));
+    h += `<details class="sec dc-other"${q ? ' open' : ''}><summary><h2 style="display:inline">Other DCASE tasks</h2> <span class="note">${other.length} tasks · sound events, localization, anomalous sounds, tagging, bioacoustics, captioning</span></summary>
+      ${FAM.filter(f => f[0] !== 'asc').map(f => { const rows = other.filter(t => t[2] === f[0]).sort((a, b) => a[0] - b[0]), pp = otherP.filter(p => p[0] === f[0]); if (!rows.length && !pp.length) return '';
+        return `<h3 class="dc-fh">${e(f[1])}</h3><p class="note">${e(f[2])}</p>` +
+          (rows.length ? `<div class="tablebox"><table class="found"><thead><tr><th>Year</th><th>Task</th><th>Dataset</th><th>Main metric</th></tr></thead><tbody>${rows.map(r => `<tr><td class="yr"><a href="${DC}challenge${r[0]}/" target="_blank" rel="noopener">${r[0]}</a></td><td><b>${r[1] === '—' ? '' : 'Task ' + r[1] + ' · '}</b>${e(r[3])}</td><td>${e(r[4])}</td><td class="vn">${e(r[5])}</td></tr>`).join('')}</tbody></table></div>` : '') +
+          (pp.length ? `<ul class="dc-pl">${pp.map(p => `<li><a href="${SCH(p[1])}" target="_blank" rel="noopener">${e(p[1])}</a> <span class="note">${e(p[2])} · ${e(p[3])} ${p[4]}</span></li>`).join('')}</ul>` : ''); }).join('')}
+    </details>`;
     return h;
   }
   async function dcLoad(c, force) {
     const s = document.getElementById('dcStatus');
     if (!c.hasBackend()) { dcState.err = 'Live search needs the diary backend; open this desk from the diary site.'; if (s) s.textContent = dcState.err; return; }
-    if (!force) { try { const x = JSON.parse(localStorage.getItem(c.SP + 'dcase') || 'null'); if (x && Date.now() - x.at < 6 * 3600e3) { dcState.live = x.items; x.items.forEach(p => c.BYID.set(p.i, p)); c.render(); return; } } catch (e) {} }
-    if (s) s.textContent = 'Loading DCASE papers from arXiv…';
+    if (!force) { try { const x = JSON.parse(localStorage.getItem(c.SP + 'dcase-asc') || 'null'); if (x && Date.now() - x.at < 6 * 3600e3) { dcState.live = x.items; x.items.forEach(p => c.BYID.set(p.i, p)); c.render(); return; } } catch (e) {} }
+    if (s) s.textContent = 'Loading acoustic scene classification papers from arXiv…';
     try {
-      const items = await c.backendArxiv('abs:DCASE OR ti:DCASE OR co:DCASE', 100, 0);
-      items.forEach(p => { p.k = p.k && p.k.length ? p.k : []; c.BYID.set(p.i, p); });
-      dcState.live = items; dcState.err = items.length + (items.length === 1 ? ' paper' : ' papers') + ' · fetched ' + new Date().toLocaleString();
-      try { localStorage.setItem(c.SP + 'dcase', JSON.stringify({ at: Date.now(), items })); } catch (e) {}
-    } catch (e) { dcState.err = 'Could not load DCASE papers: ' + e.message; }
+      let items = await c.backendArxiv('abs:"acoustic scene" OR ti:"acoustic scene"', 150, 0);
+      const dc = p => /dcase/i.test(p.t + ' ' + p.ab + ' ' + (p.v || []).join(' '));
+      items = items.filter(dc).concat(items.filter(p => !dc(p)));
+      items.forEach(p => { if (dc(p) && !(p.v || []).some(v => /DCASE/i.test(v))) p.v = (p.v || []).concat('DCASE'); c.BYID.set(p.i, p); });
+      dcState.live = items; dcState.err = items.length + (items.length === 1 ? ' paper' : ' papers') + ' (' + items.filter(dc).length + ' mention DCASE) · fetched ' + new Date().toLocaleString();
+      try { localStorage.setItem(c.SP + 'dcase-asc', JSON.stringify({ at: Date.now(), items })); } catch (e) {}
+    } catch (e) { dcState.err = 'Could not load papers: ' + e.message; }
     c.render();
   }
 
@@ -168,11 +226,11 @@
     listLabel: 'Live from arXiv, newest first',
     noLiveChip: true,
     storePrefix: 'acd-',
-    views: [{ id: 'dcase', label: 'DCASE challenge', render: dcRender, bind: c => {
+    views: [{ id: 'dcase', label: 'DCASE · scenes', render: dcRender, bind: c => {
       const q = document.getElementById('dcq');
       if (q) { q.addEventListener('input', () => { dcState.q = q.value; clearTimeout(dcState.t); dcState.t = setTimeout(() => { const pos = q.selectionStart; c.render(); const n = document.getElementById('dcq'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } }, 250); }); }
-      document.querySelectorAll('[data-dcf]').forEach(b => b.onclick = () => { dcState.fam = b.dataset.dcf; c.render(); });
-      const d = document.querySelector('[data-dc="desk"]'); if (d) d.onclick = () => c.go('latest', 'DCASE');
+      document.querySelectorAll('[data-dcy]').forEach(b => b.onclick = () => { dcState.yr = +b.dataset.dcy; c.render(); });
+      const d = document.querySelector('[data-dc="desk"]'); if (d) d.onclick = () => c.go('latest', 'acoustic scene');
       const l = document.getElementById('dcLive'); if (l) l.onclick = () => dcLoad(c, true);
       if (!dcState.live && !dcState.tried) { dcState.tried = true; dcLoad(c, false); }
     } }],
